@@ -88,11 +88,15 @@ nav#TOC ul li {
 }
 
 nav#TOC ul li a {
-    text-decoration: none;
-    color: var(--text-color);
+    text-decoration: underline;
+    color: inherit; /* Inherit the color from the parent element */
 }
 
-nav#TOC ul li a:hover {
+nav#TOC ul li a:visited {
+    color: inherit;
+}
+
+nav#TOC ul li a:hover, nav#TOC ul li a:focus {
     text-decoration: underline;
 }
 
@@ -111,4 +115,17 @@ footer {
     text-align: center;
     margin-top: 40px;
     color: var(--text-color-alt);
+}
+
+footer a {
+    text-decoration: underline;
+    color: inherit; /* Inherit the color from the parent element */
+}
+
+footer a:visited {
+    color: inherit;
+}
+
+footer a:hover, footer a:focus {
+    text-decoration: underline;
 }
