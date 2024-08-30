@@ -14,10 +14,10 @@
             --text-color-alt: #666;
             --background-color: #fff;
             --background-color-alt: #eee;
+            --grid-color: #e0e0e0;
             --font-weight-normal: 500;
             --font-weight-medium: 600;
             --font-weight-bold: 800;
-            --grid-background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"%3E%3Cg fill="none"%3E%3Cpath stroke="%23d0d0d0" d="M5 .5v9M.5 5h9"/%3E%3C/g%3E%3C/svg%3E') 0 0 / 20px 20px;
         }
 
         body {
@@ -29,7 +29,25 @@
             margin: 0;
             max-width: 1000px;
             margin: 0 auto;
-            background-image: var(--grid-background);
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 20px 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.dark-mode {
+            --text-color: #fff;
+            --text-color-alt: #aaa;
+            --background-color: #222;
+            --background-color-alt: #333;
+            --grid-color: #333;
+        }
+
+        .dark-mode {
+            position: absolute;
+            top: 10px;
+            right: 10px;
         }
 
         h1, h2, h3, h4, h5, h6 {
@@ -95,6 +113,29 @@
         .debug-toggle-label input {
             margin-left: 5px;
         }
+
+        .content-container, .chat-container {
+            background-color: var(--background-color);
+            border: 1px solid var(--text-color-alt);
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .info-table td {
+            border-color: var(--text-color-alt);
+            transition: border-color 0.3s;
+        }
+
+        .chat-input textarea, .chat-input button {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            border-color: var(--text-color-alt);
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        .mac-commands {
+            color: var(--text-color-alt);
+            transition: color 0.3s;
+        }
     </style>
 </head>
 <body>
@@ -118,6 +159,13 @@
             <td>MIT</td>
         </tr>
     </table>
+
+    <div class="dark-mode">
+        <label>
+            Dark mode
+            <input type="checkbox" id="darkModeToggle">
+        </label>
+    </div>
 
     <label class="debug-toggle-label">
         Debug mode
@@ -148,5 +196,13 @@
     <footer style="font-size: 0.8rem; text-align: center; margin-top: 40px; color: var(--text-color-alt);">
         <p>Special thanks to <a href="https://wickstrom.tech" style="color: inherit; text-decoration: underline;">Oskar Wickström</a> for this <a href="https://github.com/owickstrom/the-monospace-web" style="color: inherit; text-decoration: underline;">monospace design</a>.</p>
     </footer>
+
+    <script>
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        
+        darkModeToggle.addEventListener('change', () => {
+            document.body.classList.toggle('dark-mode');
+        });
+    </script>
 </body>
 </html>
