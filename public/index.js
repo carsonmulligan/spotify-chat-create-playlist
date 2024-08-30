@@ -35,6 +35,7 @@ chatForm.addEventListener('submit', async (e) => {
     userInput.value = '';
 
     try {
+        console.log('Sending chat request');
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: {
@@ -43,12 +44,15 @@ chatForm.addEventListener('submit', async (e) => {
             body: JSON.stringify({ message: userMessage }),
         });
 
+        console.log('Received response:', response);
+
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(`API request failed: ${errorData.error || response.statusText}`);
         }
 
         const data = await response.json();
+        console.log('Parsed response data:', data);
         chatOutput.innerHTML += `<p><strong>Assistant:</strong> ${data.message}</p>`;
     } catch (error) {
         console.error('Error:', error);

@@ -40,22 +40,28 @@ app.get('/api/git-info', async (req, res) => {
 });
 
 app.post('/api/chat', async (req, res) => {
+  console.log('Received chat request:', req.body);
   try {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY is not set in the .env file.');
+    }
+
     console.log('Sending request to OpenAI');
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4",  // Changed from "gpt-4o" to "gpt-4"
       messages: [
         { role: "system", content: "You are a helpful assistant." },
         { role: "user", content: req.body.message },
       ],
     });
 
-    console.log('Received response from OpenAI');
+    console.log('Received response from OpenAI:', completion.choices[0].message);
     res.json({ message: completion.choices[0].message.content });
   } catch (error) {
-    console.error('OpenAI API Error:', error.response ? error.response.data : error.message);
-    if (error.response && error.response.status === 401) {
-      res.status(401).json({ error: 'Invalid API key. Please check your .env file.' });
+    console.error('OpenAI API Error:', error);
+    if (error.response) {
+      console.error('Error data:', error.response.data);
+      res.status(error.response.status).json({ error: error.response.data.error.message });
     } else {
       res.status(500).json({ error: 'An error occurred while processing your request.', details: error.message });
     }
@@ -67,5 +73,6 @@ app.listen(port, () => {
     console.error('OPENAI_API_KEY is not set in the .env file. Please add it and restart the server.');
   } else {
     console.log(`Server running at http://localhost:${port}`);
+    console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY.substring(0, 5) + '...');
   }
 });
