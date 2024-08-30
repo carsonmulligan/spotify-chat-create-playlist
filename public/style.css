@@ -129,3 +129,36 @@ footer a:visited {
 footer a:hover, footer a:focus {
     text-decoration: underline;
 }
+
+#chat-interface {
+    margin-top: 20px;
+}
+
+#chat-form {
+    display: flex;
+    flex-direction: column;
+}
+
+#user-input {
+    font-family: var(--font-family);
+    padding: 10px;
+    margin-bottom: 10px;
+    border: var(--border-thickness) solid var(--text-color);
+}
+
+#chat-form button {
+    font-family: var(--font-family);
+    padding: 10px;
+    background-color: var(--background-color-alt);
+    border: var(--border-thickness) solid var(--text-color);
+    cursor: pointer;
+}
+
+#chat-output {
+    margin-top: 20px;
+    border: var(--border-thickness) solid var(--text-color);
+    padding: 10px;
+    min-height: 200px;
+    max-height: 400px;
+    overflow-y: auto;
+}
