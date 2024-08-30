@@ -1,0 +1,114 @@
+:root {
+    --font-family: "JetBrains Mono", monospace;
+    --line-height: 1.2rem;
+    --border-thickness: 2px;
+    --text-color: #000;
+    --text-color-alt: #666;
+    --background-color: #fff;
+    --background-color-alt: #eee;
+    --grid-color: #e0e0e0;
+    --font-weight-normal: 500;
+    --font-weight-medium: 600;
+    --font-weight-bold: 800;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: var(--line-height);
+    padding: 20px;
+    margin: 0;
+    max-width: 1000px;
+    margin: 0 auto;
+    background-image: 
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 20px 20px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode {
+    --text-color: #fff;
+    --text-color-alt: #aaa;
+    --background-color: #222;
+    --background-color-alt: #333;
+    --grid-color: #333;
+}
+
+.dark-mode-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: var(--font-weight-bold);
+    margin: 20px 0 10px;
+}
+
+h1 {
+    font-size: 2rem;
+    text-transform: uppercase;
+}
+
+h2 {
+    font-size: 1rem;
+    text-transform: uppercase;
+}
+
+p {
+    margin: 10px 0;
+}
+
+table.header {
+    width: 100%;
+    margin-bottom: 20px;
+    border-collapse: collapse;
+}
+
+table.header th, table.header td {
+    border: var(--border-thickness) solid var(--text-color);
+    padding: 5px;
+    vertical-align: top;
+}
+
+table.header th {
+    text-align: left;
+    font-weight: var(--font-weight-medium);
+}
+
+nav#TOC ul {
+    padding: 0;
+    list-style-type: none;
+}
+
+nav#TOC ul li {
+    margin-bottom: 5px;
+}
+
+nav#TOC ul li a {
+    text-decoration: none;
+    color: var(--text-color);
+}
+
+nav#TOC ul li a:hover {
+    text-decoration: underline;
+}
+
+.debug-toggle-label {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.debug-toggle-label input {
+    margin-left: 5px;
+}
+
+footer {
+    font-size: 0.8rem;
+    text-align: center;
+    margin-top: 40px;
+    color: var(--text-color-alt);
+}
