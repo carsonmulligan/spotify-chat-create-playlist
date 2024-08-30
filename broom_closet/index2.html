@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Monospace Web</title>
+    <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/jetbrains-mono-2">
+    <style>
+        :root {
+            --font-family: "JetBrains Mono", monospace;
+            --line-height: 1.2rem;
+            --border-thickness: 2px;
+            --text-color: #000;
+            --text-color-alt: #666;
+            --background-color: #fff;
+            --background-color-alt: #eee;
+            --grid-color: #e0e0e0;
+            --font-weight-normal: 500;
+            --font-weight-medium: 600;
+            --font-weight-bold: 800;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: var(--line-height);
+            padding: 20px;
+            margin: 0;
+            max-width: 1000px;
+            margin: 0 auto;
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 20px 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.dark-mode {
+            --text-color: #fff;
+            --text-color-alt: #aaa;
+            --background-color: #222;
+            --background-color-alt: #333;
+            --grid-color: #333;
+        }
+
+        .dark-mode {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: var(--font-weight-bold);
+            margin: 20px 0 10px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            font-size: 1rem;
+            text-transform: uppercase;
+        }
+
+        p {
+            margin: 10px 0;
+        }
+
+        table.header {
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+        }
+
+        table.header th, table.header td {
+            border: var(--border-thickness) solid var(--text-color);
+            padding: 5px;
+            vertical-align: top;
+        }
+
+        table.header th {
+            text-align: left;
+            font-weight: var(--font-weight-medium);
+        }
+
+        nav#TOC ul {
+            padding: 0;
+            list-style-type: none;
+        }
+
+        nav#TOC ul li {
+            margin-bottom: 5px;
+        }
+
+        nav#TOC ul li a {
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        nav#TOC ul li a:hover {
+            text-decoration: underline;
+        }
+
+        .debug-toggle-label {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .debug-toggle-label input {
+            margin-left: 5px;
+        }
+
+        .content-container, .chat-container {
+            background-color: var(--background-color);
+            border: 1px solid var(--text-color-alt);
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .info-table td {
+            border-color: var(--text-color-alt);
+            transition: border-color 0.3s;
+        }
+
+        .chat-input textarea, .chat-input button {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            border-color: var(--text-color-alt);
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        .mac-commands {
+            color: var(--text-color-alt);
+            transition: color 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <table class="header">
+        <tr>
+            <td colspan="2" rowspan="2" class="width-auto">
+                <h1>The Monospace Web</h1>
+                <span>A minimalist design exploration</span>
+            </td>
+            <th>Version</th>
+            <td class="width-min">v0.1.1</td>
+        </tr>
+        <tr>
+            <th>Updated</th>
+            <td class="width-min"><time>2024-08-26</time></td>
+        </tr>
+        <tr>
+            <th>Author</th>
+            <td class="width-auto"><a href="https://wickstrom.tech"><cite>Oskar Wickström</cite></a></td>
+            <th>License</th>
+            <td>MIT</td>
+        </tr>
+    </table>
+
+    <div class="dark-mode">
+        <label>
+            Dark mode
+            <input type="checkbox" id="darkModeToggle">
+        </label>
+    </div>
+
+    <label class="debug-toggle-label">
+        Debug mode
+        <input type="checkbox" class="debug-toggle">
+    </label>
+
+    <nav id="TOC" role="doc-toc">
+        <h2>Contents</h2>
+        <ul>
+            <li><a href="#introduction">Introduction</a></li>
+            <li><a href="#the-basics">The Basics</a></li>
+            <li><a href="#lists">Lists</a></li>
+            <li><a href="#tables">Tables</a></li>
+            <li><a href="#forms">Forms</a></li>
+            <li><a href="#grids">Grids</a></li>
+            <li><a href="#ascii-drawings">ASCII Drawings</a></li>
+            <li><a href="#media">Media</a></li>
+            <li><a href="#discussion">Discussion</a></li>
+        </ul>
+    </nav>
+
+    <h2 id="introduction">Introduction</h2>
+    <p>Monospace fonts are dear to many of us. Some find them more readable, consistent, and beautiful, than their proportional alternatives...</p>
+    <!-- Continue with the rest of your content -->
+
+    <script src="index.js"></script>
+
+    <footer style="font-size: 0.8rem; text-align: center; margin-top: 40px; color: var(--text-color-alt);">
+        <p>Special thanks to <a href="https://wickstrom.tech" style="color: inherit; text-decoration: underline;">Oskar Wickström</a> for this <a href="https://github.com/owickstrom/the-monospace-web" style="color: inherit; text-decoration: underline;">monospace design</a>.</p>
+    </footer>
+
+    <script>
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        
+        darkModeToggle.addEventListener('change', () => {
+            document.body.classList.toggle('dark-mode');
+        });
+    </script>
+</body>
+</html>
