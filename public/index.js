@@ -29,10 +29,6 @@ chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const userMessage = userInput.value.trim();
     if (!userMessage) return;
-    if (!apiKey) {
-        chatOutput.innerHTML += `<p><strong>Error:</strong> Please set your OpenAI API Key first.</p>`;
-        return;
-    }
 
     // Display user message
     chatOutput.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
@@ -43,19 +39,19 @@ chatForm.addEventListener('submit', async (e) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-API-Key': apiKey
             },
             body: JSON.stringify({ message: userMessage }),
         });
 
         if (!response.ok) {
-            throw new Error('API request failed');
+            const errorData = await response.json();
+            throw new Error(`API request failed: ${errorData.error || response.statusText}`);
         }
 
         const data = await response.json();
         chatOutput.innerHTML += `<p><strong>Assistant:</strong> ${data.message}</p>`;
     } catch (error) {
         console.error('Error:', error);
-        chatOutput.innerHTML += `<p><strong>Error:</strong> Failed to get a response. Please try again.</p>`;
+        chatOutput.innerHTML += `<p><strong>Error:</strong> ${error.message}</p>`;
     }
 });

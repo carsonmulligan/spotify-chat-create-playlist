@@ -12,5 +12,6 @@
     "openai": "^4.57.0"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "type": "module"
 }
