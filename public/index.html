@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>chat-spot-dot-dev</title>
+    <title>chat-spot-dev</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -28,11 +28,12 @@
     <!-- GPT-4o mini chat section -->
     <h2 id="gpt4o-mini-chat">GPT-4o Mini Chat</h2>
     <div id="chat-interface">
+        <div id="chat-output"></div>
         <form id="chat-form">
             <textarea id="user-input" rows="4" placeholder="Enter your message here..."></textarea>
             <button type="submit">Send</button>
         </form>
-        <div id="chat-output"></div>
+        <button id="clear-chat">Clear Chat</button>
     </div>
 
     <footer>

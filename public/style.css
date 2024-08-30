@@ -158,7 +158,15 @@ footer a:hover, footer a:focus {
     margin-top: 20px;
     border: var(--border-thickness) solid var(--text-color);
     padding: 10px;
-    min-height: 200px;
-    max-height: 400px;
+    height: 300px;
     overflow-y: auto;
+}
+
+#clear-chat {
+    margin-top: 10px;
+    font-family: var(--font-family);
+    padding: 5px 10px;
+    background-color: var(--background-color-alt);
+    border: var(--border-thickness) solid var(--text-color);
+    cursor: pointer;
 }

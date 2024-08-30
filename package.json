@@ -4,7 +4,8 @@
   "description": "A simple web app to create Spotify playlists by chatting with GPT-4o mini.",
   "main": "app.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test-api": "node test-api-key.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

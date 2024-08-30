@@ -34,6 +34,11 @@ chatForm.addEventListener('submit', async (e) => {
     chatOutput.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
     userInput.value = '';
 
+    // Display loading message
+    const loadingElement = document.createElement('p');
+    loadingElement.innerHTML = '<strong>Assistant:</strong> Thinking...';
+    chatOutput.appendChild(loadingElement);
+
     try {
         console.log('Sending chat request');
         const response = await fetch('/api/chat', {
@@ -53,11 +58,21 @@ chatForm.addEventListener('submit', async (e) => {
 
         const data = await response.json();
         console.log('Parsed response data:', data);
+        
+        // Remove loading message
+        loadingElement.remove();
+        
+        // Display assistant's response
         chatOutput.innerHTML += `<p><strong>Assistant:</strong> ${data.message}</p>`;
     } catch (error) {
         console.error('Error:', error);
+        // Remove loading message
+        loadingElement.remove();
         chatOutput.innerHTML += `<p><strong>Error:</strong> ${error.message}</p>`;
     }
+
+    // Scroll to the bottom of the chat output
+    chatOutput.scrollTop = chatOutput.scrollHeight;
 });
 
 // Fetch git info
@@ -72,3 +87,9 @@ fetch('/api/git-info')
     document.getElementById('version').textContent = 'Unknown';
     document.getElementById('updated').textContent = 'Unknown';
   });
+
+// Add this at the end of the file
+const clearChatButton = document.getElementById('clear-chat');
+clearChatButton.addEventListener('click', () => {
+    chatOutput.innerHTML = '';
+});
