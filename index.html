@@ -136,12 +136,6 @@
             color: var(--text-color-alt);
             transition: color 0.3s;
         }
-
-        /* Hide the dark mode and debug mode toggles from view */
-        .hidden-toggles {
-            display: none; /* This completely removes the elements from layout */
-            /* Alternatively, use visibility: hidden; to keep the layout intact but hide the elements */
-        }
     </style>
 </head>
 <body>
@@ -166,27 +160,11 @@
         </tr>
     </table>
 
-    <div class="content-container">
-        <h1>SPOTICHAT</h1>
-        <p>Chat with your spotify, make pla</p>
-        
-        <table class="info-table">
-            <!-- ... existing table content ... -->
-        </table>
-
-        <!-- Dark mode and debug mode toggles are hidden from the user -->
-        <div class="hidden-toggles">
-            <label>
-                Dark mode
-                <input type="checkbox" id="darkModeToggle">
-            </label>
-            <label>
-                Debug mode
-                <input type="checkbox" id="debugModeToggle">
-            </label>
-        </div>
-
-        <!-- ... rest of the content ... -->
+    <div class="dark-mode">
+        <label>
+            Dark mode
+            <input type="checkbox" id="darkModeToggle">
+        </label>
     </div>
 
     <label class="debug-toggle-label">
@@ -220,17 +198,10 @@
     </footer>
 
     <script>
-        // Dark mode toggle functionality (hidden from user view)
         const darkModeToggle = document.getElementById('darkModeToggle');
+        
         darkModeToggle.addEventListener('change', () => {
             document.body.classList.toggle('dark-mode');
-        });
-
-        // Debug mode toggle functionality (currently does nothing, hidden from user view)
-        const debugModeToggle = document.getElementById('debugModeToggle');
-        debugModeToggle.addEventListener('change', () => {
-            // Debug mode functionality can be implemented here in the future
-            console.log('Debug mode toggled:', debugModeToggle.checked);
         });
     </script>
 </body>
