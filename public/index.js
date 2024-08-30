@@ -55,3 +55,16 @@ chatForm.addEventListener('submit', async (e) => {
         chatOutput.innerHTML += `<p><strong>Error:</strong> ${error.message}</p>`;
     }
 });
+
+// Fetch git info
+fetch('/api/git-info')
+  .then(response => response.json())
+  .then(data => {
+    document.getElementById('version').textContent = data.commitId;
+    document.getElementById('updated').textContent = data.lastCommitDate;
+  })
+  .catch(error => {
+    console.error('Error fetching git info:', error);
+    document.getElementById('version').textContent = 'Unknown';
+    document.getElementById('updated').textContent = 'Unknown';
+  });

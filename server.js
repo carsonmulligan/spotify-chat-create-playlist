@@ -1,6 +1,10 @@
 import OpenAI from "openai";
 import express from "express";
 import dotenv from "dotenv";
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 dotenv.config();
 
@@ -11,6 +15,29 @@ app.use(express.static('public'));
 app.use(express.json());
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Function to get git information
+async function getGitInfo() {
+  try {
+    const { stdout: lastCommitDate } = await execAsync('git log -1 --format=%cd --date=short');
+    const { stdout: commitId } = await execAsync('git rev-parse --short HEAD');
+    return {
+      lastCommitDate: lastCommitDate.trim(),
+      commitId: commitId.trim()
+    };
+  } catch (error) {
+    console.error('Error getting git info:', error);
+    return {
+      lastCommitDate: 'Unknown',
+      commitId: 'Unknown'
+    };
+  }
+}
+
+app.get('/api/git-info', async (req, res) => {
+  const gitInfo = await getGitInfo();
+  res.json(gitInfo);
+});
 
 app.post('/api/chat', async (req, res) => {
   try {
