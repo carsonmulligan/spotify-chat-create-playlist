@@ -113,32 +113,10 @@ app.post('/api/create-playlist', async (req, res) => {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-2024-08-06",
       messages: [
-        {"role": "system", "content": "You are a helpful assistant that creates Spotify playlists."},
+        {"role": "system", "content": "You are a helpful assistant that creates Spotify playlists. Respond with a JSON object containing 'name', 'description', and 'tracks' (an array of objects with 'name' and 'artist' properties). Include up to 99 tracks."},
         {"role": "user", "content": `Create a playlist based on this description: ${prompt}`}
       ],
-      response_format: { 
-        type: "json_object",
-        schema: {
-          type: "object",
-          properties: {
-            name: { type: "string" },
-            description: { type: "string" },
-            tracks: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  name: { type: "string" },
-                  artist: { type: "string" }
-                },
-                required: ["name", "artist"]
-              },
-              maxItems: 99
-            }
-          },
-          required: ["name", "description", "tracks"]
-        }
-      }
+      response_format: { type: "json_object" }
     });
 
     const playlistData = JSON.parse(completion.choices[0].message.content);
