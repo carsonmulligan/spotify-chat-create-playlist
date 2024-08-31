@@ -2,16 +2,18 @@
   "name": "spotify-chat-create-playlist",
   "version": "1.0.0",
   "description": "A simple web app to create Spotify playlists by chatting with GPT-4o mini.",
-  "main": "app.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "test-api": "node test-api-key.js",
     "simple-test": "node simple-test.js"
   },
   "dependencies": {
+    "axios": "^0.21.1",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "openai": "^4.0.0"
+    "openai": "^4.0.0",
+    "querystring": "^0.2.1"
   },
   "author": "",
   "license": "ISC",

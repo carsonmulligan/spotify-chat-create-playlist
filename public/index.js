@@ -86,3 +86,65 @@ const clearChatButton = document.getElementById('clear-chat');
 clearChatButton.addEventListener('click', () => {
     chatOutput.innerHTML = '';
 });
+
+let accessToken = null;
+
+document.getElementById('login-button').addEventListener('click', () => {
+    window.location.href = '/login';
+});
+
+window.onload = () => {
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    accessToken = params.get('access_token');
+    
+    if (accessToken) {
+        document.getElementById('login-button').style.display = 'none';
+        document.getElementById('playlist-creator').style.display = 'block';
+    }
+};
+
+document.getElementById('create-playlist-button').addEventListener('click', async () => {
+    const prompt = document.getElementById('playlist-prompt').value;
+    const chatOutput = document.getElementById('chat-output');
+
+    try {
+        // First, get playlist suggestions from OpenAI
+        const openaiResponse = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: `Create a playlist based on this description: ${prompt}. Provide a name, description, and list of 10 song titles with artists.` })
+        });
+
+        if (!openaiResponse.ok) throw new Error('Failed to get playlist suggestions');
+        
+        const openaiData = await openaiResponse.json();
+        chatOutput.innerHTML = `<p><strong>AI Suggestion:</strong> ${openaiData.message}</p>`;
+
+        // Here you would parse the AI's response to extract playlist name, description, and tracks
+        // For this example, we'll use placeholder data
+        const playlistName = "AI Generated Playlist";
+        const playlistDescription = "Created based on user prompt";
+        const tracks = ["spotify:track:1234567890"]; // You'd need to search for these tracks using Spotify API
+
+        // Create the playlist on Spotify
+        const createPlaylistResponse = await fetch('/api/create-playlist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: playlistName,
+                description: playlistDescription,
+                tracks: tracks,
+                accessToken: accessToken
+            })
+        });
+
+        if (!createPlaylistResponse.ok) throw new Error('Failed to create playlist');
+        
+        const playlistData = await createPlaylistResponse.json();
+        chatOutput.innerHTML += `<p>Playlist created! ID: ${playlistData.playlistId}</p>`;
+    } catch (error) {
+        console.error('Error:', error);
+        chatOutput.innerHTML += `<p>Error: ${error.message}</p>`;
+    }
+});
