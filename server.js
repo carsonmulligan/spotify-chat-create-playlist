@@ -3,6 +3,7 @@ import express from "express";
 import dotenv from "dotenv";
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -10,6 +11,8 @@ const __dirname = dirname(__filename);
 console.log("Current directory:", __dirname);
 
 dotenv.config({ path: join(__dirname, '.env') });
+
+console.log("All environment variables:", process.env);
 
 console.log("OPENAI_API_KEY from env:", process.env.OPENAI_API_KEY);
 
@@ -19,10 +22,20 @@ const port = 3000;
 app.use(express.static('public'));
 app.use(express.json());
 
+const envConfig = fs.readFileSync(join(__dirname, '.env'), 'utf8')
+  .split('\n')
+  .reduce((acc, line) => {
+    const [key, value] = line.split('=');
+    acc[key.trim()] = value.trim();
+    return acc;
+  }, {});
+
+console.log("Manually loaded env variables:", envConfig);
+
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  organization: process.env.OPENAI_ORGANIZATION,
-  project: process.env.OPENAI_PROJECT,
+  apiKey: envConfig.OPENAI_API_KEY,
+  organization: envConfig.OPENAI_ORGANIZATION,
+  project: envConfig.OPENAI_PROJECT,
 });
 
 app.post('/api/chat', async (req, res) => {
