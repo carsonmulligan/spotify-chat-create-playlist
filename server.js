@@ -116,26 +116,29 @@ app.post('/api/create-playlist', async (req, res) => {
         {"role": "system", "content": "You are a helpful assistant that creates Spotify playlists."},
         {"role": "user", "content": `Create a playlist based on this description: ${prompt}`}
       ],
-      response_format: { type: "json_schema", schema: {
-        type: "object",
-        properties: {
-          name: { type: "string" },
-          description: { type: "string" },
-          tracks: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                name: { type: "string" },
-                artist: { type: "string" }
+      response_format: { 
+        type: "json_object",
+        schema: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            description: { type: "string" },
+            tracks: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  artist: { type: "string" }
+                },
+                required: ["name", "artist"]
               },
-              required: ["name", "artist"]
-            },
-            maxItems: 99
-          }
-        },
-        required: ["name", "description", "tracks"]
-      }}
+              maxItems: 99
+            }
+          },
+          required: ["name", "description", "tracks"]
+        }
+      }
     });
 
     const playlistData = JSON.parse(completion.choices[0].message.content);
