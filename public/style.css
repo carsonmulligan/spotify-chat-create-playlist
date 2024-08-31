@@ -170,3 +170,56 @@ footer a:hover, footer a:focus {
     border: var(--border-thickness) solid var(--text-color);
     cursor: pointer;
 }
+
+/* Add these styles to your existing style.css file */
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.hero {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.features {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 40px;
+}
+
+.feature {
+    flex-basis: 30%;
+    text-align: center;
+}
+
+.how-it-works {
+    margin-bottom: 40px;
+}
+
+.how-it-works ol {
+    padding-left: 20px;
+}
+
+.cta {
+    text-align: center;
+}
+
+.button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: var(--background-color-alt);
+    color: var(--text-color);
+    text-decoration: none;
+    border: var(--border-thickness) solid var(--text-color);
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: var(--text-color);
+    color: var(--background-color);
+}

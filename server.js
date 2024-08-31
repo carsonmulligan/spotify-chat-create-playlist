@@ -7,6 +7,7 @@ import fs from 'fs';
 import querystring from 'querystring';
 import axios from 'axios';
 import SpotifyWebApi from 'spotify-web-api-node';
+import path from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -18,6 +19,11 @@ const port = 8888;
 
 app.use(express.static('public'));
 app.use(express.json());
+
+// Add this route before your other routes
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'landing.html'));
+});
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
