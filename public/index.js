@@ -1,4 +1,5 @@
 let accessToken = null;
+let refreshToken = null;
 
 const loginButton = document.getElementById('login-button');
 const playlistCreator = document.getElementById('playlist-creator');
@@ -18,12 +19,19 @@ window.onload = () => {
     const hash = window.location.hash.substring(1);
     const params = new URLSearchParams(hash);
     accessToken = params.get('access_token');
+    refreshToken = params.get('refresh_token');
     
     if (accessToken) {
         loginButton.style.display = 'none';
         playlistCreator.style.display = 'block';
         chatInterface.style.display = 'block';
+        chatOutput.innerHTML = '<p>Successfully logged in to Spotify!</p>';
+    } else if (params.get('error')) {
+        chatOutput.innerHTML = `<p>Error: ${params.get('error')}</p>`;
     }
+
+    // Clear the hash to remove tokens from the URL
+    window.location.hash = '';
 };
 
 chatForm.addEventListener('submit', async (e) => {
@@ -74,13 +82,13 @@ chatForm.addEventListener('submit', async (e) => {
             for (const line of lines) {
                 if (line.startsWith('data: ')) {
                     const data = line.slice(6);
-                    if (data === '[DONE]') {
-                        console.log('Received [DONE] signal');
-                        break;
-                    }
                     try {
                         const parsed = JSON.parse(data);
                         console.log('Parsed data:', parsed);
+                        if (parsed.content === '[DONE]') {
+                            console.log('Received [DONE] signal');
+                            break;
+                        }
                         assistantResponse.textContent += parsed.content;
                     } catch (error) {
                         console.error('Error parsing JSON:', error);
@@ -106,7 +114,7 @@ createPlaylistButton.addEventListener('click', async () => {
     const prompt = playlistPrompt.value;
     
     try {
-        // First, get playlist suggestions from OpenAI
+        // Get playlist suggestions from OpenAI
         const openaiResponse = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -115,31 +123,61 @@ createPlaylistButton.addEventListener('click', async () => {
 
         if (!openaiResponse.ok) throw new Error('Failed to get playlist suggestions');
         
-        const openaiData = await openaiResponse.json();
-        chatOutput.innerHTML = `<p><strong>AI Suggestion:</strong> ${openaiData.message}</p>`;
+        const reader = openaiResponse.body.getReader();
+        const decoder = new TextDecoder();
+        let aiResponse = '';
 
-        // Here you would parse the AI's response to extract playlist name, description, and tracks
-        // For this example, we'll use placeholder data
-        const playlistName = "AI Generated Playlist";
-        const playlistDescription = "Created based on user prompt";
-        const tracks = ["spotify:track:1234567890"]; // You'd need to search for these tracks using Spotify API
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n\n');
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = line.slice(6);
+                    if (data === '[DONE]') break;
+                    try {
+                        const parsed = JSON.parse(data);
+                        aiResponse += parsed.content;
+                    } catch (error) {
+                        console.error('Error parsing JSON:', error);
+                    }
+                }
+            }
+        }
+
+        // Parse the AI response
+        const playlistName = aiResponse.match(/\*\*Playlist Name:\*\* "(.*?)"/)[1];
+        const playlistDescription = aiResponse.match(/\*\*Description:\*\* (.*?)\n\n/s)[1];
+        const tracks = aiResponse.match(/\d+\. "(.*?)" - (.*?)(?:\n|$)/g).map(track => {
+            const [, title, artist] = track.match(/"(.*?)" - (.*?)$/);
+            return { title, artist };
+        });
+
+        chatOutput.innerHTML = `<p><strong>AI Suggestion:</strong><br>
+            Name: ${playlistName}<br>
+            Description: ${playlistDescription}<br>
+            Tracks: ${tracks.map(t => `${t.title} by ${t.artist}`).join(', ')}
+        </p>`;
 
         // Create the playlist on Spotify
         const createPlaylistResponse = await fetch('/api/create-playlist', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            },
             body: JSON.stringify({
                 name: playlistName,
                 description: playlistDescription,
-                tracks: tracks,
-                accessToken: accessToken
+                tracks: tracks
             })
         });
 
         if (!createPlaylistResponse.ok) throw new Error('Failed to create playlist');
         
         const playlistData = await createPlaylistResponse.json();
-        chatOutput.innerHTML += `<p>Playlist created! ID: ${playlistData.playlistId}</p>`;
+        chatOutput.innerHTML += `<p>Playlist created successfully! You can view it <a href="${playlistData.playlistUrl}" target="_blank">here</a>.</p>`;
     } catch (error) {
         console.error('Error:', error);
         chatOutput.innerHTML += `<p>Error: ${error.message}</p>`;
