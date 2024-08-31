@@ -4,13 +4,17 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
+  organization: process.env.OPENAI_ORGANIZATION,
+  project: process.env.OPENAI_PROJECT,
 });
 
 async function testOpenAI() {
   try {
     console.log("Testing OpenAI API...");
     console.log("API Key:", process.env.OPENAI_API_KEY ? "Set" : "Not set");
+    console.log("Organization:", process.env.OPENAI_ORGANIZATION);
+    console.log("Project:", process.env.OPENAI_PROJECT);
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",

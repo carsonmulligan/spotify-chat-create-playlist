@@ -1,8 +1,17 @@
 import OpenAI from "openai";
 import express from "express";
 import dotenv from "dotenv";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+console.log("Current directory:", __dirname);
+
+dotenv.config({ path: join(__dirname, '.env') });
+
+console.log("OPENAI_API_KEY from env:", process.env.OPENAI_API_KEY);
 
 const app = express();
 const port = 3000;
@@ -11,17 +20,14 @@ app.use(express.static('public'));
 app.use(express.json());
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
+  organization: process.env.OPENAI_ORGANIZATION,
+  project: process.env.OPENAI_PROJECT,
 });
 
 app.post('/api/chat', async (req, res) => {
   console.log('Received chat request:', req.body);
   
-  if (!process.env.OPENAI_API_KEY) {
-    console.error('OPENAI_API_KEY is not set in the .env file.');
-    return res.status(500).json({ error: 'OPENAI_API_KEY is not set in the .env file.' });
-  }
-
   try {
     console.log('Sending request to OpenAI');
     const completion = await openai.chat.completions.create({
@@ -41,14 +47,19 @@ app.post('/api/chat', async (req, res) => {
       'Connection': 'keep-alive',
     });
 
+    let fullResponse = '';
+
     for await (const chunk of completion) {
       if (chunk.choices[0].delta.content) {
-        console.log('Sending chunk:', chunk.choices[0].delta.content);
-        res.write(`data: ${JSON.stringify({ content: chunk.choices[0].delta.content })}\n\n`);
+        const content = chunk.choices[0].delta.content;
+        console.log('Sending chunk:', content);
+        fullResponse += content;
+        res.write(`data: ${JSON.stringify({ content })}\n\n`);
       }
     }
 
     console.log('Finished streaming response');
+    console.log('Full response:', fullResponse);
     res.write('data: [DONE]\n\n');
     res.end();
 
@@ -59,12 +70,12 @@ app.post('/api/chat', async (req, res) => {
 });
 
 app.listen(port, () => {
-  if (!process.env.OPENAI_API_KEY) {
-    console.error('OPENAI_API_KEY is not set in the .env file. Please add it and restart the server.');
-  } else {
-    console.log(`Server running at http://localhost:${port}`);
-    console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY.substring(0, 5) + '...');
-  }
+  console.log(`Server running at http://localhost:${port}`);
+  console.log('OpenAI client initialized with environment variables');
 });
 
-console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? 'Set' : 'Not set');
+// Log all incoming requests
+app.use((req, res, next) => {
+  console.log(`Received ${req.method} request to ${req.url}`);
+  next();
+});
