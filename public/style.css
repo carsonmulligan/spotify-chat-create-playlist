@@ -155,7 +155,7 @@ footer a:hover, footer a:focus {
 }
 
 #chat-output {
-    margin-top: 20px;
+    margin-bottom: 20px;
     border: var(--border-thickness) solid var(--text-color);
     padding: 10px;
     height: 300px;
