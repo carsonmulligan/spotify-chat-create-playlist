@@ -16,7 +16,7 @@ const port = 8888;
 let accessToken = null;
 
 app.get('/login', (req, res) => {
-  const scopes = ['user-read-private', 'user-read-email'];
+  const scopes = ['user-read-private', 'user-read-email', 'user-top-read'];
   res.redirect(spotifyApi.createAuthorizeURL(scopes));
 });
 
@@ -85,9 +85,13 @@ async function runRecommendationsTest() {
 }
 
 function logRecommendations(tracks) {
-  tracks.forEach((track, index) => {
-    console.log(`${index + 1}. "${track.name}" by ${track.artists.map(artist => artist.name).join(', ')}`);
-  });
+  if (tracks.length === 0) {
+    console.log('No recommendations found.');
+  } else {
+    tracks.forEach((track, index) => {
+      console.log(`${index + 1}. "${track.name}" by ${track.artists.map(artist => artist.name).join(', ')}`);
+    });
+  }
 }
 
 app.listen(port, () => {

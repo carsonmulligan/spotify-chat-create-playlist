@@ -160,6 +160,30 @@ createPlaylistButton.addEventListener('click', async () => {
             Tracks: ${tracks.map(t => `${t.title} by ${t.artist}`).join(', ')}
         </p>`;
 
+        // Get recommendations for each track
+        const enhancedTracks = [];
+        for (const track of tracks) {
+            const searchResponse = await fetch('/api/get-recommendations', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({
+                    seed: `spotify:track:${track.title}`,
+                    accessToken: accessToken
+                })
+            });
+
+            if (!searchResponse.ok) throw new Error('Failed to get recommendations');
+            
+            const recommendations = await searchResponse.json();
+            enhancedTracks.push(...recommendations.slice(0, 2)); // Add top 2 recommendations
+        }
+
+        // Combine original tracks with recommendations
+        const finalTracks = [...tracks, ...enhancedTracks];
+
         // Create the playlist on Spotify
         const createPlaylistResponse = await fetch('/api/create-playlist', {
             method: 'POST',
@@ -170,7 +194,7 @@ createPlaylistButton.addEventListener('click', async () => {
             body: JSON.stringify({
                 name: playlistName,
                 description: playlistDescription,
-                tracks: tracks,
+                tracks: finalTracks,
                 accessToken: accessToken
             })
         });
