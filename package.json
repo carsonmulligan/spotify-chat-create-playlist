@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "test-api": "node test-api-key.js",
-    "simple-test": "node simple-test.js"
+    "simple-test": "node simple-test.js",
+    "spotify-test": "node spotify-test.js"
   },
   "dependencies": {
     "axios": "^0.21.1",

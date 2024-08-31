@@ -1,7 +1,6 @@
 import SpotifyWebApi from 'spotify-web-api-node';
 import dotenv from 'dotenv';
 import express from 'express';
-import open from 'open';
 
 dotenv.config();
 
@@ -67,6 +66,5 @@ async function runSpotifyTest() {
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
-  console.log('Please visit http://localhost:8888/login to start the Spotify API test');
-  open('http://localhost:8888/login');
+  console.log('Please visit http://localhost:8888/login in your browser to start the Spotify API test');
 });
