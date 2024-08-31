@@ -27,8 +27,6 @@ app.get('/', (req, res) => {
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  organization: process.env.OPENAI_ORGANIZATION,
-  project: process.env.OPENAI_PROJECT,
 });
 
 const spotifyApi = new SpotifyWebApi({
@@ -107,29 +105,60 @@ app.post('/api/chat', async (req, res) => {
 
 // New route to create a playlist
 app.post('/api/create-playlist', async (req, res) => {
-  const { name, description, tracks, accessToken } = req.body;
+  console.log('Received playlist creation request');
+  const { prompt, accessToken } = req.body;
 
   try {
+    console.log('Generating playlist with OpenAI');
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-2024-08-06",
+      messages: [
+        {"role": "system", "content": "You are a helpful assistant that creates Spotify playlists."},
+        {"role": "user", "content": `Create a playlist based on this description: ${prompt}`}
+      ],
+      response_format: { type: "json_schema", schema: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          description: { type: "string" },
+          tracks: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                artist: { type: "string" }
+              },
+              required: ["name", "artist"]
+            },
+            maxItems: 99
+          }
+        },
+        required: ["name", "description", "tracks"]
+      }}
+    });
+
+    const playlistData = JSON.parse(completion.choices[0].message.content);
+    console.log('Generated playlist:', playlistData);
+
+    console.log('Creating playlist on Spotify');
     spotifyApi.setAccessToken(accessToken);
+    const playlist = await spotifyApi.createPlaylist(playlistData.name, { description: playlistData.description, public: false });
 
-    // Create a new playlist
-    const playlist = await spotifyApi.createPlaylist(name, { description, public: false });
-
-    // Search for tracks and add them to the playlist
+    console.log('Searching for tracks and adding to playlist');
     const trackUris = [];
-    for (const track of tracks) {
-      const searchResults = await spotifyApi.searchTracks(`track:${track.title} artist:${track.artist}`);
+    for (const track of playlistData.tracks) {
+      const searchResults = await spotifyApi.searchTracks(`track:${track.name} artist:${track.artist}`);
       if (searchResults.body.tracks.items.length > 0) {
         trackUris.push(searchResults.body.tracks.items[0].uri);
       }
     }
 
-    // Add tracks to the playlist
     await spotifyApi.addTracksToPlaylist(playlist.body.id, trackUris);
 
+    console.log('Playlist created successfully');
     res.json({ 
       success: true, 
-      playlistId: playlist.body.id, 
       playlistUrl: playlist.body.external_urls.spotify 
     });
   } catch (error) {

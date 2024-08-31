@@ -3,29 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotify Playlist Creator</title>
+    <title>AI Spotify Playlist Creator</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <nav>
-        <a href="/">Home</a>
-    </nav>
-    <h1>Spotify Playlist Creator</h1>
-    <button id="login-button">Login with Spotify</button>
-    <div id="playlist-creator" style="display: none;">
-        <h2>Create a Playlist</h2>
-        <textarea id="playlist-prompt" rows="4" placeholder="Describe the playlist you want to create..."></textarea>
-        <button id="create-playlist-button">Create Playlist</button>
+    <div class="container">
+        <h1>AI Spotify Playlist Creator</h1>
+        <button id="login-button">Login with Spotify</button>
+        <div id="playlist-creator" style="display: none;">
+            <h2>Create a Playlist</h2>
+            <p>Instructions: Tell the AI what type of playlist you want</p>
+            <textarea id="playlist-prompt" rows="4" placeholder="Describe your playlist..."></textarea>
+            <button id="create-playlist-button">Create Playlist</button>
+        </div>
+        <div id="result"></div>
     </div>
-    <div id="chat-interface" style="display: none;">
-        <form id="chat-form">
-            <textarea id="user-input" rows="4" placeholder="Enter your message here..."></textarea>
-            <button type="submit">Send</button>
-        </form>
-        <button id="clear-chat">Clear Chat</button>
-    </div>
-    <div id="chat-output"></div>
-
     <script src="index.js"></script>
 </body>
 </html>

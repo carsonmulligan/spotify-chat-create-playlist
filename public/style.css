@@ -1,225 +1,47 @@
 :root {
     --font-family: "JetBrains Mono", monospace;
-    --line-height: 1.2rem;
-    --border-thickness: 2px;
     --text-color: #000;
-    --text-color-alt: #666;
     --background-color: #fff;
-    --background-color-alt: #eee;
-    --grid-color: #e0e0e0;
-    --font-weight-normal: 500;
-    --font-weight-medium: 600;
-    --font-weight-bold: 800;
+    --border-color: #000;
 }
 
 body {
     font-family: var(--font-family);
     background-color: var(--background-color);
     color: var(--text-color);
-    line-height: var(--line-height);
+    line-height: 1.6;
     padding: 20px;
-    margin: 0;
-    max-width: 1000px;
-    margin: 0 auto;
-    background-image: 
-        linear-gradient(var(--grid-color) 1px, transparent 1px),
-        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-    background-size: 20px 20px;
-    transition: background-color 0.3s, color 0.3s;
-}
-
-body.dark-mode {
-    --text-color: #fff;
-    --text-color-alt: #aaa;
-    --background-color: #222;
-    --background-color-alt: #333;
-    --grid-color: #333;
-}
-
-.dark-mode-toggle {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-}
-
-h1, h2, h3, h4, h5, h6 {
-    font-weight: var(--font-weight-bold);
-    margin: 20px 0 10px;
-}
-
-h1 {
-    font-size: 2rem;
-    text-transform: uppercase;
-}
-
-h2 {
-    font-size: 1rem;
-    text-transform: uppercase;
-}
-
-p {
-    margin: 10px 0;
-}
-
-table.header {
-    width: 100%;
-    margin-bottom: 20px;
-    border-collapse: collapse;
-}
-
-table.header th, table.header td {
-    border: var(--border-thickness) solid var(--text-color);
-    padding: 5px;
-    vertical-align: top;
-}
-
-table.header th {
-    text-align: left;
-    font-weight: var(--font-weight-medium);
-}
-
-nav#TOC ul {
-    padding: 0;
-    list-style-type: none;
-}
-
-nav#TOC ul li {
-    margin-bottom: 5px;
-}
-
-nav#TOC ul li a {
-    text-decoration: underline;
-    color: inherit; /* Inherit the color from the parent element */
-}
-
-nav#TOC ul li a:visited {
-    color: inherit;
-}
-
-nav#TOC ul li a:hover, nav#TOC ul li a:focus {
-    text-decoration: underline;
-}
-
-.debug-toggle-label {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 20px;
-}
-
-.debug-toggle-label input {
-    margin-left: 5px;
-}
-
-footer {
-    font-size: 0.8rem;
-    text-align: center;
-    margin-top: 40px;
-    color: var(--text-color-alt);
-}
-
-footer a {
-    text-decoration: underline;
-    color: inherit; /* Inherit the color from the parent element */
-}
-
-footer a:visited {
-    color: inherit;
-}
-
-footer a:hover, footer a:focus {
-    text-decoration: underline;
-}
-
-#chat-interface {
-    margin-top: 20px;
-}
-
-#chat-form {
-    display: flex;
-    flex-direction: column;
-}
-
-#user-input {
-    font-family: var(--font-family);
-    padding: 10px;
-    margin-bottom: 10px;
-    border: var(--border-thickness) solid var(--text-color);
-}
-
-#chat-form button {
-    font-family: var(--font-family);
-    padding: 10px;
-    background-color: var(--background-color-alt);
-    border: var(--border-thickness) solid var(--text-color);
-    cursor: pointer;
-}
-
-#chat-output {
-    margin-bottom: 20px;
-    border: var(--border-thickness) solid var(--text-color);
-    padding: 10px;
-    height: 300px;
-    overflow-y: auto;
-}
-
-#clear-chat {
-    margin-top: 10px;
-    font-family: var(--font-family);
-    padding: 5px 10px;
-    background-color: var(--background-color-alt);
-    border: var(--border-thickness) solid var(--text-color);
-    cursor: pointer;
-}
-
-/* Add these styles to your existing style.css file */
-
-.container {
     max-width: 800px;
     margin: 0 auto;
+}
+
+.container {
+    border: 2px solid var(--border-color);
     padding: 20px;
 }
 
-.hero {
-    text-align: center;
-    margin-bottom: 40px;
+h1, h2 {
+    margin-top: 0;
 }
 
-.features {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 40px;
-}
-
-.feature {
-    flex-basis: 30%;
-    text-align: center;
-}
-
-.how-it-works {
-    margin-bottom: 40px;
-}
-
-.how-it-works ol {
-    padding-left: 20px;
-}
-
-.cta {
-    text-align: center;
-}
-
-.button {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: var(--background-color-alt);
-    color: var(--text-color);
-    text-decoration: none;
-    border: var(--border-thickness) solid var(--text-color);
+button {
     font-family: var(--font-family);
-    font-weight: var(--font-weight-medium);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+    padding: 10px 20px;
     cursor: pointer;
+    margin-top: 10px;
 }
 
-.button:hover {
-    background-color: var(--text-color);
-    color: var(--background-color);
+textarea {
+    font-family: var(--font-family);
+    width: 100%;
+    padding: 10px;
+    border: 2px solid var(--border-color);
+    margin-top: 10px;
+}
+
+#result {
+    margin-top: 20px;
 }
