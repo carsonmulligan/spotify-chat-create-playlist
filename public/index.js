@@ -1,13 +1,30 @@
-const darkModeToggle = document.getElementById('darkModeToggle');
-if (darkModeToggle) {
-    darkModeToggle.addEventListener('change', () => {
-        document.body.classList.toggle('dark-mode');
-    });
-}
+let accessToken = null;
 
+const loginButton = document.getElementById('login-button');
+const playlistCreator = document.getElementById('playlist-creator');
+const chatInterface = document.getElementById('chat-interface');
 const chatForm = document.getElementById('chat-form');
 const userInput = document.getElementById('user-input');
 const chatOutput = document.getElementById('chat-output');
+const clearChatButton = document.getElementById('clear-chat');
+const createPlaylistButton = document.getElementById('create-playlist-button');
+const playlistPrompt = document.getElementById('playlist-prompt');
+
+loginButton.addEventListener('click', () => {
+    window.location.href = '/login';
+});
+
+window.onload = () => {
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    accessToken = params.get('access_token');
+    
+    if (accessToken) {
+        loginButton.style.display = 'none';
+        playlistCreator.style.display = 'block';
+        chatInterface.style.display = 'block';
+    }
+};
 
 chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -81,33 +98,13 @@ chatForm.addEventListener('submit', async (e) => {
     chatOutput.scrollTop = chatOutput.scrollHeight;
 });
 
-// Add this at the end of the file
-const clearChatButton = document.getElementById('clear-chat');
 clearChatButton.addEventListener('click', () => {
     chatOutput.innerHTML = '';
 });
 
-let accessToken = null;
-
-document.getElementById('login-button').addEventListener('click', () => {
-    window.location.href = '/login';
-});
-
-window.onload = () => {
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    accessToken = params.get('access_token');
+createPlaylistButton.addEventListener('click', async () => {
+    const prompt = playlistPrompt.value;
     
-    if (accessToken) {
-        document.getElementById('login-button').style.display = 'none';
-        document.getElementById('playlist-creator').style.display = 'block';
-    }
-};
-
-document.getElementById('create-playlist-button').addEventListener('click', async () => {
-    const prompt = document.getElementById('playlist-prompt').value;
-    const chatOutput = document.getElementById('chat-output');
-
     try {
         // First, get playlist suggestions from OpenAI
         const openaiResponse = await fetch('/api/chat', {
