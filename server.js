@@ -14,7 +14,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
-const port = 8888; // Changed to match the callback URL
+const port = 8888;
 
 app.use(express.static('public'));
 app.use(express.json());
@@ -33,7 +33,7 @@ const spotifyApi = new SpotifyWebApi({
 
 // Spotify authentication route
 app.get('/login', (req, res) => {
-  const scopes = ['user-read-private', 'user-read-email', 'playlist-modify-public', 'playlist-modify-private'];
+  const scopes = ['playlist-modify-private', 'playlist-modify-public'];
   res.redirect(spotifyApi.createAuthorizeURL(scopes));
 });
 
@@ -45,9 +45,8 @@ app.get('/callback', async (req, res) => {
     const data = await spotifyApi.authorizationCodeGrant(code);
     const { access_token, refresh_token } = data.body;
     
-    spotifyApi.setAccessToken(access_token);
-    spotifyApi.setRefreshToken(refresh_token);
-
+    // In a real application, you'd want to store these tokens securely
+    // For this example, we'll send them back to the client
     res.redirect(`/#access_token=${access_token}&refresh_token=${refresh_token}`);
   } catch (error) {
     console.error('Error getting Spotify tokens:', error);
@@ -102,14 +101,13 @@ app.post('/api/chat', async (req, res) => {
 
 // New route to create a playlist
 app.post('/api/create-playlist', async (req, res) => {
-  const { name, description, tracks } = req.body;
-  const accessToken = req.headers.authorization.split(' ')[1];
+  const { name, description, tracks, accessToken } = req.body;
 
   try {
     spotifyApi.setAccessToken(accessToken);
 
     // Create a new playlist
-    const playlist = await spotifyApi.createPlaylist(name, { description: description, public: false });
+    const playlist = await spotifyApi.createPlaylist(name, { description, public: false });
 
     // Search for tracks and add them to the playlist
     const trackUris = [];

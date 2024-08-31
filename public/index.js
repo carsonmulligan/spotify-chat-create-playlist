@@ -154,7 +154,7 @@ createPlaylistButton.addEventListener('click', async () => {
             return { title, artist };
         });
 
-        chatOutput.innerHTML = `<p><strong>AI Suggestion:</strong><br>
+        chatOutput.innerHTML += `<p><strong>AI Suggestion:</strong><br>
             Name: ${playlistName}<br>
             Description: ${playlistDescription}<br>
             Tracks: ${tracks.map(t => `${t.title} by ${t.artist}`).join(', ')}
@@ -170,7 +170,8 @@ createPlaylistButton.addEventListener('click', async () => {
             body: JSON.stringify({
                 name: playlistName,
                 description: playlistDescription,
-                tracks: tracks
+                tracks: tracks,
+                accessToken: accessToken
             })
         });
 
