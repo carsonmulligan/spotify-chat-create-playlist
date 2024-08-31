@@ -30,14 +30,18 @@ chatForm.addEventListener('submit', async (e) => {
     const userMessage = userInput.value.trim();
     if (!userMessage) return;
 
+    console.log('User message:', userMessage);
+
     // Display user message
     chatOutput.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
     userInput.value = '';
 
     // Display loading message
     const loadingElement = document.createElement('p');
-    loadingElement.innerHTML = '<strong>Assistant:</strong> Thinking...';
+    loadingElement.innerHTML = '<strong>Assistant:</strong> <span id="assistant-response"></span>';
     chatOutput.appendChild(loadingElement);
+
+    const assistantResponse = document.getElementById('assistant-response');
 
     try {
         console.log('Sending chat request');
@@ -49,26 +53,35 @@ chatForm.addEventListener('submit', async (e) => {
             body: JSON.stringify({ message: userMessage }),
         });
 
-        console.log('Received response:', response);
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`API request failed: ${errorData.error || response.statusText}`);
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n\n');
+            
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = line.slice(6);
+                    if (data === '[DONE]') {
+                        break;
+                    }
+                    try {
+                        const parsed = JSON.parse(data);
+                        assistantResponse.textContent += parsed.content;
+                    } catch (error) {
+                        console.error('Error parsing JSON:', error);
+                    }
+                }
+            }
         }
 
-        const data = await response.json();
-        console.log('Parsed response data:', data);
-        
-        // Remove loading message
-        loadingElement.remove();
-        
-        // Display assistant's response
-        chatOutput.innerHTML += `<p><strong>Assistant:</strong> ${data.message}</p>`;
     } catch (error) {
         console.error('Error:', error);
-        // Remove loading message
-        loadingElement.remove();
-        chatOutput.innerHTML += `<p><strong>Error:</strong> ${error.message}</p>`;
+        assistantResponse.textContent = `Error: ${error.message}`;
     }
 
     // Scroll to the bottom of the chat output
