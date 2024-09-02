@@ -1,3 +1,4 @@
 .env
 test-api-key.js
 node_modules/
+spotify-test.js 
