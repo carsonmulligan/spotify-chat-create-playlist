@@ -5,6 +5,7 @@ const playlistCreator = document.getElementById('playlist-creator');
 const createPlaylistButton = document.getElementById('create-playlist-button');
 const playlistPrompt = document.getElementById('playlist-prompt');
 const result = document.getElementById('result');
+const promptExamples = document.querySelectorAll('.prompt-example');
 
 loginButton.addEventListener('click', () => {
     window.location.href = '/login';
@@ -26,6 +27,13 @@ window.onload = () => {
     window.location.hash = '';
 };
 
+promptExamples.forEach(example => {
+    example.addEventListener('click', (e) => {
+        e.preventDefault();
+        playlistPrompt.value = e.target.textContent;
+    });
+});
+
 createPlaylistButton.addEventListener('click', async () => {
     const prompt = playlistPrompt.value;
     
@@ -46,7 +54,19 @@ createPlaylistButton.addEventListener('click', async () => {
 
         if (!response.ok) throw new Error('Failed to create playlist');
         
-        const data = await response.json();
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let playlistData = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value);
+            playlistData += chunk;
+            result.innerHTML = `<p>Generating playlist: ${playlistData}</p>`;
+        }
+
+        const data = JSON.parse(playlistData);
         result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;
     } catch (error) {
         console.error('Error:', error);
