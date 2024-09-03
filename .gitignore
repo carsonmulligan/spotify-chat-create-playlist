@@ -1,4 +1,6 @@
 .env
 test-api-key.js
 node_modules/
-spotify-test.js 
+gpt_4o_auth_test.js
+spot_playlist_test.js
+spot_recco_test.js
