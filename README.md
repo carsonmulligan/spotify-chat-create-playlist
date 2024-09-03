@@ -1,6 +1,16 @@
 # 🎧 AI-Powered Spotify Playlist Creator
 
-Welcome to the **AI-Powered Spotify Playlist Creator**! This app lets you create customized Spotify playlists by chatting with OpenAI's GPT-4o mini. Whether you're in the mood for a workout mix or a chill vibe, just describe what you want, and the AI will generate the perfect playlist for you. 🎶
+Welcome to the **AI-Powered Spotify Playlist Creator**! This app lets you create customized Spotify playlists by chatting with OpenAI's GPT-4o mini. 🎶
+
+## 🎵 Quick Start: Try These Prompts!
+
+Click on one of these examples to get started:
+
+1. [Create an upbeat 80s workout mix](#)
+2. [Generate a relaxing acoustic playlist for studying](#)
+3. [Make a road trip playlist with classic rock hits](#)
+
+Or type your own custom playlist description below!
 
 ## 🚀 Features
 
@@ -11,7 +21,7 @@ Welcome to the **AI-Powered Spotify Playlist Creator**! This app lets you create
 ## 🛠️ How to Use
 
 1. **Login with Spotify**: Click the login button to authenticate with your Spotify account.
-2. **Describe Your Playlist**: Enter a description of the playlist you want (e.g., "upbeat 80s workout mix").
+2. **Describe Your Playlist**: Enter a description of the playlist you want or click one of the example prompts above.
 3. **Create & Enjoy**: The AI will generate a playlist and save it directly to your Spotify account. Enjoy the tunes!
 
 ## 📋 Requirements
