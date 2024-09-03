@@ -15,7 +15,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
-const port = 8888;
+const port = process.env.PORT || 8888;
 
 app.use(express.static('public'));
 app.use(express.json());
