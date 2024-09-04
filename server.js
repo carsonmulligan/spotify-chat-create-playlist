@@ -15,7 +15,7 @@ dotenv.config();
 
 const client_id = process.env.SPOTIFY_CLIENT_ID;
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
-const redirect_uri = process.env.SPOTIFY_REDIRECT_URI;
+const redirect_uri = 'https://artur-ai-spotify-9fc02bcaa55b.herokuapp.com/callback';
 
 const app = express();
 
@@ -34,17 +34,14 @@ app.get('/login', function(req, res) {
   res.cookie(stateKey, state);
 
   const scope = 'playlist-modify-private playlist-modify-public';
-  const authUrl = 'https://accounts.spotify.com/authorize?' +
+  res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
       client_id: client_id,
       scope: scope,
-      redirect_uri: redirect_uri, // Remove encodeURIComponent here
+      redirect_uri: redirect_uri,
       state: state
-    });
-  
-  console.log('Redirecting to:', authUrl);
-  res.redirect(authUrl);
+    }));
 });
 
 app.get('/callback', async function(req, res) {
