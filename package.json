@@ -19,7 +19,8 @@
     "querystring": "^0.2.1",
     "serve-favicon": "^2.5.0",
     "spotify-web-api-node": "^5.0.2",
-    "cookie-parser": "^1.4.5"
+    "cookie-parser": "^1.4.5",
+    "crypto": "^1.0.1"
   },
   "author": "",
   "license": "ISC",

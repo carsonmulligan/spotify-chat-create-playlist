@@ -32,9 +32,12 @@ console.log('Client ID:', process.env.SPOTIFY_CLIENT_ID);
 console.log('Redirect URI:', redirectUri);
 
 const generateRandomString = length => {
-  return crypto.randomBytes(Math.ceil(length/2))
-    .toString('hex')
-    .slice(0, length);
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let text = '';
+  for (let i = 0; i < length; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
 };
 
 const stateKey = 'spotify_auth_state';
