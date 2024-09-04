@@ -32,7 +32,7 @@ const openai = new OpenAI({
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  redirectUri: process.env.SPOTIFY_REDIRECT_URI
+  redirectUri: 'https://artur-ai-spotify-9fc02bcaa55b.herokuapp.com/callback'
 });
 
 const generateRandomString = (length) => {
@@ -52,7 +52,7 @@ app.get('/login', (req, res) => {
       response_type: 'code',
       client_id: process.env.SPOTIFY_CLIENT_ID,
       scope: scopes.join(' '),
-      redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+      redirect_uri: 'https://artur-ai-spotify-9fc02bcaa55b.herokuapp.com/callback',
       state: state
     }));
 });
