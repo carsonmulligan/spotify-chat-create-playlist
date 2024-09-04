@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import cookieParser from 'cookie-parser';
-import { spotifyLogin, spotifyCallback } from './routes/spotifyAuth.js'; 
+import { spotifyLogin, spotifyCallback } from './routes/spotifyAuth.js';
 import { chatWithOpenAI } from './routes/openAI.js';
 import { createPlaylist } from './routes/createPlaylist.js';
 import { getRecommendations } from './routes/recommendations.js';
