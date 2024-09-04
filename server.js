@@ -11,7 +11,7 @@ import path from 'path';
 import favicon from 'serve-favicon';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 dotenv.config({ path: join(__dirname, '.env') });
 
