@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Successful</title>
+</head>
+<body>
+    <h1>Authentication Successful</h1>
+    <p>Redirecting to the app...</p>
+    <script>
+        // Get the tokens from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const access_token = urlParams.get('access_token');
+        const refresh_token = urlParams.get('refresh_token');
+        const expires_in = urlParams.get('expires_in');
+
+        // Store the tokens in localStorage
+        localStorage.setItem('spotify_access_token', access_token);
+        localStorage.setItem('spotify_refresh_token', refresh_token);
+        localStorage.setItem('spotify_token_expiry', Date.now() + expires_in * 1000);
+
+        // Redirect to the frontend app
+        window.location.href = 'http://localhost:3000';
+    </script>
+</body>
+</html>

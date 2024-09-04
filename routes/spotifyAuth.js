@@ -26,18 +26,8 @@ export const spotifyCallback = async (req, res) => {
     spotifyApi.setAccessToken(access_token);
     spotifyApi.setRefreshToken(refresh_token);
 
-    res.cookie('spotify_access_token', access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: expires_in * 1000
-    });
-
-    res.cookie('spotify_refresh_token', refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-    });
-
-    res.redirect(process.env.FRONTEND_URI || 'http://localhost:3000');
+    // Redirect to a new route that will handle the frontend redirect
+    res.redirect(`/auth-success?access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`);
   } catch (error) {
     console.error('Error getting Spotify tokens:', error);
     res.redirect('/#error=spotify_auth_error');

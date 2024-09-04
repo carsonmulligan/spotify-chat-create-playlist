@@ -7,6 +7,7 @@ import { spotifyLogin, spotifyCallback } from './routes/spotifyAuth.js';
 import { chatWithOpenAI } from './routes/openAI.js';
 import { createPlaylist } from './routes/createPlaylist.js';
 import { getRecommendations } from './routes/recommendations.js';
+import path from 'path';
 
 // Initialize environment and directories
 const __filename = fileURLToPath(import.meta.url);
@@ -38,6 +39,12 @@ app.post('/api/create-playlist', createPlaylist);
 
 // Recommendations route
 app.post('/api/get-recommendations', getRecommendations);
+
+// New route to handle frontend redirect
+app.get('/auth-success', (req, res) => {
+  const { access_token, refresh_token, expires_in } = req.query;
+  res.sendFile(path.join(__dirname, 'public', 'auth-success.html'));
+});
 
 // Middleware to log requests
 app.use((req, res, next) => {
