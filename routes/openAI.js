@@ -16,7 +16,7 @@ const openai = new OpenAI({
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  redirectUri: process.env.REDIRECT_URI
+  redirectUri: process.env.SPOTIFY_REDIRECT_URI
 });
 
 export const spotifyLogin = (req, res) => {
@@ -100,3 +100,6 @@ export const chatWithOpenAI = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while processing your request.', details: error.message });
   }
 };
+
+// Export the spotifyApi instance
+export { spotifyApi };

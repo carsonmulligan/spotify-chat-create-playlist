@@ -1,14 +1,10 @@
-import SpotifyWebApi from 'spotify-web-api-node';
-
-const spotifyApi = new SpotifyWebApi({
-  clientId: process.env.SPOTIFY_CLIENT_ID,
-  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  redirectUri: process.env.REDIRECT_URI
-});
+import { spotifyApi } from './openAI.js';
 
 export const spotifyLogin = (req, res) => {
   const scopes = ['playlist-modify-private', 'playlist-modify-public'];
-  res.redirect(spotifyApi.createAuthorizeURL(scopes));
+  const state = generateRandomString(16);
+  res.cookie('spotify_auth_state', state);
+  res.redirect(spotifyApi.createAuthorizeURL(scopes, state));
 };
 
 export const spotifyCallback = async (req, res) => {
@@ -25,6 +21,10 @@ export const spotifyCallback = async (req, res) => {
   try {
     const data = await spotifyApi.authorizationCodeGrant(code);
     const { access_token, refresh_token, expires_in } = data.body;
+
+    // Set the access token and refresh token on the API object
+    spotifyApi.setAccessToken(access_token);
+    spotifyApi.setRefreshToken(refresh_token);
 
     res.cookie('spotify_access_token', access_token, {
       httpOnly: true,
@@ -43,3 +43,12 @@ export const spotifyCallback = async (req, res) => {
     res.redirect('/#error=spotify_auth_error');
   }
 };
+
+function generateRandomString(length) {
+  let text = '';
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < length; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+}
