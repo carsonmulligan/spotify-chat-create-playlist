@@ -15,7 +15,11 @@ dotenv.config();
 
 const client_id = process.env.SPOTIFY_CLIENT_ID;
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
-const redirect_uri = 'https://artur-ai-spotify-9fc02bcaa55b.herokuapp.com/callback';
+const redirect_uri = process.env.SPOTIFY_REDIRECT_URI || 'https://artur-ai-spotify-9fc02bcaa55b.herokuapp.com/callback';
+
+console.log('Starting server with configuration:');
+console.log('Client ID:', client_id);
+console.log('Redirect URI:', redirect_uri);
 
 const app = express();
 
@@ -34,25 +38,30 @@ app.get('/login', function(req, res) {
   res.cookie(stateKey, state);
 
   const scope = 'playlist-modify-private playlist-modify-public';
-  res.redirect('https://accounts.spotify.com/authorize?' +
+  const authUrl = 'https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
       client_id: client_id,
       scope: scope,
       redirect_uri: redirect_uri,
       state: state
-    }));
+    });
+
+  console.log('Login request received. Redirecting to:', authUrl);
+  res.redirect(authUrl);
 });
 
 app.get('/callback', async function(req, res) {
   console.log('Callback received. Query:', req.query);
   console.log('Cookies:', req.cookies);
   console.log('State Key:', stateKey);
+
   const code = req.query.code || null;
   const state = req.query.state || null;
   const storedState = req.cookies ? req.cookies[stateKey] : null;
 
   if (state === null || state !== storedState) {
+    console.log('State mismatch. Stored state:', storedState, 'Received state:', state);
     res.redirect('/#' + querystring.stringify({ error: 'state_mismatch' }));
   } else {
     res.clearCookie(stateKey);
@@ -70,18 +79,25 @@ app.get('/callback', async function(req, res) {
       json: true
     };
 
+    console.log('Requesting access token with options:', JSON.stringify(authOptions, null, 2));
+
     try {
       const response = await axios.post(authOptions.url, querystring.stringify(authOptions.form), { headers: authOptions.headers });
+      console.log('Token response status:', response.status);
+      console.log('Token response data:', response.data);
+
       if (response.status === 200) {
         const { access_token, refresh_token } = response.data;
         
-        // We can also pass the token to the browser to make requests from there
-        res.redirect('/#' + querystring.stringify({ access_token, refresh_token }));
+        const redirectUrl = '/#' + querystring.stringify({ access_token, refresh_token });
+        console.log('Redirecting to:', redirectUrl);
+        res.redirect(redirectUrl);
       } else {
+        console.log('Invalid token response');
         res.redirect('/#' + querystring.stringify({ error: 'invalid_token' }));
       }
     } catch (error) {
-      console.error('Error in /callback:', error);
+      console.error('Error in /callback:', error.response ? error.response.data : error.message);
       res.redirect('/#' + querystring.stringify({ error: 'invalid_token' }));
     }
   }
@@ -89,6 +105,8 @@ app.get('/callback', async function(req, res) {
 
 app.get('/refresh_token', async function(req, res) {
   const { refresh_token } = req.query;
+  console.log('Refresh token request received:', refresh_token);
+
   const authOptions = {
     url: 'https://accounts.spotify.com/api/token',
     headers: { 
@@ -102,19 +120,23 @@ app.get('/refresh_token', async function(req, res) {
   };
 
   try {
+    console.log('Requesting new access token');
     const response = await axios.post(authOptions.url, authOptions.data, { headers: authOptions.headers });
+    console.log('Refresh token response:', response.status, response.data);
+
     if (response.status === 200) {
       const { access_token } = response.data;
       res.send({ access_token });
     }
   } catch (error) {
-    console.error('Error refreshing token:', error);
+    console.error('Error refreshing token:', error.response ? error.response.data : error.message);
     res.status(500).send({ error: 'Failed to refresh token' });
   }
 });
 
 // Add this route to check configuration
 app.get('/config', (req, res) => {
+  console.log('Config request received');
   res.json({
     clientId: client_id,
     redirectUri: redirect_uri
@@ -123,6 +145,7 @@ app.get('/config', (req, res) => {
 
 // Add this route to check environment variables
 app.get('/env', (req, res) => {
+  console.log('Environment variables request received');
   res.json({
     NODE_ENV: process.env.NODE_ENV,
     SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
@@ -132,6 +155,6 @@ app.get('/env', (req, res) => {
 
 const port = process.env.PORT || 8888;
 app.listen(port, () => {
-  console.log(`Listening on ${port}`);
+  console.log(`Server is listening on port ${port}`);
   console.log(`Redirect URI: ${redirect_uri}`);
 });
