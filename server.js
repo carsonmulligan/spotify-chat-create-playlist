@@ -19,7 +19,8 @@ const app = express();
 const port = process.env.PORT || 8888;
 
 app.use(express.static('public'));
-app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+// Comment out this line if you don't have a favicon.ico file
+// app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(express.json());
 
 // Add this route before your other routes
