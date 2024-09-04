@@ -15,7 +15,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
-const port = 8888;
+const port = process.env.PORT || 8888;  // Use the PORT provided by Heroku, or 8888 as fallback
 
 app.use(express.static('public'));
 app.use(express.json());
@@ -29,10 +29,12 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+const redirectUri = process.env.REDIRECT_URI || `http://localhost:${port}/callback`;
+
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  redirectUri: process.env.SPOTIFY_REDIRECT_URI
+  redirectUri: redirectUri
 });
 
 // Spotify authentication route
@@ -208,7 +210,7 @@ app.post('/api/get-recommendations', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server running on port ${port}`);
 });
 
 // Log all incoming requests
