@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import express from "express";
 import dotenv from "dotenv";
 import { fileURLToPath } from 'url';
@@ -31,24 +32,31 @@ console.log('Client ID:', process.env.SPOTIFY_CLIENT_ID);
 console.log('Redirect URI:', redirectUri);
 
 const generateRandomString = length => {
-  return crypto.randomBytes(length).toString('hex');
+  return crypto.randomBytes(Math.ceil(length/2))
+    .toString('hex')
+    .slice(0, length);
 };
 
 const stateKey = 'spotify_auth_state';
 
 app.get('/login', (req, res) => {
-  const state = generateRandomString(16);
-  res.cookie(stateKey, state);
+  try {
+    const state = generateRandomString(16);
+    res.cookie(stateKey, state);
 
-  const scope = 'playlist-modify-private playlist-modify-public';
-  res.redirect('https://accounts.spotify.com/authorize?' +
-    querystring.stringify({
-      response_type: 'code',
-      client_id: process.env.SPOTIFY_CLIENT_ID,
-      scope: scope,
-      redirect_uri: redirectUri,
-      state: state
-    }));
+    const scope = 'playlist-modify-private playlist-modify-public';
+    res.redirect('https://accounts.spotify.com/authorize?' +
+      querystring.stringify({
+        response_type: 'code',
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        scope: scope,
+        redirect_uri: redirectUri,
+        state: state
+      }));
+  } catch (error) {
+    console.error('Error in /login route:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 app.get('/callback', async (req, res) => {
