@@ -39,7 +39,7 @@ app.get('/login', function(req, res) {
       response_type: 'code',
       client_id: client_id,
       scope: scope,
-      redirect_uri: redirect_uri,
+      redirect_uri: encodeURIComponent(redirect_uri),
       state: state
     });
   
@@ -49,6 +49,8 @@ app.get('/login', function(req, res) {
 
 app.get('/callback', async function(req, res) {
   console.log('Callback received. Query:', req.query);
+  console.log('Cookies:', req.cookies);
+  console.log('State Key:', stateKey);
   const code = req.query.code || null;
   const state = req.query.state || null;
   const storedState = req.cookies ? req.cookies[stateKey] : null;
@@ -119,6 +121,15 @@ app.get('/config', (req, res) => {
   res.json({
     clientId: client_id,
     redirectUri: redirect_uri
+  });
+});
+
+// Add this route to check environment variables
+app.get('/env', (req, res) => {
+  res.json({
+    NODE_ENV: process.env.NODE_ENV,
+    SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
+    SPOTIFY_REDIRECT_URI: process.env.SPOTIFY_REDIRECT_URI
   });
 });
 
