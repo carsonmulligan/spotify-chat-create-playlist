@@ -193,7 +193,7 @@ app.post('/api/get-recommendations', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running at ${process.env.SPOTIFY_REDIRECT_URI}`);
+  console.log(`Server running at ${process.env.SPOTIFY_REDIRECT_URI.split('/callback')[0]}`);
 });
 
 // Log all incoming requests
@@ -209,3 +209,6 @@ app.get('/debug-vars', (req, res) => {
     NODE_ENV: process.env.NODE_ENV
   });
 });
+
+// Uncomment this line to use the favicon
+// app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
