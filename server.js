@@ -29,10 +29,12 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+const redirectUri = 'https://artur-ai-spotify-9fc02bcaa55b.herokuapp.com/callback';
+
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  redirectUri: 'https://artur-ai-spotify-9fc02bcaa55b.herokuapp.com/callback'
+  redirectUri: redirectUri
 });
 
 const generateRandomString = (length) => {
@@ -52,16 +54,21 @@ app.get('/login', (req, res) => {
       response_type: 'code',
       client_id: process.env.SPOTIFY_CLIENT_ID,
       scope: scopes.join(' '),
-      redirect_uri: 'https://artur-ai-spotify-9fc02bcaa55b.herokuapp.com/callback',
+      redirect_uri: redirectUri,
       state: state
     }));
 });
 
 app.get('/callback', async (req, res) => {
+  console.log('Callback received. Query:', req.query);
   const { code, state } = req.query;
   const storedState = req.cookies ? req.cookies[stateKey] : null;
 
+  console.log('Stored state:', storedState);
+  console.log('Received state:', state);
+
   if (state === null || state !== storedState) {
+    console.log('State mismatch');
     res.redirect('/#' + querystring.stringify({ error: 'state_mismatch' }));
     return;
   }
@@ -69,21 +76,10 @@ app.get('/callback', async (req, res) => {
   res.clearCookie(stateKey);
 
   try {
+    console.log('Attempting to exchange code for token');
     const data = await spotifyApi.authorizationCodeGrant(code);
-    const { access_token, refresh_token, expires_in } = data.body;
-
-    spotifyApi.setAccessToken(access_token);
-    spotifyApi.setRefreshToken(refresh_token);
-
-    // Set up token refresh
-    setInterval(async () => {
-      const data = await spotifyApi.refreshAccessToken();
-      const access_token = data.body['access_token'];
-      console.log('Access token refreshed');
-      spotifyApi.setAccessToken(access_token);
-    }, expires_in / 2 * 1000);
-
-    res.redirect('/#' + querystring.stringify({ access_token, refresh_token }));
+    console.log('Token exchange successful');
+    // ... rest of your code
   } catch (error) {
     console.error('Error in /callback:', error);
     res.redirect('/#' + querystring.stringify({ error: 'invalid_token' }));
