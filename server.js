@@ -11,6 +11,7 @@ import { getRecommendations } from './routes/recommendations.js';
 // Initialize environment and directories
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
 dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
