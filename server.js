@@ -7,6 +7,8 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import axios from 'axios';
+import OpenAI from "openai";
+import SpotifyWebApi from 'spotify-web-api-node';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,7 +17,7 @@ dotenv.config();
 
 const client_id = process.env.SPOTIFY_CLIENT_ID;
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
-const redirect_uri = process.env.SPOTIFY_REDIRECT_URI || 'https://artur-ai-spotify-9fc02bcaa55b.herokuapp.com/callback';
+const redirect_uri = process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:8888/callback';
 
 console.log('Starting server with configuration:');
 console.log('Client ID:', client_id);
@@ -25,7 +27,8 @@ const app = express();
 
 app.use(express.static(path.join(__dirname, 'public')))
    .use(cors())
-   .use(cookieParser());
+   .use(cookieParser())
+   .use(express.json());
 
 const generateRandomString = (length) => {
   return crypto.randomBytes(60).toString('hex').slice(0, length);
@@ -98,7 +101,7 @@ app.get('/callback', async function(req, res) {
       }
     } catch (error) {
       console.error('Error in /callback:', error.response ? error.response.data : error.message);
-      res.redirect('/#' + querystring.stringify({ error: 'invalid_token' }));
+      res.redirect('/#' + querystring.stringify({ error: 'server_error', message: error.message }));
     }
   }
 });
@@ -159,6 +162,73 @@ app.get('/check-config', (req, res) => {
     redirectUri: redirect_uri,
     encodedRedirectUri: encodeURIComponent(redirect_uri)
   });
+});
+
+// OpenAI setup
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// Spotify API setup
+const spotifyApi = new SpotifyWebApi({
+  clientId: client_id,
+  clientSecret: client_secret,
+  redirectUri: redirect_uri
+});
+
+// OpenAI chat route
+app.post('/api/chat', async (req, res) => {
+  console.log('Received chat request:', req.body);
+  
+  try {
+    console.log('Sending request to OpenAI');
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": req.body.message}
+      ],
+      stream: true,
+    });
+
+    console.log('Received stream from OpenAI, starting to write response');
+
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    });
+
+    let fullResponse = '';
+
+    for await (const chunk of completion) {
+      if (chunk.choices[0].delta.content) {
+        const content = chunk.choices[0].delta.content;
+        console.log('Sending chunk:', content);
+        fullResponse += content;
+        res.write(`data: ${JSON.stringify({ content })}\n\n`);
+      }
+    }
+
+    console.log('Finished streaming response');
+    console.log('Full response:', fullResponse);
+    res.write(`data: ${JSON.stringify({ content: '[DONE]' })}\n\n`);
+    res.end();
+
+  } catch (error) {
+    console.error('OpenAI API Error:', error);
+    res.status(500).json({ error: 'An error occurred while processing your request.', details: error.message });
+  }
+});
+
+// Create playlist route
+app.post('/api/create-playlist', async (req, res) => {
+  // ... existing create playlist route code ...
+});
+
+// Get recommendations route
+app.post('/api/get-recommendations', async (req, res) => {
+  // ... existing get recommendations route code ...
 });
 
 const port = process.env.PORT || 8888;
