@@ -46,7 +46,18 @@ app.get('/login', (req, res) => {
 
 // Spotify callback route
 app.get('/callback', async (req, res) => {
-  const { code } = req.query;
+  const { code, error } = req.query;
+  
+  if (error) {
+    console.error('Error in /callback:', error);
+    return res.redirect('/#error=' + encodeURIComponent(error));
+  }
+
+  if (!code) {
+    console.error('No code provided in callback');
+    return res.redirect('/#error=no_code');
+  }
+
   console.log('Received code:', code);
   
   try {
@@ -54,7 +65,6 @@ app.get('/callback', async (req, res) => {
     console.log('Received tokens:', data.body);
     const { access_token, refresh_token, expires_in } = data.body;
 
-    // Set the access token and refresh token on the Spotify API object
     spotifyApi.setAccessToken(access_token);
     spotifyApi.setRefreshToken(refresh_token);
 
@@ -66,7 +76,6 @@ app.get('/callback', async (req, res) => {
       spotifyApi.setAccessToken(access_token);
     }, expires_in / 2 * 1000);
 
-    // Redirect to the frontend with the tokens
     res.redirect(`/#access_token=${access_token}&refresh_token=${refresh_token}`);
   } catch (error) {
     console.error('Error in /callback:', error);
