@@ -21,7 +21,7 @@ window.onload = () => {
         playlistCreator.style.display = 'block';
         result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
     } else if (params.get('error')) {
-        result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
+        result.innerHTML = `<p>Error: ${decodeURIComponent(params.get('error'))}</p>`;
     }
 
     window.location.hash = '';

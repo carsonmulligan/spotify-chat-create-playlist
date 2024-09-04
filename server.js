@@ -8,6 +8,7 @@ import querystring from 'querystring';
 import axios from 'axios';
 import SpotifyWebApi from 'spotify-web-api-node';
 import path from 'path';
+import favicon from 'serve-favicon';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -18,6 +19,7 @@ const app = express();
 const port = process.env.PORT || 8888;
 
 app.use(express.static('public'));
+app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(express.json());
 
 // Add this route before your other routes
@@ -66,8 +68,8 @@ app.get('/callback', async (req, res) => {
     // Redirect to the frontend with the tokens
     res.redirect(`/#access_token=${access_token}&refresh_token=${refresh_token}`);
   } catch (error) {
-    console.error('Error getting Spotify tokens:', error);
-    res.redirect('/#error=spotify_auth_error');
+    console.error('Error in /callback:', error);
+    res.redirect('/#error=' + encodeURIComponent(error.message));
   }
 });
 
