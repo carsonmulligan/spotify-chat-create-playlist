@@ -18,15 +18,17 @@ app.use(express.static('public'))
    .use(cookieParser())
    .use(express.json());
 
+const redirectUri = 'https://artur-ai-spotify-9fc02bcaa55b.herokuapp.com/callback';
+
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  redirectUri: process.env.SPOTIFY_REDIRECT_URI
+  redirectUri: redirectUri
 });
 
 console.log('Spotify API configuration:');
 console.log('Client ID:', process.env.SPOTIFY_CLIENT_ID);
-console.log('Redirect URI:', process.env.SPOTIFY_REDIRECT_URI);
+console.log('Redirect URI:', redirectUri);
 
 const generateRandomString = length => {
   return crypto.randomBytes(length).toString('hex');
@@ -44,7 +46,7 @@ app.get('/login', (req, res) => {
       response_type: 'code',
       client_id: process.env.SPOTIFY_CLIENT_ID,
       scope: scope,
-      redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+      redirect_uri: redirectUri,
       state: state
     }));
 });
@@ -102,5 +104,5 @@ app.get('/refresh_token', async (req, res) => {
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
-  console.log(`Redirect URI: ${process.env.SPOTIFY_REDIRECT_URI}`);
+  console.log(`Redirect URI: ${redirectUri}`);
 });
