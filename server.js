@@ -1,179 +1,61 @@
-import express from 'express';
-import crypto from 'crypto';
-import cors from 'cors';
-import querystring from 'querystring';
-import cookieParser from 'cookie-parser';
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import path from 'path';
-import axios from 'axios';
 import OpenAI from "openai";
+import express from "express";
+import dotenv from "dotenv";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import fs from 'fs';
+import querystring from 'querystring';
+import axios from 'axios';
 import SpotifyWebApi from 'spotify-web-api-node';
+import path from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = dirname(__filename);
 
-dotenv.config();
-
-const client_id = process.env.SPOTIFY_CLIENT_ID;
-const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
-const redirect_uri = process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:8888/callback';
-
-console.log('Starting server with configuration:');
-console.log('Client ID:', client_id);
-console.log('Redirect URI:', redirect_uri);
+dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
+const port = 8888;
 
-app.use(express.static(path.join(__dirname, 'public')))
-   .use(cors())
-   .use(cookieParser())
-   .use(express.json());
+app.use(express.static('public'));
+app.use(express.json());
 
-const generateRandomString = (length) => {
-  return crypto.randomBytes(60).toString('hex').slice(0, length);
-};
-
-const stateKey = 'spotify_auth_state';
-
-app.get('/login', function(req, res) {
-  const state = generateRandomString(16);
-  res.cookie(stateKey, state);
-
-  const scope = 'playlist-modify-private playlist-modify-public';
-  const authUrl = 'https://accounts.spotify.com/authorize?' +
-    querystring.stringify({
-      response_type: 'code',
-      client_id: client_id,
-      scope: scope,
-      redirect_uri: redirect_uri, // Remove encodeURIComponent here
-      state: state
-    });
-
-  console.log('Login request received. Redirecting to:', authUrl);
-  res.redirect(authUrl);
+// Add this route before your other routes
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'landing.html'));
 });
 
-app.get('/callback', async function(req, res) {
-  console.log('Callback received. Query:', req.query);
-  console.log('Cookies:', req.cookies);
-  console.log('State Key:', stateKey);
-
-  const code = req.query.code || null;
-  const state = req.query.state || null;
-  const storedState = req.cookies ? req.cookies[stateKey] : null;
-
-  if (state === null || state !== storedState) {
-    console.log('State mismatch. Stored state:', storedState, 'Received state:', state);
-    res.redirect('/#' + querystring.stringify({ error: 'state_mismatch' }));
-  } else {
-    res.clearCookie(stateKey);
-    const authOptions = {
-      url: 'https://accounts.spotify.com/api/token',
-      form: {
-        code: code,
-        redirect_uri: redirect_uri,
-        grant_type: 'authorization_code'
-      },
-      headers: {
-        'Authorization': 'Basic ' + (Buffer.from(client_id + ':' + client_secret).toString('base64')),
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      json: true
-    };
-
-    console.log('Requesting access token with options:', JSON.stringify(authOptions, null, 2));
-
-    try {
-      const response = await axios.post(authOptions.url, querystring.stringify(authOptions.form), { headers: authOptions.headers });
-      console.log('Token response status:', response.status);
-      console.log('Token response data:', response.data);
-
-      if (response.status === 200) {
-        const { access_token, refresh_token } = response.data;
-        
-        const redirectUrl = '/#' + querystring.stringify({ access_token, refresh_token });
-        console.log('Redirecting to:', redirectUrl);
-        res.redirect(redirectUrl);
-      } else {
-        console.log('Invalid token response');
-        res.redirect('/#' + querystring.stringify({ error: 'invalid_token' }));
-      }
-    } catch (error) {
-      console.error('Error in /callback:', error.response ? error.response.data : error.message);
-      res.redirect('/#' + querystring.stringify({ error: 'server_error', message: error.message }));
-    }
-  }
-});
-
-app.get('/refresh_token', async function(req, res) {
-  const { refresh_token } = req.query;
-  console.log('Refresh token request received:', refresh_token);
-
-  const authOptions = {
-    url: 'https://accounts.spotify.com/api/token',
-    headers: { 
-      'Authorization': 'Basic ' + (Buffer.from(client_id + ':' + client_secret).toString('base64')),
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    data: querystring.stringify({
-      grant_type: 'refresh_token',
-      refresh_token: refresh_token
-    })
-  };
-
-  try {
-    console.log('Requesting new access token');
-    const response = await axios.post(authOptions.url, authOptions.data, { headers: authOptions.headers });
-    console.log('Refresh token response:', response.status, response.data);
-
-    if (response.status === 200) {
-      const { access_token } = response.data;
-      res.send({ access_token });
-    }
-  } catch (error) {
-    console.error('Error refreshing token:', error.response ? error.response.data : error.message);
-    res.status(500).send({ error: 'Failed to refresh token' });
-  }
-});
-
-// Add this route to check configuration
-app.get('/config', (req, res) => {
-  console.log('Config request received');
-  res.json({
-    clientId: client_id,
-    redirectUri: redirect_uri
-  });
-});
-
-// Add this route to check environment variables e
-app.get('/env', (req, res) => {
-  console.log('Environment variables request received');
-  res.json({
-    NODE_ENV: process.env.NODE_ENV,
-    SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
-    SPOTIFY_REDIRECT_URI: process.env.SPOTIFY_REDIRECT_URI
-  });
-});
-
-app.get('/check-config', (req, res) => {
-  res.json({
-    clientId: client_id,
-    redirectUri: redirect_uri,
-    encodedRedirectUri: encodeURIComponent(redirect_uri)
-  });
-});
-
-// OpenAI setup
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Spotify API setup
 const spotifyApi = new SpotifyWebApi({
-  clientId: client_id,
-  clientSecret: client_secret,
-  redirectUri: redirect_uri
+  clientId: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+  redirectUri: process.env.SPOTIFY_REDIRECT_URI
+});
+
+// Spotify authentication route
+app.get('/login', (req, res) => {
+  const scopes = ['playlist-modify-private', 'playlist-modify-public'];
+  res.redirect(spotifyApi.createAuthorizeURL(scopes));
+});
+
+// Spotify callback route
+app.get('/callback', async (req, res) => {
+  const { code } = req.query;
+  
+  try {
+    const data = await spotifyApi.authorizationCodeGrant(code);
+    const { access_token, refresh_token } = data.body;
+    
+    // In a real application, you'd want to store these tokens securely
+    // For this example, we'll send them back to the client
+    res.redirect(`/#access_token=${access_token}&refresh_token=${refresh_token}`);
+  } catch (error) {
+    console.error('Error getting Spotify tokens:', error);
+    res.redirect('/#error=spotify_auth_error');
+  }
 });
 
 // OpenAI chat route
@@ -221,18 +103,85 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-// Create playlist route
+// New route to create a playlist
 app.post('/api/create-playlist', async (req, res) => {
-  // ... existing create playlist route code ...
+  console.log('Received playlist creation request');
+  const { prompt, accessToken } = req.body;
+
+  try {
+    console.log('Generating playlist with OpenAI');
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-2024-08-06",
+      messages: [
+        {"role": "system", "content": "You are a helpful assistant that creates Spotify playlists. Respond with a JSON object containing 'name', 'description', and 'tracks' (an array of objects with 'name' and 'artist' properties). Include up to 99 tracks."},
+        {"role": "user", "content": `Create a playlist based on this description: ${prompt}`}
+      ],
+      response_format: { type: "json_object" }
+    });
+
+    const playlistData = JSON.parse(completion.choices[0].message.content);
+    console.log('Generated playlist:', playlistData);
+
+    console.log('Creating playlist on Spotify');
+    spotifyApi.setAccessToken(accessToken);
+    const playlist = await spotifyApi.createPlaylist(playlistData.name, { description: playlistData.description, public: false });
+
+    console.log('Searching for tracks and adding to playlist');
+    const trackUris = [];
+    for (const track of playlistData.tracks) {
+      const searchResults = await spotifyApi.searchTracks(`track:${track.name} artist:${track.artist}`);
+      if (searchResults.body.tracks.items.length > 0) {
+        trackUris.push(searchResults.body.tracks.items[0].uri);
+      }
+    }
+
+    await spotifyApi.addTracksToPlaylist(playlist.body.id, trackUris);
+
+    console.log('Playlist created successfully');
+    res.json({ 
+      success: true, 
+      playlistUrl: playlist.body.external_urls.spotify 
+    });
+  } catch (error) {
+    console.error('Error creating playlist:', error);
+    res.status(500).json({ error: 'Failed to create playlist', details: error.message });
+  }
 });
 
-// Get recommendations route
+// Add this new route for getting recommendations
 app.post('/api/get-recommendations', async (req, res) => {
-  // ... existing get recommendations route code ...
+  const { seed, accessToken } = req.body;
+
+  try {
+    spotifyApi.setAccessToken(accessToken);
+
+    let params = {
+      limit: 5,
+      market: 'US'
+    };
+
+    if (seed.startsWith('spotify:track:')) {
+      params.seed_tracks = [seed];
+    } else if (seed.startsWith('spotify:artist:')) {
+      params.seed_artists = [seed];
+    } else {
+      params.seed_genres = [seed];
+    }
+
+    const recommendations = await spotifyApi.getRecommendations(params);
+    res.json(recommendations.body.tracks);
+  } catch (error) {
+    console.error('Error getting recommendations:', error);
+    res.status(500).json({ error: 'Failed to get recommendations', details: error.message });
+  }
 });
 
-const port = process.env.PORT || 8888;
 app.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
-  console.log(`Redirect URI: ${redirect_uri}`);
+  console.log(`Server running at http://localhost:${port}`);
+});
+
+// Log all incoming requests
+app.use((req, res, next) => {
+  console.log(`Received ${req.method} request to ${req.url}`);
+  next();
 });
