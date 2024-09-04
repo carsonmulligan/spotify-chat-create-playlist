@@ -1,4 +1,5 @@
 let accessToken = null;
+let refreshToken = null;
 
 const loginButton = document.getElementById('login-button');
 const playlistCreator = document.getElementById('playlist-creator');
@@ -15,6 +16,7 @@ window.onload = () => {
     const hash = window.location.hash.substring(1);
     const params = new URLSearchParams(hash);
     accessToken = params.get('access_token');
+    refreshToken = params.get('refresh_token');
     
     if (accessToken) {
         loginButton.style.display = 'none';
@@ -26,6 +28,39 @@ window.onload = () => {
 
     window.location.hash = '';
 };
+
+async function refreshAccessToken() {
+    try {
+        const response = await fetch(`/refresh_token?refresh_token=${refreshToken}`);
+        const data = await response.json();
+        if (data.access_token) {
+            accessToken = data.access_token;
+            return true;
+        }
+    } catch (error) {
+        console.error('Error refreshing token:', error);
+    }
+    return false;
+}
+
+// Use this function before making any Spotify API calls
+async function ensureValidToken() {
+    if (!accessToken) {
+        return false;
+    }
+    // Attempt to refresh the token if it's expired
+    // You might want to check if the token is actually expired before refreshing
+    return await refreshAccessToken();
+}
+
+// Example of how to use ensureValidToken
+async function createPlaylist() {
+    if (await ensureValidToken()) {
+        // Make your Spotify API call here
+    } else {
+        console.error('Unable to get a valid token');
+    }
+}
 
 promptExamples.forEach(example => {
     example.addEventListener('click', (e) => {
