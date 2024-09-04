@@ -4,10 +4,13 @@ export const spotifyLogin = (req, res) => {
   const scopes = ['playlist-modify-private', 'playlist-modify-public'];
   const state = generateRandomString(16);
   res.cookie('spotify_auth_state', state);
-  res.redirect(spotifyApi.createAuthorizeURL(scopes, state));
+  const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
+  console.log('Redirecting to Spotify authorize URL:', authorizeURL);
+  res.redirect(authorizeURL);
 };
 
 export const spotifyCallback = async (req, res) => {
+  console.log('Received callback from Spotify');
   const { code, state } = req.query;
   const storedState = req.cookies ? req.cookies['spotify_auth_state'] : null;
 
@@ -19,15 +22,19 @@ export const spotifyCallback = async (req, res) => {
   res.clearCookie('spotify_auth_state');
 
   try {
+    console.log('Exchanging code for tokens');
     const data = await spotifyApi.authorizationCodeGrant(code);
     const { access_token, refresh_token, expires_in } = data.body;
 
+    console.log('Received tokens from Spotify');
     // Set the access token and refresh token on the API object
     spotifyApi.setAccessToken(access_token);
     spotifyApi.setRefreshToken(refresh_token);
 
-    // Redirect to a new route that will handle the frontend redirect
-    res.redirect(`/auth-success?access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`);
+    // Redirect to the auth-success page with tokens as query parameters
+    const redirectURL = `/auth-success?access_token=${encodeURIComponent(access_token)}&refresh_token=${encodeURIComponent(refresh_token)}&expires_in=${expires_in}`;
+    console.log('Redirecting to:', redirectURL);
+    res.redirect(redirectURL);
   } catch (error) {
     console.error('Error getting Spotify tokens:', error);
     res.redirect('/#error=spotify_auth_error');

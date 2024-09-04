@@ -28,8 +28,14 @@ app.get('/', (req, res) => {
 });
 
 // Spotify authentication routes
-app.get('/login', spotifyLogin);
-app.get('/callback', spotifyCallback);
+app.get('/login', (req, res) => {
+  console.log('Received login request');
+  spotifyLogin(req, res);
+});
+app.get('/callback', (req, res) => {
+  console.log('Received callback request');
+  spotifyCallback(req, res);
+});
 
 // OpenAI chat route
 app.post('/api/chat', chatWithOpenAI);
@@ -42,7 +48,9 @@ app.post('/api/get-recommendations', getRecommendations);
 
 // New route to handle frontend redirect
 app.get('/auth-success', (req, res) => {
+  console.log('Received auth-success request');
   const { access_token, refresh_token, expires_in } = req.query;
+  console.log('Tokens received:', { access_token, refresh_token, expires_in });
   res.sendFile(path.join(__dirname, 'public', 'auth-success.html'));
 });
 
