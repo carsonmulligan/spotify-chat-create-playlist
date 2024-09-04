@@ -17,6 +17,7 @@
     "open": "^10.1.0",
     "openai": "^4.0.0",
     "querystring": "^0.2.1",
+    "serve-favicon": "^2.5.0",
     "spotify-web-api-node": "^5.0.2"
   },
   "author": "",
