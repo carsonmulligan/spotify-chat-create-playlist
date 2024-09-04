@@ -1,7 +1,4 @@
 .env
 test-api-key.js
 node_modules/
-gpt_4o_auth_test.js
-spot_playlist_test.js
-spot_recco_test.js
-redirect_debug.txt
+test.txt
