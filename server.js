@@ -46,6 +46,8 @@ app.get('/login', (req, res) => {
 
 // Spotify callback route
 app.get('/callback', async (req, res) => {
+  console.log('Callback received. Query params:', req.query);
+  
   const { code, error } = req.query;
   
   if (error) {
