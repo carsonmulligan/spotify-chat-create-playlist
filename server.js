@@ -44,13 +44,13 @@ app.get('/login', (req, res) => {
 // Spotify callback route
 app.get('/callback', async (req, res) => {
   const { code } = req.query;
+  console.log('Received code:', code);
   
   try {
     const data = await spotifyApi.authorizationCodeGrant(code);
+    console.log('Received tokens:', data.body);
     const { access_token, refresh_token } = data.body;
     
-    // In a real application, you'd want to store these tokens securely
-    // For this example, we'll send them back to the client
     res.redirect(`/#access_token=${access_token}&refresh_token=${refresh_token}`);
   } catch (error) {
     console.error('Error getting Spotify tokens:', error);
@@ -184,4 +184,12 @@ app.listen(port, () => {
 app.use((req, res, next) => {
   console.log(`Received ${req.method} request to ${req.url}`);
   next();
+});
+
+// New route to check environment variables
+app.get('/debug-vars', (req, res) => {
+  res.json({
+    SPOTIFY_REDIRECT_URI: process.env.SPOTIFY_REDIRECT_URI,
+    NODE_ENV: process.env.NODE_ENV
+  });
 });
