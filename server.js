@@ -43,7 +43,7 @@ app.get('/login', (req, res) => {
   res.redirect(spotifyApi.createAuthorizeURL(scopes));
 });
 
-// Spotify callback route
+// Spotify callback rout
 app.get('/callback', async (req, res) => {
   const { code, state } = req.query;
   const storedState = req.cookies ? req.cookies['spotify_auth_state'] : null;
