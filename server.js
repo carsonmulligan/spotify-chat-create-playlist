@@ -34,17 +34,21 @@ app.get('/login', function(req, res) {
   res.cookie(stateKey, state);
 
   const scope = 'playlist-modify-private playlist-modify-public';
-  res.redirect('https://accounts.spotify.com/authorize?' +
+  const authUrl = 'https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
       client_id: client_id,
       scope: scope,
       redirect_uri: redirect_uri,
       state: state
-    }));
+    });
+  
+  console.log('Redirecting to:', authUrl);
+  res.redirect(authUrl);
 });
 
 app.get('/callback', async function(req, res) {
+  console.log('Callback received. Query:', req.query);
   const code = req.query.code || null;
   const state = req.query.state || null;
   const storedState = req.cookies ? req.cookies[stateKey] : null;
@@ -108,6 +112,14 @@ app.get('/refresh_token', async function(req, res) {
     console.error('Error refreshing token:', error);
     res.status(500).send({ error: 'Failed to refresh token' });
   }
+});
+
+// Add this route to check configuration
+app.get('/config', (req, res) => {
+  res.json({
+    clientId: client_id,
+    redirectUri: redirect_uri
+  });
 });
 
 const port = process.env.PORT || 8888;
