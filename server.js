@@ -43,7 +43,7 @@ app.get('/login', function(req, res) {
       response_type: 'code',
       client_id: client_id,
       scope: scope,
-      redirect_uri: redirect_uri,
+      redirect_uri: encodeURIComponent(redirect_uri),
       state: state
     });
 
@@ -150,6 +150,14 @@ app.get('/env', (req, res) => {
     NODE_ENV: process.env.NODE_ENV,
     SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
     SPOTIFY_REDIRECT_URI: process.env.SPOTIFY_REDIRECT_URI
+  });
+});
+
+app.get('/check-config', (req, res) => {
+  res.json({
+    clientId: client_id,
+    redirectUri: redirect_uri,
+    fullRedirectUri: encodeURIComponent(redirect_uri)
   });
 });
 
