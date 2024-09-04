@@ -143,7 +143,7 @@ app.get('/config', (req, res) => {
   });
 });
 
-// Add this route to check environment variables
+// Add this route to check environment variables e
 app.get('/env', (req, res) => {
   console.log('Environment variables request received');
   res.json({
