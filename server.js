@@ -49,8 +49,21 @@ app.get('/callback', async (req, res) => {
   try {
     const data = await spotifyApi.authorizationCodeGrant(code);
     console.log('Received tokens:', data.body);
-    const { access_token, refresh_token } = data.body;
-    
+    const { access_token, refresh_token, expires_in } = data.body;
+
+    // Set the access token and refresh token on the Spotify API object
+    spotifyApi.setAccessToken(access_token);
+    spotifyApi.setRefreshToken(refresh_token);
+
+    // Set up token refresh
+    setInterval(async () => {
+      const data = await spotifyApi.refreshAccessToken();
+      const access_token = data.body['access_token'];
+      console.log('Access token refreshed');
+      spotifyApi.setAccessToken(access_token);
+    }, expires_in / 2 * 1000);
+
+    // Redirect to the frontend with the tokens
     res.redirect(`/#access_token=${access_token}&refresh_token=${refresh_token}`);
   } catch (error) {
     console.error('Error getting Spotify tokens:', error);
@@ -177,7 +190,7 @@ app.post('/api/get-recommendations', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server running at ${process.env.SPOTIFY_REDIRECT_URI}`);
 });
 
 // Log all incoming requests
