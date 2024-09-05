@@ -66,28 +66,27 @@ function fetchUserProfile() {
     });
 }
 
-function refreshAccessToken() {
-    return fetch('/refresh_token', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refresh_token: refreshToken }),
-    })
-    .then(response => response.json())
-    .then(data => {
+async function refreshAccessToken() {
+    try {
+        const response = await fetch('/refresh_token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+        });
+        const data = await response.json();
         accessToken = data.access_token;
         tokenExpiryTime = Date.now() + data.expires_in * 1000;
         localStorage.setItem('spotify_access_token', accessToken);
         localStorage.setItem('spotify_token_expiry', tokenExpiryTime);
         console.log('Access token refreshed');
         return accessToken;
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error refreshing token:', error);
         // If refreshing fails, redirect to login
         window.location.href = '/login';
-    });
+    }
 }
 
 // After successful authentication
@@ -128,6 +127,12 @@ createPlaylistButton.addEventListener('click', async () => {
 
         if (!response.ok) {
             const errorData = await response.json();
+            if (response.status === 401) {
+                // Token might be expired, try refreshing again
+                await refreshAccessToken();
+                // Retry the request
+                return createPlaylistButton.click();
+            }
             throw new Error(errorData.details || 'Failed to create playlist');
         }
         
