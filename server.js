@@ -10,6 +10,7 @@ import SpotifyWebApi from 'spotify-web-api-node';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import { spotifyLogin, spotifyCallback } from './routes/spotify.js';
+import { openai } from './routes/openAI.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -182,4 +183,18 @@ app.listen(port, () => {
 app.use((req, res, next) => {
   console.log(`Received ${req.method} request to ${req.url}`);
   next();
+});
+
+// Test OpenAI route
+app.get('/test-openai', async (req, res) => {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{"role": "user", "content": "Hello, OpenAI!"}],
+    });
+    res.json({ response: completion.choices[0].message.content });
+  } catch (error) {
+    console.error('OpenAI Test Error:', error);
+    res.status(500).json({ error: 'OpenAI test failed', details: error.message });
+  }
 });
