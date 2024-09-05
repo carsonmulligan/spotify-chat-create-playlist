@@ -3,8 +3,8 @@ import dotenv from "dotenv";
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import path from 'path';
-import { login, callback } from './routes/spotify.js';
-import { chat } from './routes/openAI.js';  // Change this line
+import { spotifyLogin, spotifyCallback } from './routes/spotify.js';
+import { chat } from './routes/openAI.js';
 import { createPlaylist } from './routes/playlist.js';
 import { getRecommendations } from './routes/recommendations.js';
 
@@ -23,8 +23,8 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'landing.html'));
 });
 
-app.get('/login', login);
-app.get('/callback', callback);
+app.get('/login', spotifyLogin);
+app.get('/callback', spotifyCallback);
 app.post('/api/chat', chat);
 app.post('/api/create-playlist', createPlaylist);
 app.post('/api/get-recommendations', getRecommendations);

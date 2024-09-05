@@ -39,21 +39,14 @@ export const spotifyCallback = async (req, res) => {
     const data = await spotifyApi.authorizationCodeGrant(code);
     const { access_token, refresh_token, expires_in } = data.body;
 
-    res.cookie('spotify_access_token', access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: expires_in * 1000
-    });
-
-    res.cookie('spotify_refresh_token', refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-    });
-
-    res.redirect(process.env.FRONTEND_URI || 'http://localhost:3000');
+    // Instead of setting cookies, we'll redirect with the tokens in the URL
+    const redirectURL = `${process.env.SPOTIFY_FRONTEND_URI || 'http://localhost:3000'}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`;
+    
+    console.log('Redirecting to:', redirectURL);
+    res.redirect(redirectURL);
   } catch (error) {
     console.error('Error getting Spotify tokens:', error);
-    res.redirect('/#error=spotify_auth_error');
+    res.redirect(`${process.env.SPOTIFY_FRONTEND_URI || 'http://localhost:3000'}/#error=spotify_auth_error`);
   }
 };
 
