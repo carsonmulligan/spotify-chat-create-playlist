@@ -66,20 +66,7 @@ createPlaylistButton.addEventListener('click', async () => {
             })
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.details || 'Failed to create playlist');
-        }
-        
-        const data = await response.json();
-        if (data.newAccessToken) {
-            accessToken = data.newAccessToken;
-            localStorage.setItem('spotify_access_token', accessToken);
-        }
-        result.innerHTML = `
-            <p>Playlist created successfully!</p>
-            <p>You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>
-        `;
+        // ... rest of the function ...
     } catch (error) {
         console.error('Error:', error);
         result.innerHTML = `<p>Error: ${error.message}</p>`;
