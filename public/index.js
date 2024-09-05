@@ -40,13 +40,13 @@ window.onload = async () => {
             loginButton.style.display = 'block';
             playlistCreator.style.display = 'none';
         }
-    } else if (params.get('error')) {
-        result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
     } else {
-        // If no token, redirect to login
-        window.location.href = '/login';
+        // If no token, show login button
+        loginButton.style.display = 'block';
+        playlistCreator.style.display = 'none';
     }
 
+    // Clear the hash
     window.location.hash = '';
 };
 
@@ -64,9 +64,6 @@ async function fetchUserProfile() {
                 console.log('Token expired or invalid, refreshing...');
                 await refreshAccessToken();
                 return fetchUserProfile(); // Retry after refreshing
-            } else if (response.status === 403) {
-                console.error('Forbidden error. Check app permissions and scopes.');
-                throw new Error('Forbidden. Check app permissions and scopes.');
             }
             throw new Error(errorData.error || 'Failed to fetch user profile');
         }
@@ -97,14 +94,9 @@ async function refreshAccessToken() {
         tokenExpiryTime = Date.now() + data.expires_in * 1000;
         localStorage.setItem('spotify_access_token', accessToken);
         localStorage.setItem('spotify_token_expiry', tokenExpiryTime);
-        console.log('Access token refreshed');
     } catch (error) {
         console.error('Error refreshing token:', error);
-        // If refreshing fails, clear stored tokens and redirect to login
-        localStorage.removeItem('spotify_access_token');
-        localStorage.removeItem('spotify_refresh_token');
-        localStorage.removeItem('spotify_token_expiry');
-        window.location.href = '/login';
+        throw error;
     }
 }
 

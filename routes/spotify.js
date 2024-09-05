@@ -82,16 +82,9 @@ export const refreshAccessToken = async (req, res) => {
   }
 
   try {
-    console.log('Refreshing access token with refresh token:', refresh_token.substring(0, 10) + '...');
     spotifyApi.setRefreshToken(refresh_token);
     const data = await spotifyApi.refreshAccessToken();
     const { access_token, expires_in } = data.body;
-
-    console.log('New access token received:', access_token.substring(0, 10) + '...');
-    console.log('Token expires in:', expires_in);
-
-    // Set the access token on the API object
-    spotifyApi.setAccessToken(access_token);
 
     res.json({
       access_token: access_token,
@@ -99,7 +92,6 @@ export const refreshAccessToken = async (req, res) => {
     });
   } catch (error) {
     console.error('Error refreshing access token:', error);
-    console.error('Error details:', error.response ? error.response.body : 'No response body');
     res.status(500).json({ error: 'Failed to refresh access token' });
   }
 };
