@@ -1,5 +1,3 @@
-// playlist.js
-
 import { spotifyApi, refreshAccessToken } from './spotify.js';
 import { openai } from './openAI.js';
 
@@ -61,9 +59,7 @@ export const createPlaylist = async (req, res) => {
     console.log('Playlist created successfully');
     res.json({ 
       success: true, 
-      playlistUrl: playlist.body.external_urls.spotify,
-      playlistName: playlist.body.name,
-      trackCount: trackUris.length
+      playlistUrl: playlist.body.external_urls.spotify 
     });
   } catch (error) {
     console.error('Error creating playlist:', error);

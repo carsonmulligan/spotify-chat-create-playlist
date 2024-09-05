@@ -1,5 +1,3 @@
-// recommendations.js
-
 import { spotifyApi } from './spotify.js';
 
 export const getRecommendations = async (req, res) => {

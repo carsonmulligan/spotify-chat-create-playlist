@@ -1,5 +1,3 @@
-// index.js
-
 let accessToken = null;
 let refreshToken = null;
 let tokenExpiryTime = null;
@@ -16,25 +14,40 @@ loginButton.addEventListener('click', () => {
 });
 
 window.onload = async () => {
-    accessToken = localStorage.getItem('spotify_access_token');
-    refreshToken = localStorage.getItem('spotify_refresh_token');
-    tokenExpiryTime = localStorage.getItem('spotify_token_expiry');
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    accessToken = params.get('access_token') || localStorage.getItem('spotify_access_token');
+    refreshToken = params.get('refresh_token') || localStorage.getItem('spotify_refresh_token');
+    const expiresIn = params.get('expires_in');
+    
+    if (accessToken) {
+        tokenExpiryTime = expiresIn ? Date.now() + expiresIn * 1000 : localStorage.getItem('spotify_token_expiry');
+        localStorage.setItem('spotify_access_token', accessToken);
+        localStorage.setItem('spotify_refresh_token', refreshToken);
+        localStorage.setItem('spotify_token_expiry', tokenExpiryTime);
 
-    if (accessToken && refreshToken && tokenExpiryTime) {
-        if (Date.now() > tokenExpiryTime) {
-            try {
-                await refreshAccessToken();
-            } catch (error) {
-                console.error('Error refreshing token:', error);
-                showLoginButton();
-                return;
-            }
+        loginButton.style.display = 'none';
+        playlistCreator.style.display = 'block';
+        result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
+        
+        try {
+            const userProfile = await fetchUserProfile();
+            console.log('User profile:', userProfile);
+            // You can display user information here if needed
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+            result.innerHTML = '<p>Error fetching user profile. Please try logging in again.</p>';
+            loginButton.style.display = 'block';
+            playlistCreator.style.display = 'none';
         }
-        hideLoginButton();
-        await fetchUserProfile();
+    } else if (params.get('error')) {
+        result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
     } else {
-        showLoginButton();
+        // If no token, redirect to login
+        window.location.href = '/login';
     }
+
+    window.location.hash = '';
 };
 
 async function fetchUserProfile() {
@@ -45,14 +58,20 @@ async function fetchUserProfile() {
             }
         });
         if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                console.log('Token expired or invalid, refreshing...');
+                await refreshAccessToken();
+                return fetchUserProfile(); // Retry after refreshing
+            }
             throw new Error('Failed to fetch user profile');
         }
         const data = await response.json();
         console.log('User profile:', data);
-        result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
+        return data;
     } catch (error) {
         console.error('Error fetching user profile:', error);
-        showLoginButton();
+        // If there's an error even after refreshing, redirect to login
+        window.location.href = '/login';
     }
 }
 
@@ -73,22 +92,27 @@ async function refreshAccessToken() {
         tokenExpiryTime = Date.now() + data.expires_in * 1000;
         localStorage.setItem('spotify_access_token', accessToken);
         localStorage.setItem('spotify_token_expiry', tokenExpiryTime);
+        console.log('Access token refreshed');
     } catch (error) {
         console.error('Error refreshing token:', error);
-        throw error;
+        // If refreshing fails, clear stored tokens and redirect to login
+        localStorage.removeItem('spotify_access_token');
+        localStorage.removeItem('spotify_refresh_token');
+        localStorage.removeItem('spotify_token_expiry');
+        window.location.href = '/login';
     }
 }
 
-function showLoginButton() {
-    loginButton.style.display = 'block';
-    playlistCreator.style.display = 'none';
-    result.innerHTML = '';
-}
-
-function hideLoginButton() {
-    loginButton.style.display = 'none';
-    playlistCreator.style.display = 'block';
-}
+// After successful authentication
+fetch(`/api/me?access_token=${accessToken}`)
+  .then(response => response.json())
+  .then(data => {
+    console.log('User profile:', data);
+    // Now you can proceed with playlist creation
+  })
+  .catch(error => {
+    console.error('Error fetching user profile:', error);
+  });
 
 promptExamples.forEach(example => {
     example.addEventListener('click', (e) => {
@@ -103,9 +127,8 @@ createPlaylistButton.addEventListener('click', async () => {
     try {
         result.innerHTML = '<p>Creating playlist...</p>';
         
-        if (Date.now() > tokenExpiryTime) {
-            await refreshAccessToken();
-        }
+        // Always refresh the token before making a request
+        await refreshAccessToken();
 
         const response = await fetch('/api/create-playlist', {
             method: 'POST',
@@ -122,13 +145,11 @@ createPlaylistButton.addEventListener('click', async () => {
         }
         
         const data = await response.json();
-        result.innerHTML = `
-            <p>Playlist "${data.playlistName}" created successfully with ${data.trackCount} tracks!</p>
-            <p>You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>
-        `;
+        result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;
     } catch (error) {
         console.error('Error:', error);
         result.innerHTML = `<p>Error: ${error.message}</p>`;
-        showLoginButton();
+        // If there's an error, try logging in again
+        window.location.href = '/login';
     }
 });

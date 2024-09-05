@@ -3,28 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotify Playlist Creator</title>
+    <title>AI Spotify Playlist Creator</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="app">
-        <h1>Spotify Playlist Creator</h1>
-        <div id="login-section">
-            <button id="login-button">Login with Spotify</button>
-        </div>
+    <div class="container">
+        <h1>AI Spotify Playlist Creator</h1>
+        <button id="login-button">Login with Spotify</button>
         <div id="playlist-creator" style="display: none;">
-            <textarea id="playlist-prompt" placeholder="Describe your playlist..."></textarea>
+            <h2>Create a Playlist</h2>
+            <p>Instructions: Tell the AI what type of playlist you want</p>
+            <div id="prompt-examples">
+                <h3>Quick Start: Try These Prompts!</h3>
+                <ul>
+                    <li><a href="#" class="prompt-example">Seven songs by Jeanne Moreau, seven songs by artists like her</a></li>
+                    <li><a href="#" class="prompt-example">Hong Kong Pop Classics in 1998</a></li>
+                    <li><a href="#" class="prompt-example">Country Songs about Oklahoma</a></li>
+                </ul>
+            </div>
+            <textarea id="playlist-prompt" rows="4" placeholder="Describe your playlist..."></textarea>
             <button id="create-playlist-button">Create Playlist</button>
         </div>
         <div id="result"></div>
-        <div id="prompt-examples">
-            <h3>Example prompts:</h3>
-            <ul>
-                <li class="prompt-example">Create a workout playlist with upbeat songs</li>
-                <li class="prompt-example">Make a relaxing playlist for studying</li>
-                <li class="prompt-example">Generate a playlist for a 90s themed party</li>
-            </ul>
-        </div>
     </div>
     <script src="index.js"></script>
 </body>
