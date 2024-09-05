@@ -59,28 +59,27 @@ createPlaylistButton.addEventListener('click', async () => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${accessToken}`
             },
-            body: JSON.stringify({
-                prompt: prompt,
-                accessToken: accessToken
+            body: JSON.stringify({ 
+                prompt,
+                accessToken,
+                refreshToken
             })
         });
 
-        if (!response.ok) throw new Error('Failed to create playlist');
-        
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let playlistData = '';
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value);
-            playlistData += chunk;
-            result.innerHTML = `<p>Generating playlist: ${playlistData}</p>`;
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.details || 'Failed to create playlist');
         }
-
-        const data = JSON.parse(playlistData);
-        result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;
+        
+        const data = await response.json();
+        if (data.newAccessToken) {
+            accessToken = data.newAccessToken;
+            localStorage.setItem('spotify_access_token', accessToken);
+        }
+        result.innerHTML = `
+            <p>Playlist created successfully!</p>
+            <p>You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>
+        `;
     } catch (error) {
         console.error('Error:', error);
         result.innerHTML = `<p>Error: ${error.message}</p>`;
