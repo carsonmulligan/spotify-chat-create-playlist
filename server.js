@@ -70,29 +70,23 @@ app.get('/callback', async (req, res) => {
   }
   
   try {
+    console.log('Exchanging code for tokens');
     const data = await spotifyApi.authorizationCodeGrant(code);
     const { access_token, refresh_token, expires_in } = data.body;
+
+    console.log('Received tokens from Spotify');
+    console.log('Access token:', access_token.substring(0, 10) + '...');
+    console.log('Refresh token:', refresh_token.substring(0, 10) + '...');
+    console.log('Expires in:', expires_in);
 
     // Set the access token and refresh token on the API object
     spotifyApi.setAccessToken(access_token);
     spotifyApi.setRefreshToken(refresh_token);
 
-    // In a production app, you'd want to store these tokens securely (e.g., encrypted in a database)
-    // Here, we're setting them as secure, HTTP-only cookies
-    res.cookie('spotify_access_token', access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: expires_in * 1000 // convert to milliseconds
-    });
-
-    res.cookie('spotify_refresh_token', refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      // refresh token doesn't expire
-    });
-
-    // Redirect to the frontend application
-    res.redirect(process.env.FRONTEND_URI || 'http://localhost:3000');
+    // Redirect to the frontend application with tokens in hash
+    const redirectURL = `${process.env.FRONTEND_URI || 'http://localhost:3000'}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`;
+    console.log('Redirecting to:', redirectURL.substring(0, 50) + '...');
+    res.redirect(redirectURL);
   } catch (error) {
     console.error('Error getting Spotify tokens:', error);
     res.redirect('/#error=spotify_auth_error');
