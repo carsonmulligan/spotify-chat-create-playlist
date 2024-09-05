@@ -40,7 +40,18 @@ export const spotifyCallback = async (req, res) => {
     return res.redirect('/#error=state_mismatch');
   }
 
-  // ... rest of the callback logic
+  res.clearCookie('spotify_auth_state');
+
+  try {
+    const data = await spotifyApi.authorizationCodeGrant(code);
+    const { access_token, refresh_token, expires_in } = data.body;
+
+    // Instead of setting tokens on the API object, send them to the client
+    res.redirect(`/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`);
+  } catch (error) {
+    console.error('Error getting Spotify tokens:', error);
+    res.redirect('/#error=spotify_auth_error');
+  }
 };
 
 export { spotifyApi };

@@ -1,4 +1,6 @@
 let accessToken = null;
+let refreshToken = null;
+let tokenExpiryTime = null;
 
 const loginButton = document.getElementById('login-button');
 const playlistCreator = document.getElementById('playlist-creator');
@@ -14,17 +16,28 @@ loginButton.addEventListener('click', () => {
 window.onload = () => {
     const hash = window.location.hash.substring(1);
     const params = new URLSearchParams(hash);
-    accessToken = params.get('access_token');
+    accessToken = params.get('access_token') || localStorage.getItem('spotify_access_token');
+    refreshToken = params.get('refresh_token') || localStorage.getItem('spotify_refresh_token');
+    const expiresIn = params.get('expires_in');
     
     if (accessToken) {
+        tokenExpiryTime = expiresIn ? Date.now() + expiresIn * 1000 : localStorage.getItem('spotify_token_expiry');
+        localStorage.setItem('spotify_access_token', accessToken);
+        localStorage.setItem('spotify_refresh_token', refreshToken);
+        localStorage.setItem('spotify_token_expiry', tokenExpiryTime);
+
         loginButton.style.display = 'none';
         playlistCreator.style.display = 'block';
         result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
+        
+        // Clear the hash to remove tokens from URL
+        window.history.replaceState({}, document.title, window.location.pathname);
     } else if (params.get('error')) {
         result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
+    } else {
+        loginButton.style.display = 'block';
+        playlistCreator.style.display = 'none';
     }
-
-    window.location.hash = '';
 };
 
 promptExamples.forEach(example => {
