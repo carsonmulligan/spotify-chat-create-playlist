@@ -1,3 +1,5 @@
+// server.js
+
 import express from "express";
 import dotenv from "dotenv";
 import { fileURLToPath } from 'url';
@@ -58,20 +60,17 @@ app.get('/api/me', async (req, res) => {
 
   try {
     console.log('Fetching user profile with access token:', accessToken);
-    const response = await fetch('https://api.spotify.com/v1/me', {
-      headers: { 'Authorization': `Bearer ${accessToken}` }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    console.log('User profile fetched successfully:', data);
-    res.json(data);
+    spotifyApi.setAccessToken(accessToken);
+    const data = await spotifyApi.getMe();
+    console.log('User profile fetched successfully:', data.body);
+    res.json(data.body);
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    res.status(401).json({ error: 'Failed to fetch user profile', details: error.message });
+    if (error.statusCode === 401) {
+      res.status(401).json({ error: 'Invalid or expired token', details: error.message });
+    } else {
+      res.status(500).json({ error: 'Failed to fetch user profile', details: error.message });
+    }
   }
 });
 

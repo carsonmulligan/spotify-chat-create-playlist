@@ -1,3 +1,5 @@
+// spotify.js
+
 import SpotifyWebApi from 'spotify-web-api-node';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
@@ -16,7 +18,14 @@ export const spotifyApi = new SpotifyWebApi({
 });
 
 export const spotifyLogin = (req, res) => {
-  const scopes = ['user-read-private', 'user-read-email', 'playlist-modify-private', 'playlist-modify-public'];
+  const scopes = [
+    'user-read-private',
+    'user-read-email',
+    'playlist-modify-private',
+    'playlist-modify-public',
+    'user-read-currently-playing',
+    'user-read-playback-state'
+  ];
   const state = generateRandomString(16);
   res.cookie('spotify_auth_state', state);
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
