@@ -64,8 +64,6 @@ export const spotifyCallback = async (req, res) => {
   }
 };
 
-export { spotifyApi };
-
 export const refreshAccessToken = async (req, res) => {
   const { refresh_token } = req.body;
   if (!refresh_token) {
