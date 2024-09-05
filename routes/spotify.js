@@ -28,39 +28,27 @@ export const spotifyCallback = async (req, res) => {
   const { code, state } = req.query;
   const storedState = req.cookies ? req.cookies['spotify_auth_state'] : null;
 
-  console.log('Received callback from Spotify');
-  console.log('Query parameters:', req.query);
-  console.log('Stored state:', storedState);
-
   if (state === null || state !== storedState) {
-    console.error('State mismatch. Received:', state, 'Stored:', storedState);
     return res.redirect('/#error=state_mismatch');
   }
 
   res.clearCookie('spotify_auth_state');
 
   try {
-    console.log('Exchanging code for tokens');
     const data = await spotifyApi.authorizationCodeGrant(code);
     const { access_token, refresh_token, expires_in } = data.body;
 
-    console.log('Received tokens from Spotify');
-    console.log('Access token:', access_token.substring(0, 10) + '...');
-    console.log('Refresh token:', refresh_token.substring(0, 10) + '...');
-    console.log('Expires in:', expires_in);
-
-    // Set the access token on the API object
     spotifyApi.setAccessToken(access_token);
     spotifyApi.setRefreshToken(refresh_token);
 
-    // Redirect to the frontend with the tokens in the URL hash
-    const redirectURL = `${process.env.FRONTEND_URI || 'http://localhost:3000'}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`;
-    
-    console.log('Redirecting to:', redirectURL);
-    res.redirect(redirectURL);
+    console.log('Access Token:', access_token);
+    console.log('Refresh Token:', refresh_token);
+    console.log('Expires in:', expires_in);
+
+    res.redirect(`${process.env.FRONTEND_URI}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`);
   } catch (error) {
-    console.error('Error getting Spotify tokens:', error);
-    res.redirect(`${process.env.FRONTEND_URI || 'http://localhost:3000'}/#error=spotify_auth_error`);
+    console.error('Error in callback:', error);
+    res.redirect('/#error=invalid_token');
   }
 };
 

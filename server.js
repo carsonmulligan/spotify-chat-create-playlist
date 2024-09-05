@@ -56,19 +56,21 @@ app.get('/api/me', async (req, res) => {
   const accessToken = authHeader.split(' ')[1];
 
   try {
-    console.log('Fetching user profile with access token:', accessToken.substring(0, 10) + '...');
-    spotifyApi.setAccessToken(accessToken);
-    const me = await spotifyApi.getMe();
-    console.log('User profile fetched successfully:', me.body);
-    res.json(me.body);
+    console.log('Fetching user profile with access token:', accessToken);
+    const response = await fetch('https://api.spotify.com/v1/me', {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('User profile fetched successfully:', data);
+    res.json(data);
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    console.error('Error details:', error.response ? error.response.body : 'No response body');
-    if (error.statusCode === 401 || error.statusCode === 403) {
-      res.status(401).json({ error: 'Invalid or expired token' });
-    } else {
-      res.status(500).json({ error: 'Failed to fetch user profile', details: error.message });
-    }
+    res.status(401).json({ error: 'Failed to fetch user profile', details: error.message });
   }
 });
 
