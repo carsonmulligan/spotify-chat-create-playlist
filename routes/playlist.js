@@ -22,10 +22,14 @@ export const createPlaylist = async (req, res) => {
     console.log('Creating playlist on Spotify');
     spotifyApi.setAccessToken(accessToken);
     
-    // Get the user's Spotify ID
-    const me = await spotifyApi.getMe();
-    const userId = me.body.id;
-    console.log('User ID:', userId);
+    // Verify the access token
+    try {
+      const me = await spotifyApi.getMe();
+      console.log('User ID:', me.body.id);
+    } catch (error) {
+      console.error('Error verifying access token:', error);
+      return res.status(401).json({ error: 'Invalid access token', details: error.message });
+    }
 
     const playlist = await spotifyApi.createPlaylist(playlistData.name, { description: playlistData.description, public: false });
     console.log('Playlist created:', playlist.body);
