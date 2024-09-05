@@ -24,7 +24,9 @@ export const spotifyLogin = (req, res) => {
     'playlist-modify-private',
     'playlist-modify-public',
     'user-read-currently-playing',
-    'user-read-playback-state'
+    'user-read-playback-state',
+    'user-top-read',
+    'user-read-recently-played'
   ];
   const state = generateRandomString(16);
   res.cookie('spotify_auth_state', state);

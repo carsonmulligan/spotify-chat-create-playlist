@@ -66,6 +66,11 @@ async function fetchUserProfile() {
                 console.log('Token expired or invalid, refreshing...');
                 await refreshAccessToken();
                 return fetchUserProfile(); // Retry after refreshing
+            } else if (response.status === 403) {
+                console.error('Forbidden error. Check app permissions and scopes.');
+                // You might want to redirect to login or show an error message to the user
+                window.location.href = '/login';
+                return;
             }
             throw new Error(errorData.error || 'Failed to fetch user profile');
         }
