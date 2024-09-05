@@ -68,7 +68,10 @@ async function fetchUserProfile() {
                 return fetchUserProfile(); // Retry after refreshing
             } else if (response.status === 403) {
                 console.error('Forbidden error. Check app permissions and scopes.');
-                // You might want to redirect to login or show an error message to the user
+                // Clear stored tokens and redirect to login
+                localStorage.removeItem('spotify_access_token');
+                localStorage.removeItem('spotify_refresh_token');
+                localStorage.removeItem('spotify_token_expiry');
                 window.location.href = '/login';
                 return;
             }
@@ -79,7 +82,10 @@ async function fetchUserProfile() {
         return data;
     } catch (error) {
         console.error('Error fetching user profile:', error);
-        // If there's an error even after refreshing, redirect to login
+        // If there's an error even after refreshing, clear stored tokens and redirect to login
+        localStorage.removeItem('spotify_access_token');
+        localStorage.removeItem('spotify_refresh_token');
+        localStorage.removeItem('spotify_token_expiry');
         window.location.href = '/login';
     }
 }
