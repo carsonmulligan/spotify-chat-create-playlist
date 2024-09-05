@@ -46,6 +46,22 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'An unexpected error occurred', details: err.message });
 });
 
+app.get('/api/me', async (req, res) => {
+  const accessToken = req.query.access_token;
+  if (!accessToken) {
+    return res.status(400).json({ error: 'Access token is required' });
+  }
+
+  try {
+    spotifyApi.setAccessToken(accessToken);
+    const me = await spotifyApi.getMe();
+    res.json(me.body);
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ error: 'Failed to fetch user profile', details: error.message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
   console.log('Environment:', process.env.NODE_ENV);

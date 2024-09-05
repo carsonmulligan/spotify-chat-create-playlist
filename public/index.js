@@ -27,6 +27,17 @@ window.onload = () => {
     window.location.hash = '';
 };
 
+// After successful authentication
+fetch(`/api/me?access_token=${accessToken}`)
+  .then(response => response.json())
+  .then(data => {
+    console.log('User profile:', data);
+    // Now you can proceed with playlist creation
+  })
+  .catch(error => {
+    console.error('Error fetching user profile:', error);
+  });
+
 promptExamples.forEach(example => {
     example.addEventListener('click', (e) => {
         e.preventDefault();

@@ -21,7 +21,14 @@ export const createPlaylist = async (req, res) => {
 
     console.log('Creating playlist on Spotify');
     spotifyApi.setAccessToken(accessToken);
-    const playlist = await spotifyApi.createPlaylist(playlistData.name, { description: playlistData.description, public: false });
+    
+    // Get the user's Spotify ID
+    const me = await spotifyApi.getMe();
+    const userId = me.body.id;
+    console.log('User ID:', userId);
+
+    const playlist = await spotifyApi.createPlaylist(userId, playlistData.name, { description: playlistData.description, public: false });
+    console.log('Playlist created:', playlist.body);
 
     console.log('Searching for tracks and adding to playlist');
     const trackUris = [];
@@ -41,6 +48,7 @@ export const createPlaylist = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating playlist:', error);
+    console.error('Error details:', error.response ? error.response.data : 'No response data');
     res.status(500).json({ error: 'Failed to create playlist', details: error.message });
   }
 };
