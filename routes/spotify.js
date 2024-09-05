@@ -49,7 +49,7 @@ export const spotifyCallback = async (req, res) => {
     const data = await spotifyApi.authorizationCodeGrant(code);
     const { access_token, refresh_token, expires_in } = data.body;
 
-    // Instead of redirecting, send the tokens as JSON
+    // Send the tokens as JSON
     res.json({ access_token, refresh_token, expires_in });
   } catch (error) {
     console.error('Error in callback:', error);
