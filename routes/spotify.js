@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
 
 dotenv.config({ path: join(__dirname, '..', '.env') });
 
-const spotifyApi = new SpotifyWebApi({
+export const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
   redirectUri: process.env.SPOTIFY_REDIRECT_URI
@@ -94,3 +94,10 @@ export const refreshAccessToken = async (req, res) => {
     res.status(500).json({ error: 'Failed to refresh access token' });
   }
 };
+
+// Add this function at the end of the file
+function generateRandomString(length) {
+  return crypto.randomBytes(Math.ceil(length / 2))
+    .toString('hex')
+    .slice(0, length);
+}

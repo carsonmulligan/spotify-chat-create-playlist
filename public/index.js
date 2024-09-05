@@ -40,11 +40,10 @@ window.onload = async () => {
             loginButton.style.display = 'block';
             playlistCreator.style.display = 'none';
         }
-    } else if (params.get('error')) {
-        result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
     } else {
-        // If no token, redirect to login
-        window.location.href = '/login';
+        console.log('No access token found, displaying login button');
+        loginButton.style.display = 'block';
+        playlistCreator.style.display = 'none';
     }
 
     window.location.hash = '';
