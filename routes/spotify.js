@@ -31,7 +31,6 @@ export const spotifyLogin = (req, res) => {
   const state = generateRandomString(16);
   res.cookie('spotify_auth_state', state);
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
-  console.log('Redirecting to Spotify authorize URL:', authorizeURL);
   res.redirect(authorizeURL);
 };
 
@@ -49,14 +48,7 @@ export const spotifyCallback = async (req, res) => {
     const data = await spotifyApi.authorizationCodeGrant(code);
     const { access_token, refresh_token, expires_in } = data.body;
 
-    spotifyApi.setAccessToken(access_token);
-    spotifyApi.setRefreshToken(refresh_token);
-
-    console.log('Access Token:', access_token);
-    console.log('Refresh Token:', refresh_token);
-    console.log('Expires in:', expires_in);
-
-    res.redirect(`${process.env.FRONTEND_URI}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`);
+    res.redirect(`/auth-success?access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`);
   } catch (error) {
     console.error('Error in callback:', error);
     res.redirect('/#error=invalid_token');
@@ -70,16 +62,9 @@ export const refreshAccessToken = async (req, res) => {
   }
 
   try {
-    console.log('Refreshing access token with refresh token:', refresh_token.substring(0, 10) + '...');
     spotifyApi.setRefreshToken(refresh_token);
     const data = await spotifyApi.refreshAccessToken();
     const { access_token, expires_in } = data.body;
-
-    console.log('New access token received:', access_token.substring(0, 10) + '...');
-    console.log('Token expires in:', expires_in);
-
-    // Set the access token on the API object
-    spotifyApi.setAccessToken(access_token);
 
     res.json({
       access_token: access_token,
@@ -87,7 +72,6 @@ export const refreshAccessToken = async (req, res) => {
     });
   } catch (error) {
     console.error('Error refreshing access token:', error);
-    console.error('Error details:', error.response ? error.response.body : 'No response body');
     res.status(500).json({ error: 'Failed to refresh access token' });
   }
 };

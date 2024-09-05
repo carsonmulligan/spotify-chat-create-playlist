@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Successful</title>
+</head>
+<body>
+    <h1>Authentication Successful</h1>
+    <p>Redirecting to the app...</p>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const access_token = params.get('access_token');
+        const refresh_token = params.get('refresh_token');
+        const expires_in = params.get('expires_in');
+
+        if (access_token && refresh_token && expires_in) {
+            localStorage.setItem('spotify_access_token', access_token);
+            localStorage.setItem('spotify_refresh_token', refresh_token);
+            localStorage.setItem('spotify_token_expiry', Date.now() + expires_in * 1000);
+            window.location.href = '/';
+        } else {
+            console.error('Missing tokens or expiry');
+            window.location.href = '/#error=missing_tokens';
+        }
+    </script>
+</body>
+</html>
