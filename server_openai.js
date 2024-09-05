@@ -15,7 +15,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
-const port = process.env.PORT || 8888;  // Use the PORT provided by Heroku, or 8888 as fallback
+const port = process.env.PORT || 8888;
 
 app.use(express.static('public'));
 app.use(express.json());
@@ -29,12 +29,10 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const redirectUri = process.env.REDIRECT_URI || `http://localhost:${port}/callback`;
-
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  redirectUri: redirectUri
+  redirectUri: process.env.SPOTIFY_REDIRECT_URI
 });
 
 // Spotify authentication route
@@ -43,48 +41,17 @@ app.get('/login', (req, res) => {
   res.redirect(spotifyApi.createAuthorizeURL(scopes));
 });
 
-// Spotify callback rout
+// Spotify callback route
 app.get('/callback', async (req, res) => {
-  const { code, state } = req.query;
-  const storedState = req.cookies ? req.cookies['spotify_auth_state'] : null;
-
-  if (state === null || state !== storedState) {
-    console.error('State mismatch in Spotify callback');
-    return res.redirect('/#error=state_mismatch');
-  }
-
-  // Clear the state cookie
-  res.clearCookie('spotify_auth_state');
-
-  if (!code) {
-    console.error('No code provided in Spotify callback');
-    return res.redirect('/#error=no_code');
-  }
+  const { code } = req.query;
   
   try {
     const data = await spotifyApi.authorizationCodeGrant(code);
-    const { access_token, refresh_token, expires_in } = data.body;
-
-    // Set the access token and refresh token on the API object
-    spotifyApi.setAccessToken(access_token);
-    spotifyApi.setRefreshToken(refresh_token);
-
-    // In a production app, you'd want to store these tokens securely (e.g., encrypted in a database)
-    // Here, we're setting them as secure, HTTP-only cookies
-    res.cookie('spotify_access_token', access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: expires_in * 1000 // convert to milliseconds
-    });
-
-    res.cookie('spotify_refresh_token', refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      // refresh token doesn't expire
-    });
-
-    // Redirect to the frontend application
-    res.redirect(process.env.FRONTEND_URI || 'http://localhost:3000');
+    const { access_token, refresh_token } = data.body;
+    
+    // In a real application, you'd want to store these tokens securely
+    // For this example, we'll send them back to the client
+    res.redirect(`/#access_token=${access_token}&refresh_token=${refresh_token}`);
   } catch (error) {
     console.error('Error getting Spotify tokens:', error);
     res.redirect('/#error=spotify_auth_error');
@@ -210,7 +177,7 @@ app.post('/api/get-recommendations', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`Server running at http://localhost:${port}`);
 });
 
 // Log all incoming requests

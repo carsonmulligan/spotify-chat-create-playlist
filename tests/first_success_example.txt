@@ -1,0 +1,77 @@
+Received playlist creation request
+Generating playlist with OpenAI
+Generated playlist: {
+  name: 'Bossa Nova Classics',
+  description: 'A collection of timeless bossa nova tracks that capture the smooth and soothing essence of this iconic Brazilian genre.',
+  tracks: [
+  
+    { name: 'Desafinado', artist: 'João Gilberto' },
+    {
+      name: 'Corcovado (Quiet Nights of Quiet Stars)',
+      artist: 'Antônio Carlos Jobim'
+    },
+    { name: 'Wave', artist: 'Antônio Carlos Jobim' },
+    { name: 'Água de Beber', artist: 'Antônio Carlos Jobim' },
+    { name: 'Chega de Saudade', artist: 'João Gilberto' },
+    { name: 'Samba de Uma Nota Só', artist: 'João Gilberto' },
+    { name: 'So Nice (Summer Samba)', artist: 'Bebel Gilberto' },
+    { name: 'Meditation', artist: 'Antônio Carlos Jobim' },
+    { name: 'Insensatez (How Insensitive)', artist: 'João Gilberto' },
+    { name: 'Triste', artist: 'Antônio Carlos Jobim' },
+    { name: 'Mas, Que Nada!', artist: 'Jorge Ben Jor' },
+    { name: 'A Felicidade', artist: 'João Gilberto' },
+    { name: 'Carnival', artist: 'Klaus Wunderlich' },
+    { name: 'Garota de Ipanema - Instrumental', artist: 'Stan Getz' },
+    { name: 'Só Danço Samba', artist: 'João Gilberto' },
+    { name: 'Dindi', artist: 'Antônio Carlos Jobim' },
+    { name: 'Canto de Ossanha', artist: 'Baden Powell de Aquino' },
+    { name: 'Fotografia', artist: 'Elis Regina' },
+    { name: 'Manhã de Carnaval', artist: 'Luiz Bonfá' },
+    { name: 'Bim Bom', artist: 'João Gilberto' },
+    { name: 'Surfboard', artist: 'Antônio Carlos Jobim' },
+    { name: 'O Pato', artist: 'João Gilberto' },
+    { name: 'Recado Bossa Nova', artist: 'Os Cariocas' },
+    {
+      name: 'Somewhere in the Hills (O Morro Nao Tem Vez)',
+      artist: 'Antônio Carlos Jobim'
+    },
+    { name: 'Samba de Verão', artist: 'Marcos Valle' },
+    { name: 'Aquarela do Brasil', artist: 'João Gilberto' },
+    { name: 'Você e Eu', artist: 'Carlos Lyra' },
+    { name: 'Este Seu Olhar', artist: 'João Gilberto' },
+    { name: 'Eu Sei Que Vou Te Amar', artist: 'Gal Costa' },
+    { name: 'Ela é Carioca', artist: 'Tom Jobim' },
+    { name: 'Dois Dias', artist: 'Bebel Gilberto' },
+    { name: 'A Rã', artist: 'João Donato' },
+    { name: 'Pontilhada', artist: 'Luiz Bonfá' },
+    { name: 'Coração Vagabundo', artist: 'Caetano Veloso' },
+    { name: 'Tico-Tico no Fubá', artist: 'Baden Powell' },
+    { name: 'One Note Samba', artist: 'Stan Getz' },
+    { name: 'Amor Certinho', artist: 'Elis Regina' },
+    { name: 'Inútil Paisagem', artist: 'Elis Regina & Tom Jobim' },
+    { name: 'Quando o Carnaval Chegar', artist: 'Chico Buarque' },
+    { name: 'Corcovado', artist: 'Stan Getz' },
+    { name: 'Chove Chuva', artist: 'Jorge Ben' },
+    { name: 'Brazilian Rhyme', artist: 'Earth, Wind & Fire' },
+    { name: 'O Barquinho', artist: 'Roberto Menescal' },
+    { name: 'Desde Que O Samba É Samba', artist: 'Gilberto Gil' },
+    {
+      name: 'Don’t Ever Go Away (Por Causa de Você)',
+      artist: 'Klaus Wunderlich'
+    },
+    {
+      name: 'Na Baixa do Sapateiro',
+      artist: 'The Bossa Nova Modern Quartet'
+    },
+    { name: 'Vivo Sonhando', artist: 'Stan Getz' },
+    { name: 'Telecoteco', artist: 'Nara Leão' },
+    { name: 'O Sol Nascerá', artist: 'Cartola' },
+    { name: 'Ponteio', artist: 'Edu Lobo' },
+    { name: 'Previsão', artist: 'Eliane Elias' },
+    { name: 'Para dizer Adeus', artist: 'Edu Lobo' },
+    { name: 'Nada Será Como Antes', artist: 'Gal Costa' }
+  ]
+}
+Creating playlist on Spotify
+Searching for tracks and adding to playlist
+Playlist created successfully

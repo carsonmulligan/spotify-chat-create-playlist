@@ -15,40 +15,16 @@ window.onload = () => {
     const hash = window.location.hash.substring(1);
     const params = new URLSearchParams(hash);
     accessToken = params.get('access_token');
-    const refreshToken = params.get('refresh_token');
-    const expiresIn = params.get('expires_in');
     
     if (accessToken) {
-        console.log('Access token found in URL');
-        localStorage.setItem('spotify_access_token', accessToken);
-        localStorage.setItem('spotify_refresh_token', refreshToken);
-        localStorage.setItem('spotify_token_expiry', Date.now() + expiresIn * 1000);
-        
         loginButton.style.display = 'none';
         playlistCreator.style.display = 'block';
         result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
-        
-        // Clear the hash to remove tokens from URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-    } else {
-        console.log('No access token found in URL, checking localStorage');
-        accessToken = localStorage.getItem('spotify_access_token');
-        if (accessToken) {
-            console.log('Access token found in localStorage');
-            loginButton.style.display = 'none';
-            playlistCreator.style.display = 'block';
-            result.innerHTML = '<p>Welcome back!</p>';
-        } else {
-            console.log('No access token found, showing login button');
-            loginButton.style.display = 'block';
-            playlistCreator.style.display = 'none';
-        }
-    }
-
-    if (params.get('error')) {
-        console.error('Error in authentication:', params.get('error'));
+    } else if (params.get('error')) {
         result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
     }
+
+    window.location.hash = '';
 };
 
 promptExamples.forEach(example => {
