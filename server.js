@@ -14,7 +14,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
-const port = process.env.PORT || 8888;
+const port = process.env.PORT || 3000;  // Change 8888 to 3000 or any other available port
 
 app.use(express.static('public'));
 app.use(express.json());
