@@ -27,7 +27,7 @@ export const createPlaylist = async (req, res) => {
     const userId = me.body.id;
     console.log('User ID:', userId);
 
-    const playlist = await spotifyApi.createPlaylist(userId, playlistData.name, { description: playlistData.description, public: false });
+    const playlist = await spotifyApi.createPlaylist(playlistData.name, { description: playlistData.description, public: false });
     console.log('Playlist created:', playlist.body);
 
     console.log('Searching for tracks and adding to playlist');

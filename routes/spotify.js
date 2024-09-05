@@ -18,7 +18,7 @@ const spotifyApi = new SpotifyWebApi({
 export const spotifyLogin = (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
   res.cookie('spotify_auth_state', state, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
-  const scopes = ['playlist-modify-private', 'playlist-modify-public'];
+  const scopes = ['playlist-modify-private', 'playlist-modify-public', 'user-read-private', 'user-read-email'];
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
   console.log('Redirecting to Spotify authorize URL:', authorizeURL);
   res.redirect(authorizeURL);
@@ -51,6 +51,7 @@ export const spotifyCallback = async (req, res) => {
 
     // Set the access token on the API object
     spotifyApi.setAccessToken(access_token);
+    spotifyApi.setRefreshToken(refresh_token);
 
     const redirectURL = `${process.env.FRONTEND_URI || 'http://localhost:3000'}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`;
     
