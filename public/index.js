@@ -13,15 +13,15 @@ loginButton.addEventListener('click', () => {
     window.location.href = '/login';
 });
 
-window.onload = () => {
+window.onload = async () => {
     const hash = window.location.hash.substring(1);
     const params = new URLSearchParams(hash);
-    accessToken = params.get('access_token');
-    refreshToken = params.get('refresh_token');
+    accessToken = params.get('access_token') || localStorage.getItem('spotify_access_token');
+    refreshToken = params.get('refresh_token') || localStorage.getItem('spotify_refresh_token');
     const expiresIn = params.get('expires_in');
     
     if (accessToken) {
-        tokenExpiryTime = Date.now() + expiresIn * 1000;
+        tokenExpiryTime = expiresIn ? Date.now() + expiresIn * 1000 : localStorage.getItem('spotify_token_expiry');
         localStorage.setItem('spotify_access_token', accessToken);
         localStorage.setItem('spotify_refresh_token', refreshToken);
         localStorage.setItem('spotify_token_expiry', tokenExpiryTime);
@@ -30,40 +30,39 @@ window.onload = () => {
         playlistCreator.style.display = 'block';
         result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
         
-        fetchUserProfile();
+        await fetchUserProfile();
     } else if (params.get('error')) {
         result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
     } else {
-        // Check if we have a stored token
-        accessToken = localStorage.getItem('spotify_access_token');
-        refreshToken = localStorage.getItem('spotify_refresh_token');
-        tokenExpiryTime = localStorage.getItem('spotify_token_expiry');
-        
-        if (accessToken && tokenExpiryTime && Date.now() < tokenExpiryTime) {
-            loginButton.style.display = 'none';
-            playlistCreator.style.display = 'block';
-            fetchUserProfile();
-        }
+        // If no token, redirect to login
+        window.location.href = '/login';
     }
 
     window.location.hash = '';
 };
 
-function fetchUserProfile() {
-    fetch('/api/me', {
-        headers: {
-            'Authorization': `Bearer ${accessToken}`
+async function fetchUserProfile() {
+    try {
+        const response = await fetch('/api/me', {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                console.log('Token expired or invalid, refreshing...');
+                await refreshAccessToken();
+                return fetchUserProfile(); // Retry after refreshing
+            }
+            throw new Error('Failed to fetch user profile');
         }
-    })
-    .then(response => response.json())
-    .then(data => {
+        const data = await response.json();
         console.log('User profile:', data);
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error fetching user profile:', error);
-        // If there's an error, we might need to refresh the token
-        refreshAccessToken();
-    });
+        // If there's an error even after refreshing, redirect to login
+        window.location.href = '/login';
+    }
 }
 
 async function refreshAccessToken() {
@@ -84,10 +83,12 @@ async function refreshAccessToken() {
         localStorage.setItem('spotify_access_token', accessToken);
         localStorage.setItem('spotify_token_expiry', tokenExpiryTime);
         console.log('Access token refreshed');
-        return accessToken;
     } catch (error) {
         console.error('Error refreshing token:', error);
-        // If refreshing fails, redirect to login
+        // If refreshing fails, clear stored tokens and redirect to login
+        localStorage.removeItem('spotify_access_token');
+        localStorage.removeItem('spotify_refresh_token');
+        localStorage.removeItem('spotify_token_expiry');
         window.location.href = '/login';
     }
 }
