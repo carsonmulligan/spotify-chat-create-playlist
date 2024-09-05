@@ -3,12 +3,11 @@ import dotenv from "dotenv";
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import path from 'path';
-import { spotifyLogin, spotifyCallback, spotifyApi } from './routes/spotify.js';
+import { spotifyLogin, spotifyCallback, spotifyApi, refreshAccessToken } from './routes/spotify.js';
 import { chat } from './routes/openAI.js';
 import { createPlaylist } from './routes/playlist.js';
 import { getRecommendations } from './routes/recommendations.js';
 import cookieParser from 'cookie-parser';
-import { refreshAccessToken } from './routes/spotify.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -17,6 +16,7 @@ dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
 app.use(cookieParser());
+app.use(express.json());  // Add this line to parse JSON bodies
 const port = process.env.PORT || 3000;
 
 app.use(express.static('public'));
