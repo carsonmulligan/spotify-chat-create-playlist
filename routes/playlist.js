@@ -3,7 +3,8 @@ import { openai } from './openAI.js';
 
 export const createPlaylist = async (req, res) => {
   console.log('Received playlist creation request');
-  const { prompt, accessToken } = req.body;
+  const { prompt } = req.body;
+  const accessToken = req.headers.authorization.split(' ')[1];
 
   try {
     console.log('Generating playlist with OpenAI');

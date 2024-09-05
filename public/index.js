@@ -50,16 +50,20 @@ window.onload = () => {
 };
 
 function fetchUserProfile() {
-    fetch(`/api/me?access_token=${accessToken}`)
-        .then(response => response.json())
-        .then(data => {
-            console.log('User profile:', data);
-        })
-        .catch(error => {
-            console.error('Error fetching user profile:', error);
-            // If there's an error, we might need to refresh the token
-            refreshAccessToken();
-        });
+    fetch('/api/me', {
+        headers: {
+            'Authorization': `Bearer ${accessToken}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('User profile:', data);
+    })
+    .catch(error => {
+        console.error('Error fetching user profile:', error);
+        // If there's an error, we might need to refresh the token
+        refreshAccessToken();
+    });
 }
 
 function refreshAccessToken() {
@@ -115,10 +119,7 @@ createPlaylistButton.addEventListener('click', async () => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${accessToken}`
             },
-            body: JSON.stringify({
-                prompt: prompt,
-                accessToken: accessToken
-            })
+            body: JSON.stringify({ prompt })
         });
 
         if (!response.ok) {

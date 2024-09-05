@@ -49,10 +49,11 @@ app.use((err, req, res, next) => {
 });
 
 app.get('/api/me', async (req, res) => {
-  const accessToken = req.query.access_token;
-  if (!accessToken) {
-    return res.status(400).json({ error: 'Access token is required' });
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'No token provided' });
   }
+  const accessToken = authHeader.split(' ')[1];
 
   try {
     spotifyApi.setAccessToken(accessToken);
