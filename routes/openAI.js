@@ -57,7 +57,7 @@ export const spotifyCallback = async (req, res) => {
   }
 };
 
-export const chatWithOpenAI = async (req, res) => {
+export const chat = async (req, res) => {
   console.log('Received chat request:', req.body);
   
   try {
@@ -100,6 +100,9 @@ export const chatWithOpenAI = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while processing your request.', details: error.message });
   }
 };
+
+// Export the openai instance
+export { openai };
 
 // Export the spotifyApi instance
 export { spotifyApi };
