@@ -56,12 +56,14 @@ app.get('/api/me', async (req, res) => {
   const accessToken = authHeader.split(' ')[1];
 
   try {
+    console.log('Fetching user profile with access token:', accessToken.substring(0, 10) + '...');
     spotifyApi.setAccessToken(accessToken);
     const me = await spotifyApi.getMe();
     console.log('User profile fetched successfully:', me.body);
     res.json(me.body);
   } catch (error) {
     console.error('Error fetching user profile:', error);
+    console.error('Error details:', error.response ? error.response.body : 'No response body');
     if (error.statusCode === 401 || error.statusCode === 403) {
       res.status(401).json({ error: 'Invalid or expired token' });
     } else {

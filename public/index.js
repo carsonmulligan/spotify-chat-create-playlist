@@ -52,18 +52,21 @@ window.onload = async () => {
 
 async function fetchUserProfile() {
     try {
+        console.log('Fetching user profile with access token:', accessToken.substring(0, 10) + '...');
         const response = await fetch('/api/me', {
             headers: {
                 'Authorization': `Bearer ${accessToken}`
             }
         });
         if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Error response:', errorData);
             if (response.status === 401 || response.status === 403) {
                 console.log('Token expired or invalid, refreshing...');
                 await refreshAccessToken();
                 return fetchUserProfile(); // Retry after refreshing
             }
-            throw new Error('Failed to fetch user profile');
+            throw new Error(errorData.error || 'Failed to fetch user profile');
         }
         const data = await response.json();
         console.log('User profile:', data);
