@@ -21,6 +21,7 @@ export const createPlaylist = async (req, res) => {
     console.log('Generated playlist:', playlistData);
 
     console.log('Creating playlist on Spotify');
+    console.log('Using access token:', accessToken.substring(0, 10) + '...');
     spotifyApi.setAccessToken(accessToken);
     
     // Verify the access token
@@ -30,7 +31,7 @@ export const createPlaylist = async (req, res) => {
       console.log('User ID:', me.body.id);
     } catch (error) {
       console.error('Error verifying access token:', error);
-      console.error('Error response:', error.response ? error.response.body : 'No response body');
+      console.error('Error response:', error.response ? JSON.stringify(error.response.body) : 'No response body');
       return res.status(401).json({ error: 'Invalid access token', details: error.message });
     }
 
@@ -55,7 +56,7 @@ export const createPlaylist = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating playlist:', error);
-    console.error('Error details:', error.response ? error.response.body : 'No response body');
+    console.error('Error details:', error.response ? JSON.stringify(error.response.body) : 'No response body');
     console.error('Error status:', error.statusCode);
     console.error('Error message:', error.message);
     res.status(500).json({ error: 'Failed to create playlist', details: error.message });

@@ -67,7 +67,7 @@ function fetchUserProfile() {
 }
 
 function refreshAccessToken() {
-    fetch('/refresh_token', {
+    return fetch('/refresh_token', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -80,7 +80,8 @@ function refreshAccessToken() {
         tokenExpiryTime = Date.now() + data.expires_in * 1000;
         localStorage.setItem('spotify_access_token', accessToken);
         localStorage.setItem('spotify_token_expiry', tokenExpiryTime);
-        fetchUserProfile();
+        console.log('Access token refreshed');
+        return accessToken;
     })
     .catch(error => {
         console.error('Error refreshing token:', error);
@@ -113,6 +114,9 @@ createPlaylistButton.addEventListener('click', async () => {
     try {
         result.innerHTML = '<p>Creating playlist...</p>';
         
+        // Always refresh the token before making a request
+        await refreshAccessToken();
+
         const response = await fetch('/api/create-playlist', {
             method: 'POST',
             headers: { 
@@ -124,12 +128,6 @@ createPlaylistButton.addEventListener('click', async () => {
 
         if (!response.ok) {
             const errorData = await response.json();
-            if (response.status === 401) {
-                // Token might be expired, try refreshing
-                await refreshAccessToken();
-                // Retry the request
-                return createPlaylistButton.click();
-            }
             throw new Error(errorData.details || 'Failed to create playlist');
         }
         
