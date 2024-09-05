@@ -15,7 +15,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
-const port = process.env.PORT || 8888;  // Use the PORT provided by Heroku, or 8888 as fallback
+const port = process.env.PORT || 3000;  // Change 8888 to 3000
 
 app.use(express.static('public'));
 app.use(express.json());
