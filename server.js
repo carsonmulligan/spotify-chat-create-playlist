@@ -8,6 +8,8 @@ import querystring from 'querystring';
 import axios from 'axios';
 import SpotifyWebApi from 'spotify-web-api-node';
 import path from 'path';
+import crypto from 'crypto';
+import cookieParser from 'cookie-parser';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,6 +21,7 @@ const port = process.env.PORT || 3000;  // Change 8888 to 3000
 
 app.use(express.static('public'));
 app.use(express.json());
+app.use(cookieParser());
 
 // Add this route before your other routes
 app.get('/', (req, res) => {
@@ -39,14 +42,19 @@ const spotifyApi = new SpotifyWebApi({
 
 // Spotify authentication route
 app.get('/login', (req, res) => {
-  const scopes = ['playlist-modify-private', 'playlist-modify-public'];
-  res.redirect(spotifyApi.createAuthorizeURL(scopes));
+  const state = crypto.randomBytes(16).toString('hex');
+  res.cookie('spotify_auth_state', state, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+  const scopes = ['playlist-modify-private', 'playlist-modify-public', 'user-read-private', 'user-read-email'];
+  res.redirect(spotifyApi.createAuthorizeURL(scopes, state));
 });
 
 // Spotify callback rout
 app.get('/callback', async (req, res) => {
   const { code, state } = req.query;
   const storedState = req.cookies ? req.cookies['spotify_auth_state'] : null;
+
+  console.log('Received state:', state);
+  console.log('Stored state:', storedState);
 
   if (state === null || state !== storedState) {
     console.error('State mismatch in Spotify callback');
