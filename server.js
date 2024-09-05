@@ -7,6 +7,7 @@ import { spotifyLogin, spotifyCallback } from './routes/spotify.js';
 import { chat } from './routes/openAI.js';
 import { createPlaylist } from './routes/playlist.js';
 import { getRecommendations } from './routes/recommendations.js';
+import cookieParser from 'cookie-parser';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -14,6 +15,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
+app.use(cookieParser());
 const port = process.env.PORT || 3000;  // Change 8888 to 3000 or any other available port
 
 app.use(express.static('public'));

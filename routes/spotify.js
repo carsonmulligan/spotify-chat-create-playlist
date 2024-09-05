@@ -2,6 +2,7 @@ import SpotifyWebApi from 'spotify-web-api-node';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,9 +16,9 @@ const spotifyApi = new SpotifyWebApi({
 });
 
 export const spotifyLogin = (req, res) => {
+  const state = crypto.randomBytes(16).toString('hex');
+  res.cookie('spotify_auth_state', state, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
   const scopes = ['playlist-modify-private', 'playlist-modify-public'];
-  const state = generateRandomString(16);
-  res.cookie('spotify_auth_state', state);
   res.redirect(spotifyApi.createAuthorizeURL(scopes, state));
 };
 
@@ -25,8 +26,8 @@ export const spotifyCallback = async (req, res) => {
   const { code, state } = req.query;
   const storedState = req.cookies ? req.cookies['spotify_auth_state'] : null;
 
-  if (!state || state !== storedState) {
-    console.error('State mismatch in Spotify callback');
+  if (state === null || state !== storedState) {
+    console.error('State mismatch. Received:', state, 'Stored:', storedState);
     return res.redirect('/#error=state_mismatch');
   }
 
@@ -36,13 +37,17 @@ export const spotifyCallback = async (req, res) => {
     const data = await spotifyApi.authorizationCodeGrant(code);
     const { access_token, refresh_token, expires_in } = data.body;
 
-    const redirectURL = `${process.env.SPOTIFY_FRONTEND_URI || 'http://localhost:3000'}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`;
+    // Set the access token on the API object
+    spotifyApi.setAccessToken(access_token);
+
+    // In a real app, you'd probably want to store refresh_token in the database
+    const redirectURL = `${process.env.FRONTEND_URI || 'http://localhost:3000'}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`;
     
     console.log('Redirecting to:', redirectURL);
     res.redirect(redirectURL);
   } catch (error) {
     console.error('Error getting Spotify tokens:', error);
-    res.redirect(`${process.env.SPOTIFY_FRONTEND_URI || 'http://localhost:3000'}/#error=spotify_auth_error`);
+    res.redirect('/#error=spotify_auth_error');
   }
 };
 
