@@ -49,6 +49,8 @@ export const createPlaylist = async (req, res) => {
   } catch (error) {
     console.error('Error creating playlist:', error);
     console.error('Error details:', error.response ? error.response.data : 'No response data');
+    console.error('Error status:', error.statusCode);
+    console.error('Error message:', error.message);
     res.status(500).json({ error: 'Failed to create playlist', details: error.message });
   }
 };
