@@ -65,3 +65,25 @@ export const spotifyCallback = async (req, res) => {
 };
 
 export { spotifyApi };
+
+export const refreshAccessToken = async (req, res) => {
+  const { refresh_token } = req.body;
+
+  if (!refresh_token) {
+    return res.status(400).json({ error: 'Refresh token is required' });
+  }
+
+  try {
+    spotifyApi.setRefreshToken(refresh_token);
+    const data = await spotifyApi.refreshAccessToken();
+    const { access_token, expires_in } = data.body;
+
+    res.json({
+      access_token: access_token,
+      expires_in: expires_in
+    });
+  } catch (error) {
+    console.error('Error refreshing access token:', error);
+    res.status(500).json({ error: 'Failed to refresh access token', details: error.message });
+  }
+};

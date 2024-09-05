@@ -8,6 +8,7 @@ import { chat } from './routes/openAI.js';
 import { createPlaylist } from './routes/playlist.js';
 import { getRecommendations } from './routes/recommendations.js';
 import cookieParser from 'cookie-parser';
+import { refreshAccessToken } from './routes/spotify.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -39,6 +40,7 @@ app.get('/callback', spotifyCallback);
 app.post('/api/chat', chat);
 app.post('/api/create-playlist', createPlaylist);
 app.post('/api/get-recommendations', getRecommendations);
+app.post('/refresh_token', refreshAccessToken);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
