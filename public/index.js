@@ -75,6 +75,9 @@ async function refreshAccessToken() {
             },
             body: JSON.stringify({ refresh_token: refreshToken }),
         });
+        if (!response.ok) {
+            throw new Error('Failed to refresh token');
+        }
         const data = await response.json();
         accessToken = data.access_token;
         tokenExpiryTime = Date.now() + data.expires_in * 1000;
@@ -127,12 +130,6 @@ createPlaylistButton.addEventListener('click', async () => {
 
         if (!response.ok) {
             const errorData = await response.json();
-            if (response.status === 401) {
-                // Token might be expired, try refreshing again
-                await refreshAccessToken();
-                // Retry the request
-                return createPlaylistButton.click();
-            }
             throw new Error(errorData.details || 'Failed to create playlist');
         }
         
@@ -141,5 +138,7 @@ createPlaylistButton.addEventListener('click', async () => {
     } catch (error) {
         console.error('Error:', error);
         result.innerHTML = `<p>Error: ${error.message}</p>`;
+        // If there's an error, try logging in again
+        window.location.href = '/login';
     }
 });

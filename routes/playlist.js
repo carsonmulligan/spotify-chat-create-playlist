@@ -35,6 +35,7 @@ export const createPlaylist = async (req, res) => {
       return res.status(401).json({ error: 'Invalid access token', details: error.message });
     }
 
+    // Create the playlist
     const playlist = await spotifyApi.createPlaylist(playlistData.name, { description: playlistData.description, public: false });
     console.log('Playlist created:', playlist.body);
 
