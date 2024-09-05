@@ -16,24 +16,57 @@ loginButton.addEventListener('click', () => {
 });
 
 window.onload = async () => {
-    accessToken = localStorage.getItem('spotify_access_token');
-    refreshToken = localStorage.getItem('spotify_refresh_token');
-    tokenExpiryTime = localStorage.getItem('spotify_token_expiry');
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const error = urlParams.get('error');
 
-    if (accessToken && refreshToken && tokenExpiryTime) {
-        if (Date.now() > tokenExpiryTime) {
-            try {
-                await refreshAccessToken();
-            } catch (error) {
-                console.error('Error refreshing token:', error);
-                showLoginButton();
-                return;
+    if (code) {
+        try {
+            const response = await fetch('/callback' + window.location.search);
+            if (!response.ok) {
+                throw new Error('Failed to exchange code for tokens');
             }
+            const data = await response.json();
+            accessToken = data.access_token;
+            refreshToken = data.refresh_token;
+            tokenExpiryTime = Date.now() + data.expires_in * 1000;
+
+            localStorage.setItem('spotify_access_token', accessToken);
+            localStorage.setItem('spotify_refresh_token', refreshToken);
+            localStorage.setItem('spotify_token_expiry', tokenExpiryTime);
+
+            // Clear the URL parameters
+            window.history.replaceState({}, document.title, "/");
+
+            hideLoginButton();
+            await fetchUserProfile();
+        } catch (error) {
+            console.error('Error during authentication:', error);
+            showLoginButton();
         }
-        hideLoginButton();
-        await fetchUserProfile();
-    } else {
+    } else if (error) {
+        console.error('Authentication error:', error);
         showLoginButton();
+    } else {
+        accessToken = localStorage.getItem('spotify_access_token');
+        refreshToken = localStorage.getItem('spotify_refresh_token');
+        tokenExpiryTime = localStorage.getItem('spotify_token_expiry');
+
+        if (accessToken && refreshToken && tokenExpiryTime) {
+            if (Date.now() > tokenExpiryTime) {
+                try {
+                    await refreshAccessToken();
+                } catch (error) {
+                    console.error('Error refreshing token:', error);
+                    showLoginButton();
+                    return;
+                }
+            }
+            hideLoginButton();
+            await fetchUserProfile();
+        } else {
+            showLoginButton();
+        }
     }
 };
 

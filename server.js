@@ -53,10 +53,6 @@ app.get('/api/me', async (req, res) => {
   }
 });
 
-app.get('/auth-success', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'auth-success.html'));
-});
-
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
