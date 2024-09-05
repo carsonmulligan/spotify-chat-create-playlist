@@ -9,6 +9,7 @@ import axios from 'axios';
 import SpotifyWebApi from 'spotify-web-api-node';
 import path from 'path';
 import cookieParser from 'cookie-parser';
+import { spotifyLogin, spotifyCallback } from './routes/spotify.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -46,51 +47,9 @@ app.get('/login', (req, res) => {
 });
 
 // Spotify callback rout
-app.get('/callback', async (req, res) => {
-  const { code, state } = req.query;
-  const storedState = req.cookies ? req.cookies['spotify_auth_state'] : null;
-
-  if (state === null || state !== storedState) {
-    console.error('State mismatch in Spotify callback');
-    return res.redirect('/#error=state_mismatch');
-  }
-
-  // Clear the state cookie
-  res.clearCookie('spotify_auth_state');
-
-  if (!code) {
-    console.error('No code provided in Spotify callback');
-    return res.redirect('/#error=no_code');
-  }
-  
-  try {
-    const data = await spotifyApi.authorizationCodeGrant(code);
-    const { access_token, refresh_token, expires_in } = data.body;
-
-    // Set the access token and refresh token on the API object
-    spotifyApi.setAccessToken(access_token);
-    spotifyApi.setRefreshToken(refresh_token);
-
-    // In a production app, you'd want to store these tokens securely (e.g., encrypted in a database)
-    // Here, we're setting them as secure, HTTP-only cookies
-    res.cookie('spotify_access_token', access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: expires_in * 1000 // convert to milliseconds
-    });
-
-    res.cookie('spotify_refresh_token', refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      // refresh token doesn't expire
-    });
-
-    // Redirect to the frontend application
-    res.redirect(process.env.FRONTEND_URI || 'http://localhost:3000');
-  } catch (error) {
-    console.error('Error getting Spotify tokens:', error);
-    res.redirect('/#error=spotify_auth_error');
-  }
+app.get('/callback', (req, res) => {
+  console.log('Callback route called');
+  spotifyCallback(req, res);
 });
 
 // OpenAI chat route
