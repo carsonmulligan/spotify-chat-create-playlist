@@ -8,6 +8,7 @@ import { chat } from './routes/openAI.js';
 import { createPlaylist } from './routes/playlist.js';
 import { getRecommendations } from './routes/recommendations.js';
 import cookieParser from 'cookie-parser';
+import http from 'http'; // Add this import
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -74,12 +75,15 @@ app.get('/api/me', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
+// Create an HTTP server
+const server = http.createServer(app);
+
+// Increase the timeout for the server
+server.timeout = 300000; // 5 minutes
+
+server.listen(port, () => {
   console.log(`Server running on port ${port}`);
   console.log('Environment:', process.env.NODE_ENV);
   console.log('Spotify Client ID:', process.env.SPOTIFY_CLIENT_ID);
   console.log('Spotify Redirect URI:', process.env.SPOTIFY_REDIRECT_URI);
 });
-
-// Increase the timeout for the server
-server.timeout = 300000; // 5 minutes
