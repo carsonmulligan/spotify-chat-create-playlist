@@ -8,6 +8,7 @@ import querystring from 'querystring';
 import axios from 'axios';
 import SpotifyWebApi from 'spotify-web-api-node';
 import path from 'path';
+import cookieParser from 'cookie-parser';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,6 +20,7 @@ const port = process.env.PORT || 3000;  // Use the PORT provided by Heroku, or 3
 
 app.use(express.static('public'));
 app.use(express.json());
+app.use(cookieParser());
 
 // Add this route before your other routes
 app.get('/', (req, res) => {
@@ -39,8 +41,8 @@ const spotifyApi = new SpotifyWebApi({
 
 // Spotify authentication route
 app.get('/login', (req, res) => {
-  const scopes = ['playlist-modify-private', 'playlist-modify-public'];
-  res.redirect(spotifyApi.createAuthorizeURL(scopes));
+  console.log('Login route called');
+  spotifyLogin(req, res);
 });
 
 // Spotify callback rout
