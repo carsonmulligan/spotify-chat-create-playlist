@@ -8,7 +8,8 @@
     "test-api": "node test-api-key.js",
     "simple-test": "node simple-test.js",
     "spotify-test": "node spotify-test.js",
-    "spotify-recommendations-test": "node spotify-recommendations-test.js"
+    "spotify-recommendations-test": "node spotify-recommendations-test.js",
+    "spotify-search-test": "node spotify-search-test.js"
   },
   "dependencies": {
     "axios": "^0.21.1",
