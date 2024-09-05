@@ -30,7 +30,16 @@ window.onload = async () => {
         playlistCreator.style.display = 'block';
         result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
         
-        await fetchUserProfile();
+        try {
+            const userProfile = await fetchUserProfile();
+            console.log('User profile:', userProfile);
+            // You can display user information here if needed
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+            result.innerHTML = '<p>Error fetching user profile. Please try logging in again.</p>';
+            loginButton.style.display = 'block';
+            playlistCreator.style.display = 'none';
+        }
     } else if (params.get('error')) {
         result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
     } else {
@@ -58,6 +67,7 @@ async function fetchUserProfile() {
         }
         const data = await response.json();
         console.log('User profile:', data);
+        return data;
     } catch (error) {
         console.error('Error fetching user profile:', error);
         // If there's an error even after refreshing, redirect to login

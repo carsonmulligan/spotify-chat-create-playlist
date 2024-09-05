@@ -61,7 +61,11 @@ app.get('/api/me', async (req, res) => {
     res.json(me.body);
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    res.status(500).json({ error: 'Failed to fetch user profile', details: error.message });
+    if (error.statusCode === 401) {
+      res.status(401).json({ error: 'Invalid or expired token' });
+    } else {
+      res.status(500).json({ error: 'Failed to fetch user profile', details: error.message });
+    }
   }
 });
 
