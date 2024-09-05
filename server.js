@@ -31,19 +31,11 @@ app.use((req, res, next) => {
 });
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'landing.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/login', (req, res) => {
-  console.log('Initiating Spotify login');
-  spotifyLogin(req, res);
-});
-
-app.get('/callback', (req, res) => {
-  console.log('Received Spotify callback');
-  spotifyCallback(req, res);
-});
-
+app.get('/login', spotifyLogin);
+app.get('/callback', spotifyCallback);
 app.post('/api/chat', chat);
 app.post('/api/create-playlist', createPlaylist);
 app.post('/api/get-recommendations', getRecommendations);

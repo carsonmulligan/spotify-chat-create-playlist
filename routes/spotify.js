@@ -52,7 +52,6 @@ export const spotifyCallback = async (req, res) => {
     // Set the access token on the API object
     spotifyApi.setAccessToken(access_token);
 
-    // In a real app, you'd probably want to store refresh_token in the database
     const redirectURL = `${process.env.FRONTEND_URI || 'http://localhost:3000'}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`;
     
     console.log('Redirecting to:', redirectURL);
@@ -60,7 +59,7 @@ export const spotifyCallback = async (req, res) => {
   } catch (error) {
     console.error('Error getting Spotify tokens:', error);
     console.error('Error details:', error.response ? error.response.data : 'No response data');
-    res.redirect(`/#error=spotify_auth_error&message=${encodeURIComponent(error.message)}`);
+    res.redirect(`${process.env.FRONTEND_URI || 'http://localhost:3000'}/#error=spotify_auth_error&message=${encodeURIComponent(error.message)}`);
   }
 };
 
