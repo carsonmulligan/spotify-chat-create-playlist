@@ -138,7 +138,7 @@ createPlaylistButton.addEventListener('click', async () => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${accessToken}`
             },
-            body: JSON.stringify({ prompt })
+            body: JSON.stringify({ prompt, refresh_token: refreshToken })
         });
 
         if (!response.ok) {
@@ -147,11 +147,15 @@ createPlaylistButton.addEventListener('click', async () => {
         }
         
         const data = await response.json();
-        result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;
+        result.innerHTML = `
+            <p>Playlist "${data.playlistName}" created successfully with ${data.trackCount} tracks!</p>
+            <p>You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>
+        `;
     } catch (error) {
         console.error('Error:', error);
         result.innerHTML = `<p>Error: ${error.message}</p>`;
         // If there's an error, try logging in again
-        window.location.href = '/login';
+        loginButton.style.display = 'block';
+        playlistCreator.style.display = 'none';
     }
 });

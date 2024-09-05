@@ -59,7 +59,9 @@ export const createPlaylist = async (req, res) => {
     console.log('Playlist created successfully');
     res.json({ 
       success: true, 
-      playlistUrl: playlist.body.external_urls.spotify 
+      playlistUrl: playlist.body.external_urls.spotify,
+      playlistName: playlist.body.name,
+      trackCount: trackUris.length
     });
   } catch (error) {
     console.error('Error creating playlist:', error);

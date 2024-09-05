@@ -80,3 +80,6 @@ app.listen(port, () => {
   console.log('Spotify Client ID:', process.env.SPOTIFY_CLIENT_ID);
   console.log('Spotify Redirect URI:', process.env.SPOTIFY_REDIRECT_URI);
 });
+
+// Increase the timeout for the server
+server.timeout = 300000; // 5 minutes
