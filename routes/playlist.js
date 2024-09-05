@@ -1,10 +1,9 @@
-import { spotifyApi, refreshAccessToken } from './spotify.js';
+import { spotifyApi } from './spotify.js';
 import { openai } from './openAI.js';
 
 export const createPlaylist = async (req, res) => {
   console.log('Received playlist creation request');
-  const { prompt } = req.body;
-  let accessToken = req.headers.authorization.split(' ')[1];
+  const { prompt, accessToken } = req.body;
 
   try {
     console.log('Generating playlist with OpenAI');
@@ -21,29 +20,8 @@ export const createPlaylist = async (req, res) => {
     console.log('Generated playlist:', playlistData);
 
     console.log('Creating playlist on Spotify');
-    console.log('Using access token:', accessToken.substring(0, 10) + '...');
     spotifyApi.setAccessToken(accessToken);
-    
-    // Verify the access token
-    try {
-      console.log('Verifying access token');
-      const me = await spotifyApi.getMe();
-      console.log('User ID:', me.body.id);
-    } catch (error) {
-      console.error('Error verifying access token:', error);
-      if (error.statusCode === 401 || error.statusCode === 403) {
-        console.log('Token expired, refreshing...');
-        const refreshedToken = await refreshAccessToken(req.body.refresh_token);
-        accessToken = refreshedToken.access_token;
-        spotifyApi.setAccessToken(accessToken);
-      } else {
-        throw error;
-      }
-    }
-
-    // Create the playlist
     const playlist = await spotifyApi.createPlaylist(playlistData.name, { description: playlistData.description, public: false });
-    console.log('Playlist created:', playlist.body);
 
     console.log('Searching for tracks and adding to playlist');
     const trackUris = [];
@@ -63,9 +41,6 @@ export const createPlaylist = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating playlist:', error);
-    console.error('Error details:', error.response ? JSON.stringify(error.response.body) : 'No response body');
-    console.error('Error status:', error.statusCode);
-    console.error('Error message:', error.message);
     res.status(500).json({ error: 'Failed to create playlist', details: error.message });
   }
 };

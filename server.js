@@ -3,11 +3,11 @@ import dotenv from "dotenv";
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import path from 'path';
-import { spotifyLogin, spotifyCallback, spotifyApi, refreshAccessToken } from './routes/spotify.js';
+import cookieParser from 'cookie-parser';
+import { spotifyApi, spotifyLogin, spotifyCallback, refreshAccessToken } from './routes/spotify.js';
 import { chat } from './routes/openAI.js';
 import { createPlaylist } from './routes/playlist.js';
 import { getRecommendations } from './routes/recommendations.js';
-import cookieParser from 'cookie-parser';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,12 +15,11 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
-app.use(cookieParser());
-app.use(express.json());  // Add this line to parse JSON bodies
 const port = process.env.PORT || 3000;
 
 app.use(express.static('public'));
 app.use(express.json());
+app.use(cookieParser());
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -41,12 +40,6 @@ app.post('/api/chat', chat);
 app.post('/api/create-playlist', createPlaylist);
 app.post('/api/get-recommendations', getRecommendations);
 app.post('/refresh_token', refreshAccessToken);
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ error: 'An unexpected error occurred', details: err.message });
-});
 
 app.get('/api/me', async (req, res) => {
   const authHeader = req.headers.authorization;
@@ -71,6 +64,12 @@ app.get('/api/me', async (req, res) => {
       res.status(500).json({ error: 'Failed to fetch user profile', details: error.body });
     }
   }
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'An unexpected error occurred', details: err.message });
 });
 
 app.listen(port, () => {
