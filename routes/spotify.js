@@ -16,9 +16,18 @@ const spotifyApi = new SpotifyWebApi({
 });
 
 export const spotifyLogin = (req, res) => {
+  const scopes = [
+    'user-read-private',
+    'user-read-email',
+    'playlist-modify-private',
+    'playlist-modify-public',
+    'user-read-currently-playing',
+    'user-read-playback-state',
+    'user-top-read',
+    'user-read-recently-played'
+  ];
   const state = crypto.randomBytes(16).toString('hex');
   res.cookie('spotify_auth_state', state, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
-  const scopes = ['playlist-modify-private', 'playlist-modify-public', 'user-read-private', 'user-read-email'];
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
   console.log('Redirecting to Spotify authorize URL:', authorizeURL);
   res.redirect(authorizeURL);

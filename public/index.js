@@ -58,12 +58,17 @@ async function fetchUserProfile() {
             }
         });
         if (!response.ok) {
-            if (response.status === 401 || response.status === 403) {
+            const errorData = await response.json();
+            console.error('Error response:', errorData);
+            if (response.status === 401) {
                 console.log('Token expired or invalid, refreshing...');
                 await refreshAccessToken();
                 return fetchUserProfile(); // Retry after refreshing
+            } else if (response.status === 403) {
+                console.error('Forbidden error. Check app permissions and scopes.');
+                throw new Error('Forbidden. Check app permissions and scopes.');
             }
-            throw new Error('Failed to fetch user profile');
+            throw new Error(errorData.error || 'Failed to fetch user profile');
         }
         const data = await response.json();
         console.log('User profile:', data);

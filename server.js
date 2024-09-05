@@ -58,13 +58,17 @@ app.get('/api/me', async (req, res) => {
   try {
     spotifyApi.setAccessToken(accessToken);
     const me = await spotifyApi.getMe();
+    console.log('User profile fetched successfully:', me.body);
     res.json(me.body);
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    if (error.statusCode === 401 || error.statusCode === 403) {
+    console.error('Error details:', error.body);
+    if (error.statusCode === 401) {
       res.status(401).json({ error: 'Invalid or expired token' });
+    } else if (error.statusCode === 403) {
+      res.status(403).json({ error: 'Forbidden. Check app permissions and scopes.', details: error.body });
     } else {
-      res.status(500).json({ error: 'Failed to fetch user profile', details: error.message });
+      res.status(500).json({ error: 'Failed to fetch user profile', details: error.body });
     }
   }
 });
