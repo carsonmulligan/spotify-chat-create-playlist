@@ -24,14 +24,11 @@ export const spotifyLogin = (req, res) => {
     'playlist-modify-private',
     'playlist-modify-public',
     'user-read-currently-playing',
-    'user-read-playback-state',
-    'user-top-read',
-    'user-read-recently-played'
+    'user-read-playback-state'
   ];
   const state = generateRandomString(16);
   res.cookie('spotify_auth_state', state);
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
-  console.log('Redirecting to Spotify authorize URL:', authorizeURL);
   res.redirect(authorizeURL);
 };
 
@@ -49,11 +46,11 @@ export const spotifyCallback = async (req, res) => {
     const data = await spotifyApi.authorizationCodeGrant(code);
     const { access_token, refresh_token, expires_in } = data.body;
 
-    // Send the tokens as JSON
-    res.json({ access_token, refresh_token, expires_in });
+    // Redirect to the auth-success page with tokens as query parameters
+    res.redirect(`/auth-success?access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`);
   } catch (error) {
     console.error('Error in callback:', error);
-    res.status(500).json({ error: 'Invalid token', details: error.message });
+    res.redirect('/#error=invalid_token');
   }
 };
 
