@@ -29,10 +29,6 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'landing.html'));
 });
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 const redirectUri = process.env.REDIRECT_URI || `http://localhost:${port}/callback`;
 
 const spotifyApi = new SpotifyWebApi({
