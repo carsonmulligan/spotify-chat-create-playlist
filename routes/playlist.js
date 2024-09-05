@@ -1,5 +1,5 @@
 import { spotifyApi } from './spotify.js';
-import { openai } from './openai.js';
+import { openai } from './openAI.js';
 
 export const createPlaylist = async (req, res) => {
   console.log('Received playlist creation request');
@@ -8,7 +8,7 @@ export const createPlaylist = async (req, res) => {
   try {
     console.log('Generating playlist with OpenAI');
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-2024-08-06",
+      model: "gpt-4o-mini",
       messages: [
         {"role": "system", "content": "You are a helpful assistant that creates Spotify playlists. Respond with a JSON object containing 'name', 'description', and 'tracks' (an array of objects with 'name' and 'artist' properties). Include up to 99 tracks."},
         {"role": "user", "content": `Create a playlist based on this description: ${prompt}`}

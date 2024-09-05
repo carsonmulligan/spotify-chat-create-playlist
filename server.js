@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import path from 'path';
 import { login, callback } from './routes/spotify.js';
-import { chat } from './routes/openai.js';
+import { chat } from './routes/openAI.js';  // Change this line
 import { createPlaylist } from './routes/playlist.js';
 import { getRecommendations } from './routes/recommendations.js';
 
