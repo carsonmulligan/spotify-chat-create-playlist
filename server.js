@@ -58,6 +58,7 @@ app.get('/api/me', async (req, res) => {
   try {
     spotifyApi.setAccessToken(accessToken);
     const me = await spotifyApi.getMe();
+    console.log('User profile fetched successfully:', me.body);
     res.json(me.body);
   } catch (error) {
     console.error('Error fetching user profile:', error);
