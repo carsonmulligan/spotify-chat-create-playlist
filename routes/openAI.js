@@ -24,3 +24,5 @@ export const generatePlaylistFromAI = async (prompt) => {
     throw error;
   }
 };
+
+export { openai };
