@@ -1,3 +1,4 @@
+// routes/openAI.js
 import OpenAI from "openai";
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
