@@ -16,24 +16,26 @@ const spotifyApi = new SpotifyWebApi({
 
 async function searchTracks(query) {
   try {
-    // Retrieve an access token
+    console.log('Attempting to retrieve an access token...');
     const data = await spotifyApi.clientCredentialsGrant();
     console.log('The access token expires in ' + data.body['expires_in']);
     console.log('The access token is ' + data.body['access_token']);
 
-    // Save the access token so that it's used in future calls
     spotifyApi.setAccessToken(data.body['access_token']);
 
-    // Search tracks whose name, album or artist contains 'Love'
+    console.log(`Searching for tracks with query: "${query}"`);
     const result = await spotifyApi.searchTracks(query);
-    console.log('Search by "' + query + '"');
+    console.log('Search completed successfully');
 
     const tracks = result.body.tracks.items;
     tracks.forEach((track, index) => {
       console.log(`${index + 1}. "${track.name}" by ${track.artists[0].name}`);
     });
   } catch (err) {
-    console.log('Something went wrong!', err);
+    console.error('Error details:', err);
+    if (err.body && err.body.error) {
+      console.error('Spotify API error:', err.body.error);
+    }
   }
 }
 

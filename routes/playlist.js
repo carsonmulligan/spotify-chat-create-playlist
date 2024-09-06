@@ -3,6 +3,7 @@ import { spotifyApi } from './spotify.js';
 
 async function refreshAccessToken(refreshToken) {
   try {
+    console.log('Attempting to refresh access token...');
     spotifyApi.setRefreshToken(refreshToken);
     const data = await spotifyApi.refreshAccessToken();
     console.log('The access token has been refreshed!');
@@ -20,7 +21,6 @@ export const createPlaylist = async (req, res) => {
 
   try {
     console.log('Generating playlist with OpenAI');
-    console.log('OpenAI API Key:', process.env.OPENAI_API_KEY.substring(0, 10) + '...');
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
@@ -34,15 +34,17 @@ export const createPlaylist = async (req, res) => {
     const playlistData = JSON.parse(completion.choices[0].message.content);
     console.log('Generated playlist:', playlistData);
 
-    console.log('Creating playlist on Spotify');
+    console.log('Setting Spotify access token');
     spotifyApi.setAccessToken(accessToken);
 
     try {
+      console.log('Creating playlist on Spotify');
       const playlist = await spotifyApi.createPlaylist(playlistData.name, { description: playlistData.description, public: false });
       
       console.log('Searching for tracks and adding to playlist');
       const trackUris = [];
       for (const track of playlistData.tracks) {
+        console.log(`Searching for track: ${track.name} by ${track.artist}`);
         const searchResults = await spotifyApi.searchTracks(`track:${track.name} artist:${track.artist}`);
         if (searchResults.body.tracks.items.length > 0) {
           trackUris.push(searchResults.body.tracks.items[0].uri);
@@ -63,11 +65,13 @@ export const createPlaylist = async (req, res) => {
         spotifyApi.setAccessToken(newAccessToken);
         
         // Retry creating the playlist with the new access token
+        console.log('Retrying playlist creation with new access token');
         const playlist = await spotifyApi.createPlaylist(playlistData.name, { description: playlistData.description, public: false });
         
         console.log('Searching for tracks and adding to playlist');
         const trackUris = [];
         for (const track of playlistData.tracks) {
+          console.log(`Searching for track: ${track.name} by ${track.artist}`);
           const searchResults = await spotifyApi.searchTracks(`track:${track.name} artist:${track.artist}`);
           if (searchResults.body.tracks.items.length > 0) {
             trackUris.push(searchResults.body.tracks.items[0].uri);
