@@ -14,6 +14,7 @@ export const setupSpotifyRoutes = (app) => {
   app.use(cookieParser());
 
   app.get('/login', (req, res) => {
+    console.log('Using Spotify Client ID:', process.env.SPOTIFY_CLIENT_ID);
     const state = crypto.randomBytes(16).toString('hex');
     res.cookie('spotify_auth_state', state, { 
       httpOnly: true, 
@@ -26,6 +27,7 @@ export const setupSpotifyRoutes = (app) => {
     // Ensure the client ID is included in the URL
     const finalAuthorizeURL = `${authorizeURL}&client_id=${process.env.SPOTIFY_CLIENT_ID}`;
     
+    console.log('Redirecting to:', finalAuthorizeURL);
     res.redirect(finalAuthorizeURL);
   });
 
@@ -41,11 +43,14 @@ export const setupSpotifyRoutes = (app) => {
     res.clearCookie('spotify_auth_state');
 
     try {
+      console.log('Attempting to exchange authorization code for tokens');
       const data = await spotifyApi.authorizationCodeGrant(code);
+      console.log('Token exchange successful');
       const { access_token, refresh_token, expires_in } = data.body;
       res.redirect(`/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`);
     } catch (err) {
       console.error('Error during Spotify callback:', err);
+      console.error('Error details:', err.body);
       res.redirect('/#error=invalid_token');
     }
   });
