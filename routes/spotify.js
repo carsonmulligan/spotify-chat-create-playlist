@@ -51,8 +51,13 @@ export const spotifyCallback = async (req, res) => {
     const data = await spotifyApi.authorizationCodeGrant(code);
     const { access_token, refresh_token, expires_in } = data.body;
 
-    // Instead of setting tokens on the API object, send them to the client
-    res.redirect(`/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`);
+    // Get the user's Spotify ID
+    spotifyApi.setAccessToken(access_token);
+    const me = await spotifyApi.getMe();
+    const userId = me.body.id;
+
+    // Send tokens and user ID to the client
+    res.redirect(`/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}&user_id=${userId}`);
   } catch (error) {
     console.error('Error getting Spotify tokens:', error);
     res.redirect('/#error=spotify_auth_error');

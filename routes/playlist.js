@@ -25,10 +25,12 @@ export const createPlaylist = async (req, res) => {
 
     console.log('Setting Spotify access token');
     spotifyApi.setAccessToken(accessToken);
+    spotifyApi.setRefreshToken(refreshToken);
 
     try {
       console.log('Creating playlist on Spotify');
-      const playlist = await spotifyApi.createPlaylist(playlistData.name, { description: playlistData.description, public: false });
+      const me = await spotifyApi.getMe();
+      const playlist = await spotifyApi.createPlaylist(me.body.id, playlistData.name, { description: playlistData.description, public: false });
       
       console.log('Searching for tracks and adding to playlist');
       const trackUris = [];
@@ -48,14 +50,16 @@ export const createPlaylist = async (req, res) => {
         playlistUrl: playlist.body.external_urls.spotify 
       });
     } catch (error) {
-      if (error.statusCode === 401 && refreshToken) {
-        console.log('Access token expired, attempting to refresh');
-        const newAccessToken = await refreshAccessToken(refreshToken);
+      if ((error.statusCode === 401 || error.statusCode === 403) && refreshToken) {
+        console.log('Access token expired or insufficient permissions, attempting to refresh');
+        const data = await spotifyApi.refreshAccessToken();
+        const newAccessToken = data.body['access_token'];
         spotifyApi.setAccessToken(newAccessToken);
         
         // Retry creating the playlist with the new access token
         console.log('Retrying playlist creation with new access token');
-        const playlist = await spotifyApi.createPlaylist(playlistData.name, { description: playlistData.description, public: false });
+        const me = await spotifyApi.getMe();
+        const playlist = await spotifyApi.createPlaylist(me.body.id, playlistData.name, { description: playlistData.description, public: false });
         
         console.log('Searching for tracks and adding to playlist');
         const trackUris = [];
