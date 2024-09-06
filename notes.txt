@@ -1,7 +1,0 @@
-next steps:
-- deploy to heroku
-- fix redirect uri bug -- ie allow for localhost in env variables and heroku in heroku config vars 
-- setup stripe for payment model
-- configure 3 playlists then $3.99/month ☕️
-
-
