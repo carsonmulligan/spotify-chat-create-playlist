@@ -4,9 +4,11 @@ import { spotifyApi } from './spotify.js';
 async function refreshAccessToken(refreshToken) {
   try {
     console.log('Attempting to refresh access token...');
+    console.log('Refresh token:', refreshToken);
     spotifyApi.setRefreshToken(refreshToken);
     const data = await spotifyApi.refreshAccessToken();
     console.log('The access token has been refreshed!');
+    console.log('New access token:', data.body['access_token']);
     spotifyApi.setAccessToken(data.body['access_token']);
     return data.body['access_token'];
   } catch (error) {
@@ -18,6 +20,9 @@ async function refreshAccessToken(refreshToken) {
 export const createPlaylist = async (req, res) => {
   console.log('Received playlist creation request');
   const { prompt, accessToken, refreshToken } = req.body;
+  
+  console.log('Access Token received:', accessToken ? 'Yes' : 'No');
+  console.log('Refresh Token received:', refreshToken ? 'Yes' : 'No');
 
   try {
     console.log('Generating playlist with OpenAI');
@@ -92,7 +97,17 @@ export const createPlaylist = async (req, res) => {
     }
   } catch (error) {
     console.error('Error creating playlist:', error);
-    console.error('Error details:', error.response ? error.response.data : 'No response data');
-    res.status(500).json({ error: 'Failed to create playlist', details: error.message });
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    if (error.response) {
+      console.error('Error response:', error.response.data);
+    }
+    res.status(500).json({ 
+      error: 'Failed to create playlist', 
+      details: error.message,
+      name: error.name,
+      stack: error.stack
+    });
   }
 };

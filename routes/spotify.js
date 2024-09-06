@@ -10,6 +10,11 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: process.env.SPOTIFY_REDIRECT_URI
 });
 
+console.log('Spotify API initialized with:');
+console.log('Client ID:', process.env.SPOTIFY_CLIENT_ID ? 'Set' : 'Not set');
+console.log('Client Secret:', process.env.SPOTIFY_CLIENT_SECRET ? 'Set' : 'Not set');
+console.log('Redirect URI:', process.env.SPOTIFY_REDIRECT_URI);
+
 export const spotifyLogin = (req, res) => {
   const scopes = [
     'user-read-private',
