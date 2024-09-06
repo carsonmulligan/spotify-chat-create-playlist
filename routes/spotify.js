@@ -22,7 +22,11 @@ export const setupSpotifyRoutes = (app) => {
     });
     const scopes = ['playlist-modify-private', 'playlist-modify-public'];
     const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
-    res.redirect(authorizeURL);
+    
+    // Ensure the client ID is included in the URL
+    const finalAuthorizeURL = `${authorizeURL}&client_id=${process.env.SPOTIFY_CLIENT_ID}`;
+    
+    res.redirect(finalAuthorizeURL);
   });
 
   app.get('/callback', async (req, res) => {
