@@ -10,9 +10,14 @@ export const createPlaylist = async (req, res) => {
     // Generate playlist using AI
     const playlistData = await generatePlaylistFromAI(prompt);
 
-    // Create playlist on Spotify
+    // Get user profile
     const me = await spotifyApi.getMe();
-    const playlist = await spotifyApi.createPlaylist(me.body.id, playlistData.name, { public: false, description: playlistData.description });
+
+    // Create playlist on Spotify
+    const playlist = await spotifyApi.createPlaylist(playlistData.name, {
+      description: playlistData.description,
+      public: false
+    });
 
     // Search for tracks and add them to the playlist
     const trackUris = [];
