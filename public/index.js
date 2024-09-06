@@ -22,51 +22,48 @@ document.addEventListener('DOMContentLoaded', () => {
         window.history.replaceState({}, document.title, window.location.pathname);
 
         // Show the create playlist form and hide the login button
-        if (createPlaylistForm) createPlaylistForm.style.display = 'block';
-        if (loginButton) loginButton.style.display = 'none';
+        loginButton.style.display = 'none';
+        createPlaylistForm.style.display = 'block';
     } else {
         // If no access token, show the login button and hide the create playlist form
-        if (loginButton) loginButton.style.display = 'block';
-        if (createPlaylistForm) createPlaylistForm.style.display = 'none';
+        loginButton.style.display = 'block';
+        createPlaylistForm.style.display = 'none';
     }
 
-    if (loginButton) {
-        loginButton.addEventListener('click', () => {
-            window.location.href = '/login';
-        });
-    }
+    loginButton.addEventListener('click', () => {
+        window.location.href = window.location.origin + '/login';
+    });
 
-    if (createPlaylistForm) {
-        createPlaylistForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const prompt = promptInput.value;
-            const accessToken = localStorage.getItem('access_token');
+    createPlaylistForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const prompt = promptInput.value;
+        const accessToken = localStorage.getItem('access_token');
 
-            if (!accessToken) {
-                alert('Please log in first');
-                return;
+        if (!accessToken) {
+            alert('Please log in first');
+            return;
+        }
+
+        try {
+            resultDiv.textContent = 'Creating playlist...';
+            const response = await fetch('/create-playlist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ prompt, accessToken }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                resultDiv.innerHTML = `Playlist created successfully! <a href="${data.playlistUrl}" target="_blank">Open in Spotify</a>`;
+            } else {
+                resultDiv.textContent = `Error: ${data.error}`;
             }
-
-            try {
-                const response = await fetch('/create-playlist', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ prompt, accessToken }),
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    resultDiv.innerHTML = `Playlist created successfully! <a href="${data.playlistUrl}" target="_blank">Open in Spotify</a>`;
-                } else {
-                    resultDiv.textContent = `Error: ${data.error}`;
-                }
-            } catch (error) {
-                console.error('Error creating playlist:', error);
-                resultDiv.textContent = 'An error occurred while creating the playlist.';
-            }
-        });
-    }
+        } catch (error) {
+            console.error('Error creating playlist:', error);
+            resultDiv.textContent = 'An error occurred while creating the playlist.';
+        }
+    });
 });

@@ -6,7 +6,9 @@ import cookieParser from 'cookie-parser';
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  redirectUri: process.env.SPOTIFY_REDIRECT_URI,
+  redirectUri: process.env.NODE_ENV === 'production' 
+    ? process.env.SPOTIFY_REDIRECT_URI 
+    : 'http://localhost:3000/callback',
 });
 
 export const setupSpotifyRoutes = (app) => {
@@ -14,7 +16,11 @@ export const setupSpotifyRoutes = (app) => {
 
   app.get('/login', (req, res) => {
     const state = crypto.randomBytes(16).toString('hex');
-    res.cookie('spotify_auth_state', state, { httpOnly: true, sameSite: 'lax' });
+    res.cookie('spotify_auth_state', state, { 
+      httpOnly: true, 
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production'
+    });
     const scopes = ['playlist-modify-private', 'playlist-modify-public'];
     const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
     res.redirect(authorizeURL);

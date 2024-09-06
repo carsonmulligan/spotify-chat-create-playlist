@@ -8,17 +8,30 @@
 </head>
 <body>
     <div class="container">
-        <h1>AI-Powered Spotify Playlist Creator</h1>
-        
-        <button id="login-button" style="display: none;">Login with Spotify</button>
+        <header class="hero">
+            <h1>AI-Powered Spotify Playlist Creator</h1>
+            <p>Create the perfect playlist with just a few words</p>
+        </header>
+
+        <button id="login-button" class="button">Login with Spotify</button>
 
         <form id="create-playlist-form" style="display: none;">
             <label for="prompt-input">Describe your playlist:</label>
-            <input type="text" id="prompt-input" required>
-            <button type="submit">Create Playlist</button>
+            <input type="text" id="prompt-input" required placeholder="e.g., upbeat 80s workout mix">
+            <button type="submit" class="button">Create Playlist</button>
         </form>
 
         <div id="result"></div>
+
+        <section class="how-it-works">
+            <h2>How It Works</h2>
+            <ol>
+                <li>Log in with your Spotify account</li>
+                <li>Describe the playlist you want</li>
+                <li>Our AI generates a custom playlist based on your description</li>
+                <li>Review and enjoy your new playlist on Spotify</li>
+            </ol>
+        </section>
     </div>
 
     <script src="index.js"></script>
