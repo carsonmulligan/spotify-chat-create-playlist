@@ -89,22 +89,15 @@ createPlaylistButton.addEventListener('click', async () => {
 
         if (!response.ok) throw new Error('Failed to create playlist');
         
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let playlistData = '';
+        const data = await response.json();
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value);
-            playlistData += chunk;
-            result.innerHTML = `<p>Generating playlist: ${playlistData}</p>`;
+        if (data.success) {
+            result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;
+        } else {
+            result.textContent = `Error: ${data.error}`;
         }
-
-        const data = JSON.parse(playlistData);
-        result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;
     } catch (error) {
         console.error('Error:', error);
-        result.innerHTML = `<p>Error: ${error.message}</p>`;
+        result.textContent = 'An error occurred while creating the playlist.';
     }
 });
