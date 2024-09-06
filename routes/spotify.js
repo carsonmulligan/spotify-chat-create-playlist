@@ -12,10 +12,8 @@ const spotifyApi = new SpotifyWebApi({
 export const spotifyLogin = (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
   res.cookie('spotify_auth_state', state);
-
   const scopes = ['playlist-modify-private', 'playlist-modify-public'];
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
-
   res.redirect(authorizeURL);
 };
 
@@ -33,10 +31,6 @@ export const spotifyCallback = async (req, res) => {
   try {
     const data = await spotifyApi.authorizationCodeGrant(code);
     const { access_token, refresh_token, expires_in } = data.body;
-
-    spotifyApi.setAccessToken(access_token);
-    spotifyApi.setRefreshToken(refresh_token);
-
     res.redirect(`/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`);
   } catch (err) {
     console.error('Error during Spotify callback:', err);
@@ -46,16 +40,14 @@ export const spotifyCallback = async (req, res) => {
 
 // Create a playlist on Spotify
 export const createPlaylist = async (req, res) => {
-  const { prompt, accessToken, refreshToken } = req.body;
+  const { prompt, accessToken } = req.body;
 
   try {
     spotifyApi.setAccessToken(accessToken);
 
-    // Generate playlist using OpenAI
     const playlistData = await generatePlaylistFromAI(prompt);
-
     const me = await spotifyApi.getMe();
-    const playlist = await spotifyApi.createPlaylist(me.body.id, playlistData.name, { public: false });
+    const playlist = await spotifyApi.createPlaylist(me.body.id, playlistData.name, { public: false, description: playlistData.description });
 
     const trackUris = [];
     for (const track of playlistData.tracks) {
@@ -70,6 +62,6 @@ export const createPlaylist = async (req, res) => {
     res.json({ success: true, playlistUrl: playlist.body.external_urls.spotify });
   } catch (error) {
     console.error('Error creating playlist:', error);
-    res.status(500).json({ error: 'Failed to create playlist' });
+    res.status(500).json({ error: 'Failed to create playlist', details: error.message });
   }
 };
