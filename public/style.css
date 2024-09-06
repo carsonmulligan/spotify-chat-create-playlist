@@ -1,8 +1,10 @@
 :root {
     --font-family: "JetBrains Mono", monospace;
-    --text-color: #000;
-    --background-color: #fff;
-    --border-color: #000;
+    --text-color: #fff;
+    --background-color: #111;
+    --border-color: #444;
+    --grid-line-color: #333;
+    --primary-color: #00FF00;  /* Green for highlights */
 }
 
 body {
@@ -11,17 +13,22 @@ body {
     color: var(--text-color);
     line-height: 1.6;
     padding: 20px;
-    max-width: 800px;
+    max-width: 900px;
     margin: 0 auto;
+    position: relative;
 }
 
 .container {
     border: 2px solid var(--border-color);
     padding: 20px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    position: relative;
 }
 
 h1, h2 {
     margin-top: 0;
+    color: var(--primary-color);
 }
 
 button {
@@ -32,6 +39,8 @@ button {
     padding: 10px 20px;
     cursor: pointer;
     margin-top: 10px;
+    display: inline-block;
+    text-transform: uppercase;
 }
 
 textarea {
@@ -40,8 +49,56 @@ textarea {
     padding: 10px;
     border: 2px solid var(--border-color);
     margin-top: 10px;
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
 #result {
     margin-top: 20px;
+}
+
+nav {
+    display: block;
+    margin-bottom: 20px;
+}
+
+nav a {
+    color: var(--primary-color);
+    text-decoration: none;
+    border: 1px solid var(--border-color);
+    padding: 5px 10px;
+    margin-right: 10px;
+}
+
+nav a:hover {
+    background-color: var(--primary-color);
+    color: var(--background-color);
+}
+
+.features .feature {
+    margin-bottom: 20px;
+}
+
+.features h2 {
+    color: var(--primary-color);
+}
+
+.features p {
+    margin-left: 20px;
+}
+
+/* Gridlines */
+body:before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: linear-gradient(var(--grid-line-color) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--grid-line-color) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    z-index: -1;
 }
