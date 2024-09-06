@@ -59,4 +59,17 @@ export const spotifyCallback = async (req, res) => {
   }
 };
 
+export const refreshAccessToken = async (refreshToken) => {
+  try {
+    console.log('Attempting to refresh access token...');
+    spotifyApi.setRefreshToken(refreshToken);
+    const data = await spotifyApi.refreshAccessToken();
+    console.log('The access token has been refreshed!');
+    return data.body['access_token'];
+  } catch (error) {
+    console.error('Could not refresh access token', error);
+    throw error;
+  }
+};
+
 export { spotifyApi };

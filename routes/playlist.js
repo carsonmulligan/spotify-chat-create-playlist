@@ -1,21 +1,5 @@
 import { openai } from './openAI.js';
-import { spotifyApi } from './spotify.js';
-
-async function refreshAccessToken(refreshToken) {
-  try {
-    console.log('Attempting to refresh access token...');
-    console.log('Refresh token:', refreshToken);
-    spotifyApi.setRefreshToken(refreshToken);
-    const data = await spotifyApi.refreshAccessToken();
-    console.log('The access token has been refreshed!');
-    console.log('New access token:', data.body['access_token']);
-    spotifyApi.setAccessToken(data.body['access_token']);
-    return data.body['access_token'];
-  } catch (error) {
-    console.error('Could not refresh access token', error);
-    throw error;
-  }
-}
+import { spotifyApi, refreshAccessToken } from './spotify.js';
 
 export const createPlaylist = async (req, res) => {
   console.log('Received playlist creation request');
@@ -106,8 +90,7 @@ export const createPlaylist = async (req, res) => {
     res.status(500).json({ 
       error: 'Failed to create playlist', 
       details: error.message,
-      name: error.name,
-      stack: error.stack
+      name: error.name
     });
   }
 };
