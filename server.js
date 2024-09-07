@@ -18,6 +18,13 @@ const __dirname = dirname(__filename);
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Initialize Spotify API client
+const spotifyApi = new SpotifyWebApi({
+  clientId: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+  redirectUri: process.env.SPOTIFY_REDIRECT_URI
+});
+
 app.use(express.static('public'));
 app.use(express.json());
 
@@ -40,9 +47,13 @@ async function refreshAccessToken() {
   }
 }
 
-// Call this function before making API requests
-await refreshAccessToken();
-
-app.listen(port, () => {
+// Start the server
+app.listen(port, async () => {
   console.log(`Server running at http://localhost:${port}`);
+  // Try to refresh the token when the server starts
+  try {
+    await refreshAccessToken();
+  } catch (error) {
+    console.log('Error refreshing token on startup:', error.message);
+  }
 });
