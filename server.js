@@ -44,23 +44,26 @@ app.get('/', (req, res) => {
 // Step 1: User initiates Spotify login
 app.get('/login', (req, res) => {
   const scopes = ['user-read-private', 'user-read-email', 'playlist-modify-public', 'playlist-modify-private'];
-  const authorizeURL = spotifyApi.createAuthorizeURL(scopes);
+  const state = Math.random().toString(36).substring(2, 15);
+  const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
   res.redirect(authorizeURL);
 });
 
 // Step 2: Handle Spotify callback after user grants permission
 app.get('/callback', async (req, res) => {
-  const { code } = req.query;
+  const { code, state } = req.query;
   try {
     const data = await spotifyApi.authorizationCodeGrant(code);
     const { access_token, refresh_token } = data.body;
     spotifyApi.setAccessToken(access_token);
     spotifyApi.setRefreshToken(refresh_token);
     refreshToken = refresh_token; // Store the refresh token
-    res.redirect('/'); // Redirect to the main page after successful authentication
+    
+    // Redirect to the frontend with the tokens
+    res.redirect(`${process.env.FRONTEND_URI}#access_token=${access_token}&refresh_token=${refresh_token}`);
   } catch (error) {
     console.error('Error in Spotify callback:', error);
-    res.status(500).send('Authentication failed');
+    res.redirect(`${process.env.FRONTEND_URI}#error=authentication_failed`);
   }
 });
 
