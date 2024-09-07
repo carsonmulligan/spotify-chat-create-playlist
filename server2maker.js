@@ -1,5 +1,5 @@
-// var redirect_uri = "https://makeratplay.github.io/SpotifyWebAPI/"; // change this your value
-var redirect_uri = "http://localhost:3000/callback";
+var redirect_uri = "https://makeratplay.github.io/SpotifyWebAPI/"; // change this your value
+// var redirect_uri = "http://localhost:3000/callback";
  
 
 var client_id = ""; 
