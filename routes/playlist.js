@@ -1,11 +1,11 @@
-import { generatePlaylistFromAI } from './openAI.js';
-import { spotifyApi } from './spotify.js';
+import { generatePlaylistFromAI } from './openAI.js'; // Import AI playlist generation function
+import { spotifyApi } from './spotify.js'; // Import Spotify API instance
 
 export const createPlaylist = async (req, res) => {
-  const { prompt, accessToken } = req.body;
+  const { prompt, accessToken } = req.body; // Extract prompt and accessToken from request body
 
   try {
-    spotifyApi.setAccessToken(accessToken);
+    spotifyApi.setAccessToken(accessToken); // Set the access token for Spotify API calls
 
     // Generate playlist using AI
     const playlistData = await generatePlaylistFromAI(prompt);
@@ -28,11 +28,11 @@ export const createPlaylist = async (req, res) => {
       }
     }
 
-    await spotifyApi.addTracksToPlaylist(playlist.body.id, trackUris);
+    await spotifyApi.addTracksToPlaylist(playlist.body.id, trackUris); // Add tracks to the playlist
 
-    res.json({ success: true, playlistUrl: playlist.body.external_urls.spotify });
+    res.json({ success: true, playlistUrl: playlist.body.external_urls.spotify }); // Send success response with playlist URL
   } catch (error) {
     console.error('Error creating playlist:', error);
-    res.status(500).json({ error: 'Failed to create playlist', details: error.message });
+    res.status(500).json({ error: 'Failed to create playlist', details: error.message }); // Send error response
   }
 };
