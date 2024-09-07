@@ -82,15 +82,15 @@ export const getSpotifyApi = (accessToken) => {
       );
       return response.data;
     },
-    // Add tracks to an existing playlist
-    addTracksToPlaylist: async (playlistId, uris) => {
-      const response = await axios.post(
-        `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
-        { uris },
-        { headers: { 'Authorization': `Bearer ${accessToken}` } }
-      );
-      return response.data;
-    },
+    // // Add tracks to an existing playlist -- we dont support this yet. only create playlists
+    // addTracksToPlaylist: async (playlistId, uris) => {
+    //   const response = await axios.post(
+    //     `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+    //     { uris },
+    //     { headers: { 'Authorization': `Bearer ${accessToken}` } }
+    //   );
+    //   return response.data;
+    // },
     // Search for tracks
     searchTracks: async (query) => {
       const response = await axios.get(
