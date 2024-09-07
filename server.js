@@ -1,21 +1,21 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import { setupSpotifyRoutes } from './routes/spotify.js';
-import { createPlaylist } from './routes/playlist.js';
+import express from 'express'; // Import the Express framework
+import dotenv from 'dotenv'; // Import dotenv for environment variable management
+import { setupSpotifyRoutes } from './routes/spotify.js'; // Import Spotify route setup function
+import { createPlaylist } from './routes/playlist.js'; // Import createPlaylist function
 
-dotenv.config();
+dotenv.config(); // Load environment variables from .env file
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+const app = express(); // Create an Express application
+const PORT = process.env.PORT || 3000; // Set the port, use environment variable or default to 3000
 
-app.use(express.static('public'));
-app.use(express.json());
+app.use(express.static('public')); // Serve static files from the 'public' directory
+app.use(express.json()); // Parse JSON request bodies
 
-setupSpotifyRoutes(app);
+setupSpotifyRoutes(app); // Set up Spotify authentication routes
 
-// Add this line to include the create-playlist route
-app.post('/api/create-playlist', createPlaylist);
+// Add the create-playlist route
+app.post('/api/create-playlist', createPlaylist); // Handle POST requests to create a playlist
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`); // Start the server and log the port
 });

@@ -1,7 +1,8 @@
-import SpotifyWebApi from 'spotify-web-api-node';
-import crypto from 'crypto';
-import cookieParser from 'cookie-parser';
+import SpotifyWebApi from 'spotify-web-api-node'; // Import Spotify Web API
+import crypto from 'crypto'; // Import crypto for generating random state
+import cookieParser from 'cookie-parser'; // Import cookie-parser for handling cookies
 
+// Initialize Spotify API with credentials
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
@@ -11,49 +12,52 @@ const spotifyApi = new SpotifyWebApi({
 });
 
 export const setupSpotifyRoutes = (app) => {
-  app.use(cookieParser());
+  app.use(cookieParser()); // Use cookie-parser middleware
 
   app.get('/login', (req, res) => {
     console.log('Using Spotify Client ID:', process.env.SPOTIFY_CLIENT_ID);
-    const state = crypto.randomBytes(16).toString('hex');
+    console.log('Redirect URI:', spotifyApi.getRedirectURI());
+    const state = crypto.randomBytes(16).toString('hex'); // Generate random state
     res.cookie('spotify_auth_state', state, { 
       httpOnly: true, 
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production'
-    });
-    const scopes = ['playlist-modify-private', 'playlist-modify-public'];
-    const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
+    }); // Set state cookie
+    const scopes = ['playlist-modify-private', 'playlist-modify-public']; // Define Spotify API scopes
+    const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state); // Create authorization URL
     
-    // Ensure the client ID is included in the URL
-    const finalAuthorizeURL = `${authorizeURL}&client_id=${process.env.SPOTIFY_CLIENT_ID}`;
-    
-    console.log('Redirecting to:', finalAuthorizeURL);
-    res.redirect(finalAuthorizeURL);
+    console.log('Redirecting to:', authorizeURL);
+    res.redirect(authorizeURL); // Redirect user to Spotify login
   });
 
   app.get('/callback', async (req, res) => {
-    const { code, state } = req.query;
-    const storedState = req.cookies ? req.cookies['spotify_auth_state'] : null;
+    const { code, state } = req.query; // Get code and state from query params
+    const storedState = req.cookies ? req.cookies['spotify_auth_state'] : null; // Get stored state from cookie
 
     if (state === null || state !== storedState) {
       console.error('State mismatch', { receivedState: state, storedState });
-      return res.redirect('/#error=state_mismatch');
+      return res.redirect('/#error=state_mismatch'); // Handle state mismatch error
     }
 
-    res.clearCookie('spotify_auth_state');
+    res.clearCookie('spotify_auth_state'); // Clear the state cookie
 
     try {
       console.log('Attempting to exchange authorization code for tokens');
-      const data = await spotifyApi.authorizationCodeGrant(code);
+      console.log('Authorization code:', code);
+      const data = await spotifyApi.authorizationCodeGrant(code); // Exchange code for tokens
       console.log('Token exchange successful');
       const { access_token, refresh_token, expires_in } = data.body;
-      res.redirect(`/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`);
+      res.redirect(`/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`); // Redirect with tokens
     } catch (err) {
       console.error('Error during Spotify callback:', err);
       console.error('Error details:', err.body);
-      res.redirect('/#error=invalid_token');
+      console.error('Spotify API configuration:', {
+        clientId: spotifyApi.getClientId(),
+        redirectUri: spotifyApi.getRedirectURI()
+      });
+      res.redirect('/#error=invalid_token'); // Handle token exchange error
     }
   });
 };
 
-export { spotifyApi };
+export { spotifyApi }; // Export spotifyApi for use in other files
