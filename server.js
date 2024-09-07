@@ -25,6 +25,8 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: process.env.SPOTIFY_REDIRECT_URI
 });
 
+let refreshToken = null;
+
 app.use(express.static('public'));
 app.use(express.json());
 
@@ -32,14 +34,42 @@ app.get('/', (req, res) => {
   res.sendFile(join(__dirname, 'public', 'index.html'));
 });
 
+// Spotify authentication route
+app.get('/login', (req, res) => {
+  const scopes = ['user-read-private', 'user-read-email', 'playlist-modify-public', 'playlist-modify-private'];
+  const authorizeURL = spotifyApi.createAuthorizeURL(scopes);
+  res.redirect(authorizeURL);
+});
+
+// Spotify callback route
+app.get('/callback', async (req, res) => {
+  const { code } = req.query;
+  try {
+    const data = await spotifyApi.authorizationCodeGrant(code);
+    const { access_token, refresh_token } = data.body;
+    spotifyApi.setAccessToken(access_token);
+    spotifyApi.setRefreshToken(refresh_token);
+    refreshToken = refresh_token; // Store the refresh token
+    res.redirect('/'); // Redirect to the main page after successful authentication
+  } catch (error) {
+    console.error('Error in Spotify callback:', error);
+    res.status(500).send('Authentication failed');
+  }
+});
+
 setupSpotifyRoutes(app);
 app.post('/api/create-playlist', createPlaylist);
 
 // Add this function to refresh the access token
 async function refreshAccessToken() {
+  if (!refreshToken) {
+    console.log('No refresh token available. Please authenticate first.');
+    return;
+  }
   try {
+    spotifyApi.setRefreshToken(refreshToken);
     const data = await spotifyApi.refreshAccessToken();
-    const access_token = data.body['access_token'];
+    const { access_token } = data.body;
     console.log('The access token has been refreshed!');
     spotifyApi.setAccessToken(access_token);
   } catch (err) {
@@ -48,12 +78,9 @@ async function refreshAccessToken() {
 }
 
 // Start the server
-app.listen(port, async () => {
+app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
-  // Try to refresh the token when the server starts
-  try {
-    await refreshAccessToken();
-  } catch (error) {
-    console.log('Error refreshing token on startup:', error.message);
-  }
 });
+
+// Export spotifyApi and refreshAccessToken for use in other modules
+export { spotifyApi, refreshAccessToken };

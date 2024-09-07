@@ -1,6 +1,7 @@
 import axios from 'axios';
 import querystring from 'querystring';
 import dotenv from 'dotenv';
+import { spotifyApi, refreshAccessToken } from '../server.js';
 
 dotenv.config();
 
@@ -51,6 +52,19 @@ export const setupSpotifyRoutes = (app) => {
       res.redirect('/#error=invalid_token');
     }
   });
+
+  app.get('/api/current-user', async (req, res) => {
+    try {
+      await refreshAccessToken();
+      const data = await spotifyApi.getMe();
+      res.json(data.body);
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      res.status(500).json({ error: 'Failed to get current user' });
+    }
+  });
+
+  // Add other Spotify-related routes here
 };
 
 export const getSpotifyApi = (accessToken) => {
