@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify API Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    label {
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #1DB954;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1ed760;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Spotify API Search Test</h1>
+    <label for="clientId">Client ID</label>
+    <input type="text" id="clientId" placeholder="Enter your Spotify Client ID">
+
+    <label for="clientSecret">Client Secret</label>
+    <input type="text" id="clientSecret" placeholder="Enter your Spotify Client Secret">
+
+    <label for="track">Track Name</label>
+    <input type="text" id="track" placeholder="Enter a track name to search">
+
+    <button id="searchBtn">Search Track</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script src="spotify_auth_test.js"></script>
+</body>
+</html>
