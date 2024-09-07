@@ -76,7 +76,6 @@ createPlaylistButton.addEventListener('click', async () => {
     try {
         result.innerHTML = '<p>Creating playlist...</p>';
         
-        // Send request to backend to create playlist
         const response = await fetch('/api/create-playlist', {
             method: 'POST',
             headers: { 

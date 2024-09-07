@@ -5,9 +5,7 @@ import cookieParser from 'cookie-parser';
 
 const clientId = process.env.SPOTIFY_CLIENT_ID;
 const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-const redirectUri = process.env.NODE_ENV === 'production'
-  ? process.env.SPOTIFY_REDIRECT_URI
-  : 'http://localhost:3000/callback';
+const redirectUri = process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:3000/callback';
 
 export const setupSpotifyRoutes = (app) => {
   app.use(cookieParser());

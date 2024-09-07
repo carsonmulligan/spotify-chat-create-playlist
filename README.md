@@ -35,3 +35,31 @@ Or type your own custom playlist description below!
 1. Clone this repository:
    ```bash
    git clone https://github.com/carsonmulligan/spotify-chat-create-playlist.git
+
+```
+
+## Deployment on Render
+
+1. Fork this repository to your GitHub account.
+2. Create a new Web Service on Render.
+3. Connect your GitHub repository to Render.
+4. Configure the following environment variables in Render:
+   - `SPOTIFY_CLIENT_ID`
+   - `SPOTIFY_CLIENT_SECRET`
+   - `SPOTIFY_REDIRECT_URI` (set this to your Render app URL + '/callback', e.g., https://your-app-name.onrender.com/callback)
+   - `OPENAI_API_KEY`
+5. Deploy the application.
+
+## Local Development
+
+1. Clone the repository.
+2. Run `npm install` to install dependencies.
+3. Create a `.env` file with the required environment variables.
+4. Run `npm run dev` to start the development server.
+
+## Environment Variables
+
+- `SPOTIFY_CLIENT_ID`: Your Spotify application client ID
+- `SPOTIFY_CLIENT_SECRET`: Your Spotify application client secret
+- `SPOTIFY_REDIRECT_URI`: The redirect URI for Spotify authentication
+- `OPENAI_API_KEY`: Your OpenAI API key
