@@ -6,15 +6,19 @@ import { setupSpotifyRoutes } from './routes/spotify.js';
 import { createPlaylist } from './routes/playlist.js';
 import SpotifyWebApi from 'spotify-web-api-node';
 
+// Load environment variables
 dotenv.config();
 
+// Log important environment variables for debugging
 console.log('Environment variables:');
 console.log('SPOTIFY_CLIENT_ID:', process.env.SPOTIFY_CLIENT_ID);
 console.log('SPOTIFY_REDIRECT_URI:', process.env.SPOTIFY_REDIRECT_URI);
 
+// Set up file paths
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Initialize Express app
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -25,23 +29,26 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: process.env.SPOTIFY_REDIRECT_URI
 });
 
+// Store refresh token in memory (Note: In production, use a secure database)
 let refreshToken = null;
 
+// Middleware setup
 app.use(express.static('public'));
 app.use(express.json());
 
+// Serve the main HTML file
 app.get('/', (req, res) => {
   res.sendFile(join(__dirname, 'public', 'index.html'));
 });
 
-// Spotify authentication route
+// Step 1: User initiates Spotify login
 app.get('/login', (req, res) => {
   const scopes = ['user-read-private', 'user-read-email', 'playlist-modify-public', 'playlist-modify-private'];
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes);
   res.redirect(authorizeURL);
 });
 
-// Spotify callback route
+// Step 2: Handle Spotify callback after user grants permission
 app.get('/callback', async (req, res) => {
   const { code } = req.query;
   try {
@@ -57,10 +64,13 @@ app.get('/callback', async (req, res) => {
   }
 });
 
+// Set up Spotify routes
 setupSpotifyRoutes(app);
+
+// Step 3: Handle playlist creation request
 app.post('/api/create-playlist', createPlaylist);
 
-// Add this function to refresh the access token
+// Function to refresh the access token when needed
 async function refreshAccessToken() {
   if (!refreshToken) {
     console.log('No refresh token available. Please authenticate first.');

@@ -10,6 +10,7 @@ const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 const redirectUri = process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:3000/callback';
 
 export const setupSpotifyRoutes = (app) => {
+  // Step 1: Initiate Spotify login
   app.get('/login', (req, res) => {
     const scope = 'playlist-modify-private playlist-modify-public';
     const state = Math.random().toString(36).substring(2, 15);
@@ -30,6 +31,7 @@ export const setupSpotifyRoutes = (app) => {
     res.redirect(`https://accounts.spotify.com/authorize?${queryParams}`);
   });
 
+  // Step 2: Handle Spotify callback
   app.get('/callback', async (req, res) => {
     const { code } = req.query;
     try {
@@ -53,6 +55,7 @@ export const setupSpotifyRoutes = (app) => {
     }
   });
 
+  // Step 3: Get current user's Spotify profile
   app.get('/api/current-user', async (req, res) => {
     try {
       await refreshAccessToken();
@@ -67,8 +70,10 @@ export const setupSpotifyRoutes = (app) => {
   // Add other Spotify-related routes here
 };
 
+// Helper function to create a Spotify API wrapper with the given access token
 export const getSpotifyApi = (accessToken) => {
   return {
+    // Create a new playlist
     createPlaylist: async (userId, name, options = {}) => {
       const response = await axios.post(
         `https://api.spotify.com/v1/users/${userId}/playlists`,
@@ -77,6 +82,7 @@ export const getSpotifyApi = (accessToken) => {
       );
       return response.data;
     },
+    // Add tracks to an existing playlist
     addTracksToPlaylist: async (playlistId, uris) => {
       const response = await axios.post(
         `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
@@ -85,6 +91,7 @@ export const getSpotifyApi = (accessToken) => {
       );
       return response.data;
     },
+    // Search for tracks
     searchTracks: async (query) => {
       const response = await axios.get(
         `https://api.spotify.com/v1/search`,
@@ -95,6 +102,7 @@ export const getSpotifyApi = (accessToken) => {
       );
       return response.data;
     },
+    // Get the current user's Spotify profile
     getMe: async () => {
       const response = await axios.get(
         'https://api.spotify.com/v1/me',
