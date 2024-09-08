@@ -1,5 +1,5 @@
 import { generatePlaylistFromGPT } from './openAI.js';
-import { spotifyApi } from './spotify.js';
+import { spotifyApi } from './spotifyAuth.js';
 
 async function refreshAccessToken(refreshToken) {
   try {

@@ -26,31 +26,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Get AI suggestions
-            const chatResponse = await fetch('/api/chat', {
+            // Generate playlist using GPT
+            const generateResponse = await fetch('/api/generate-playlist', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ prompt }),
             });
-            const chatData = await chatResponse.json();
+            const playlistData = await generateResponse.json();
 
-            // Create playlist
-            const createPlaylistResponse = await fetch(`/api/create-playlist?access_token=${accessToken}`, {
+            // Create playlist on Spotify
+            const createPlaylistResponse = await fetch('/api/create-playlist', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    name: `AI Playlist: ${prompt}`,
-                    description: `Created with AI based on the prompt: ${prompt}`,
-                    tracks: chatData.response.split('\n'),
+                    prompt,
+                    accessToken,
+                    refreshToken: params.get('refresh_token'),
+                    playlistData,
                 }),
             });
-            const playlistData = await createPlaylistResponse.json();
+            const createdPlaylist = await createPlaylistResponse.json();
 
-            result.innerHTML = `Playlist created successfully! ID: ${playlistData.playlistId}`;
+            result.innerHTML = `Playlist created successfully! <a href="${createdPlaylist.playlistUrl}" target="_blank">Open in Spotify</a>`;
         } catch (error) {
             console.error('Error:', error);
             result.innerHTML = 'An error occurred while creating the playlist.';

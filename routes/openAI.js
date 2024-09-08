@@ -11,7 +11,8 @@ const openai = axios.create({
   },
 });
 
-export const generatePlaylistFromGPT = async (prompt) => {
+export const generatePlaylistFromGPT = async (req, res) => {
+  const { prompt } = req.body;
   try {
     const response = await openai.post('/chat/completions', {
       model: 'gpt-3.5-turbo',
@@ -29,9 +30,9 @@ export const generatePlaylistFromGPT = async (prompt) => {
     });
 
     const completion = response.data.choices[0].message.content;
-    return JSON.parse(completion); // Structured playlist data
+    res.json(JSON.parse(completion)); // Structured playlist data
   } catch (error) {
     console.error('Error generating playlist with GPT:', error);
-    throw error;
+    res.status(500).json({ error: 'Failed to generate playlist', details: error.message });
   }
 };
