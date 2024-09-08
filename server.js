@@ -6,41 +6,32 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import OpenAI from 'openai';
 
-// Load environment variables
 dotenv.config();
 
-// Spotify API configuration
+const app = express();
+const port = process.env.PORT || 3000;
 const clientId = process.env.SPOTIFY_CLIENT_ID;
 const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 const redirectUri = process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:3000/callback';
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Initialize Express app
-const app = express();
-const port = process.env.PORT || 3000;
-
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// Set up file paths
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Middleware setup
+// Middleware
 app.use(express.static('public'));
 app.use(express.json());
 
 // Serve the landing page
 app.get('/', (req, res) => {
-  res.sendFile(join(__dirname, 'public', 'index.html'));
+  res.sendFile(join(__dirname, 'public', 'landing.html'));
 });
 
-// Step 1: Initiate Spotify login
+// Spotify login
 app.get('/login', (req, res) => {
   const scopes = 'playlist-modify-private playlist-modify-public';
   const state = Math.random().toString(36).substring(2, 15);
-
+  
   const queryParams = querystring.stringify({
     response_type: 'code',
     client_id: clientId,
@@ -52,42 +43,42 @@ app.get('/login', (req, res) => {
   res.redirect(`https://accounts.spotify.com/authorize?${queryParams}`);
 });
 
-// Step 2: Handle Spotify callback after login
+// Handle Spotify callback
 app.get('/callback', async (req, res) => {
   const { code } = req.query;
+
   try {
-    const response = await axios({
+    const tokenResponse = await axios({
       method: 'post',
       url: 'https://accounts.spotify.com/api/token',
-      params: {
+      data: querystring.stringify({
         code: code,
         redirect_uri: redirectUri,
         grant_type: 'authorization_code'
-      },
+      }),
       headers: {
-        'Authorization': 'Basic ' + (Buffer.from(clientId + ':' + clientSecret).toString('base64')),
+        'Authorization': 'Basic ' + Buffer.from(clientId + ':' + clientSecret).toString('base64'),
         'Content-Type': 'application/x-www-form-urlencoded'
       }
     });
-    const { access_token, refresh_token } = response.data;
-    // Send the access token to the frontend as part of the redirect
-    res.redirect(`/create-playlist#access_token=${access_token}`);
+
+    const { access_token, refresh_token } = tokenResponse.data;
+    res.redirect(`/index.html#access_token=${access_token}`);
   } catch (error) {
     res.redirect('/#error=authentication_failed');
   }
 });
 
-// Step 3: Handle playlist creation request
+// Create playlist route
 app.post('/api/create-playlist', async (req, res) => {
   const { prompt, accessToken } = req.body;
 
   try {
-    // Generate playlist from OpenAI prompt
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
-        {"role": "system", "content": "Create a Spotify playlist."},
-        {"role": "user", "content": `Create a playlist based on this description: ${prompt}`}
+        { role: 'system', content: 'You are a playlist creator' },
+        { role: 'user', content: `Create a playlist based on: ${prompt}` }
       ],
       response_format: { type: 'json_object' }
     });
@@ -95,21 +86,19 @@ app.post('/api/create-playlist', async (req, res) => {
     const playlistData = JSON.parse(completion.choices[0].message.content);
     const { name, description, tracks } = playlistData;
 
-    // Create Spotify playlist
-    const response = await axios.post(
-      `https://api.spotify.com/v1/me/playlists`,
+    const createPlaylistResponse = await axios.post(
+      'https://api.spotify.com/v1/me/playlists',
       { name, description, public: false },
-      { headers: { 'Authorization': `Bearer ${accessToken}` } }
+      { headers: { Authorization: `Bearer ${accessToken}` } }
     );
-    
-    const playlistId = response.data.id;
 
-    // Add tracks to the playlist
+    const playlistId = createPlaylistResponse.data.id;
     const uris = tracks.map(track => `spotify:track:${track.id}`);
+
     await axios.post(
       `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
       { uris },
-      { headers: { 'Authorization': `Bearer ${accessToken}` } }
+      { headers: { Authorization: `Bearer ${accessToken}` } }
     );
 
     res.json({ success: true, playlistId });
@@ -119,7 +108,6 @@ app.post('/api/create-playlist', async (req, res) => {
   }
 });
 
-// Start the server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
