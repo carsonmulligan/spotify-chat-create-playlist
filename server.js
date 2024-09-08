@@ -69,8 +69,7 @@ app.get('/callback', async (req, res) => {
         'Content-Type': 'application/x-www-form-urlencoded'
       }
     });
-    const { access_token, refresh_token } = response.data;
-    // Redirect to the frontend and include the access token in the URL
+    const { access_token } = response.data;
     res.redirect(`/create-playlist#access_token=${access_token}`);
   } catch (error) {
     res.redirect('/#error=authentication_failed');
@@ -82,7 +81,6 @@ app.post('/api/create-playlist', async (req, res) => {
   const { prompt, accessToken } = req.body;
 
   try {
-    // Generate playlist from OpenAI prompt
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
@@ -101,7 +99,7 @@ app.post('/api/create-playlist', async (req, res) => {
       { name, description, public: false },
       { headers: { 'Authorization': `Bearer ${accessToken}` } }
     );
-    
+
     const playlistId = response.data.id;
 
     // Add tracks to the playlist
@@ -123,3 +121,4 @@ app.post('/api/create-playlist', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+    
