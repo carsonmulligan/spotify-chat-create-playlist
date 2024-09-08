@@ -2,7 +2,7 @@ import { generatePlaylistFromGPT } from './openAI.js';
 import { spotifyApi } from './spotifyAuth.js';
 
 export const createPlaylist = async (req, res) => {
-  const { prompt, accessToken, refreshToken } = req.body;
+  const { prompt, accessToken } = req.body;
 
   try {
     // Step 1: Generate playlist using GPT
