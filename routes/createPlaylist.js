@@ -35,3 +35,6 @@ export const createPlaylist = async (req, res) => {
     res.status(500).json({ error: 'Failed to create playlist', details: error.message });
   }
 };
+
+// const { prompt, accessToken, refreshToken } = req.body; // leave this old way commented out at 
+// the bottom in case we need it to handle refresh token logic
