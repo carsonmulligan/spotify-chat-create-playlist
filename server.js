@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import path from 'path';
 import { spotifyLogin, spotifyCallback } from './routes/spotifyAuth.js';
-import { generatePlaylistFromGPT, chat, spotifyApi } from './routes/openAI.js';
+import { generatePlaylistFromGPT } from './routes/openAI.js';
 import { createPlaylist } from './routes/createPlaylist.js';
 import cookieParser from 'cookie-parser';
 
@@ -43,7 +43,7 @@ app.get('/login', spotifyLogin);
 app.get('/callback', spotifyCallback);
 app.post('/api/generate-playlist', generatePlaylistFromGPT);
 app.post('/api/create-playlist', createPlaylist);
-app.post('/api/chat', chat);
+// app.post('/api/chat', chat);  // This line is commented out
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -58,7 +58,7 @@ app.get('/api/me', async (req, res) => {
   }
 
   try {
-    spotifyApi.setAccessToken(accessToken);
+    const spotifyApi = new SpotifyWebApi({ accessToken });
     const me = await spotifyApi.getMe();
     res.json(me.body);
   } catch (error) {
