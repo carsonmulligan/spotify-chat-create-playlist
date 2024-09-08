@@ -24,10 +24,8 @@ const spotifyApi = new SpotifyWebApi({
         : 'http://localhost:3000/callback'
 });
 
-// Serve static files (including landing.html)
 app.use(express.static('public'));
-
-// Update session middleware
+app.use(express.json());
 app.use(session({ 
     secret: process.env.SESSION_SECRET || 'fallback_secret_for_development', 
     resave: false, 
@@ -37,7 +35,6 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Configure Spotify authentication strategy
 passport.use(
   new SpotifyStrategy(
     {
@@ -48,84 +45,41 @@ passport.use(
         : 'http://localhost:3000/callback',
     },
     function(accessToken, refreshToken, expires_in, profile, done) {
-      console.log('Spotify strategy callback');
-      console.log('Access Token:', accessToken);
-      console.log('Refresh Token:', refreshToken);
-      console.log('Expires In:', expires_in);
-      
-      // Manually fetch the user profile
-      fetch('https://api.spotify.com/v1/me', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Manually fetched profile:', JSON.stringify(data, null, 2));
-        return done(null, { profile: data, accessToken, refreshToken });
-      })
-      .catch(error => {
-        console.error('Error fetching profile:', error);
-        return done(error);
-      });
+      spotifyApi.setAccessToken(accessToken);
+      spotifyApi.setRefreshToken(refreshToken);
+      return done(null, { profile, accessToken, refreshToken });
     }
   )
 );
 
-// Serialize and deserialize user for session management
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
-// Add this middleware for logging
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-    next();
-});
-
-// Update the Spotify auth route
-app.get('/login', passport.authenticate('spotify', {
-  scope: ['user-read-email', 'user-read-private', 'playlist-modify-public', 'playlist-modify-private'],
-  showDialog: true
+app.get('/auth/spotify', passport.authenticate('spotify', {
+    scope: ['user-read-email', 'playlist-modify-public', 'playlist-modify-private'],
+    showDialog: true
 }));
 
-// Update the callback route
 app.get('/callback',
-    (req, res, next) => {
-        console.log('Callback route hit');
-        console.log('Query parameters:', req.query);
-        next();
-    },
     passport.authenticate('spotify', { failureRedirect: '/' }),
     (req, res) => {
-        console.log('Authentication successful');
-        console.log('User:', req.user);
-        res.redirect('/app'); // Make sure this is correct
+        res.redirect('/');
     }
 );
 
-// Route to fetch user profile
-app.get('/api/me', async (req, res) => {
-    try {
-        const { access_token } = req.query;
-        spotifyApi.setAccessToken(access_token);
-        const data = await spotifyApi.getMe();
-        res.json(data.body);
-    } catch (err) {
-        console.error('Error fetching user profile', err);
-        res.status(500).json({ error: 'Failed to fetch user profile' });
-    }
+app.get('/auth-status', (req, res) => {
+    res.json({ authenticated: req.isAuthenticated() });
 });
 
-// Route to create a playlist
-app.post('/api/create-playlist', express.json(), async (req, res) => {
+app.post('/api/create-playlist', async (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+
     const { prompt } = req.body;
 
     try {
-        // Use OpenAI to generate playlist suggestions
-        const openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY,
-        });
-
+        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
         const completion = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
             messages: [
@@ -136,11 +90,9 @@ app.post('/api/create-playlist', express.json(), async (req, res) => {
 
         const suggestedSongs = completion.choices[0].message.content.split('\n');
 
-        // Use Spotify API to create a playlist with the suggested songs
         const user = await spotifyApi.getMe();
         const playlist = await spotifyApi.createPlaylist(user.body.id, `AI Generated: ${prompt}`, { public: false });
 
-        // Search for and add each suggested song to the playlist
         for (const song of suggestedSongs) {
             const searchResults = await spotifyApi.searchTracks(song);
             if (searchResults.body.tracks.items.length > 0) {
@@ -155,41 +107,6 @@ app.post('/api/create-playlist', express.json(), async (req, res) => {
     }
 });
 
-// Route to handle successful authentication redirect
-app.get('/app', (req, res) => {
-    if (req.isAuthenticated()) {
-        console.log('User authenticated, serving app.html');
-        res.sendFile(path.join(__dirname, 'public', 'app.html'));
-    } else {
-        console.log('User not authenticated, redirecting to home');
-        res.redirect('/');
-    }
-});
-
-// Add this route for debugging
-app.get('/auth-status', (req, res) => {
-    res.json({
-        authenticated: req.isAuthenticated(),
-        user: req.user
-    });
-});
-
-// Update the catch-all route
-app.use((req, res) => {
-    console.log(`404: ${req.method} ${req.url}`);
-    res.status(404).send('Not Found');
-});
-
-// Start the server
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
-});
-
-// Route to check the current session
-app.get('/check-session', (req, res) => {
-    if (req.isAuthenticated()) {
-        res.json({ authenticated: true, user: req.user });
-    } else {
-        res.json({ authenticated: false });
-    }
 });
