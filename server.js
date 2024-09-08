@@ -7,6 +7,8 @@ import { spotifyLogin, spotifyCallback } from './routes/spotifyAuth.js';
 import { generatePlaylistFromGPT } from './routes/openAI.js';
 import { createPlaylist } from './routes/createPlaylist.js';
 import cookieParser from 'cookie-parser';
+import SpotifyWebApi from 'spotify-web-api-node';
+
 
 // User Journey:
 // 1. User visits the homepage
@@ -15,6 +17,13 @@ import cookieParser from 'cookie-parser';
 // 4. User enters a prompt for playlist creation
 // 5. App uses OpenAI to generate song recommendations
 // 6. App creates a playlist on user's Spotify account with the recommended songs
+
+const spotifyApi = new SpotifyWebApi({
+  clientId: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+  redirectUri: process.env.SPOTIFY_REDIRECT_URI,
+});
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
