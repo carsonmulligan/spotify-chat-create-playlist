@@ -9,6 +9,14 @@ import { createPlaylist } from './routes/playlist.js';
 import { getRecommendations } from './routes/recommendations.js';
 import cookieParser from 'cookie-parser';
 
+// User Journey:
+// 1. User visits the homepage
+// 2. User clicks "Login with Spotify" and is redirected to Spotify login
+// 3. After successful login, user is redirected back to the app
+// 4. User enters a prompt for playlist creation
+// 5. App uses OpenAI to generate song recommendations
+// 6. App creates a playlist on user's Spotify account with the recommended songs
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 

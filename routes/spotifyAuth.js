@@ -4,6 +4,13 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import crypto from 'crypto';
 
+// User Journey:
+// 1. User clicks "Login with Spotify" button
+// 2. User is redirected to Spotify login page
+// 3. After successful login, Spotify redirects back to our callback URL
+// 4. We exchange the code for access and refresh tokens
+// 5. User is redirected back to the main app with the tokens
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -52,14 +59,17 @@ export const spotifyCallback = async (req, res) => {
     // Set the access token on the API object
     spotifyApi.setAccessToken(access_token);
 
-    const redirectURL = `${process.env.FRONTEND_URI || 'http://localhost:3000'}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`;
+    // For Heroku, use the APP_URL environment variable
+    const frontendUri = process.env.APP_URL || process.env.FRONTEND_URI || 'http://localhost:3000';
+    const redirectURL = `${frontendUri}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`;
     
     console.log('Redirecting to:', redirectURL);
     res.redirect(redirectURL);
   } catch (error) {
     console.error('Error getting Spotify tokens:', error);
     console.error('Error details:', error.response ? error.response.data : 'No response data');
-    res.redirect(`${process.env.FRONTEND_URI || 'http://localhost:3000'}/#error=spotify_auth_error&message=${encodeURIComponent(error.message)}`);
+    const frontendUri = process.env.APP_URL || process.env.FRONTEND_URI || 'http://localhost:3000';
+    res.redirect(`${frontendUri}/#error=spotify_auth_error&message=${encodeURIComponent(error.message)}`);
   }
 };
 
