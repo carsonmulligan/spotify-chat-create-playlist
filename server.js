@@ -5,8 +5,12 @@ import session from 'express-session';
 import passport from 'passport';
 import { Strategy as SpotifyStrategy } from 'passport-spotify';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -14,7 +18,9 @@ const port = process.env.PORT || 3000;
 const spotifyApi = new SpotifyWebApi({
     clientId: process.env.SPOTIFY_CLIENT_ID,
     clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-    redirectUri: process.env.SPOTIFY_REDIRECT_URI,
+    redirectUri: process.env.NODE_ENV === 'production' 
+        ? 'https://artur-ai-spotify-9fc02bcaa55b.herokuapp.com/callback'
+        : 'http://localhost:3000/callback'
 });
 
 // Serve static files (including landing.html)
@@ -22,7 +28,7 @@ app.use(express.static('public'));
 
 // Update session middleware
 app.use(session({ 
-    secret: process.env.SESSION_SECRET || 'your_fallback_secret', 
+    secret: process.env.SESSION_SECRET, 
     resave: false, 
     saveUninitialized: false,
     cookie: { secure: process.env.NODE_ENV === 'production' }
@@ -36,7 +42,9 @@ passport.use(
     {
       clientID: process.env.SPOTIFY_CLIENT_ID,
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-      callbackURL: `${process.env.APP_URL}/auth/spotify/callback`,
+      callbackURL: process.env.NODE_ENV === 'production' 
+        ? 'https://artur-ai-spotify-9fc02bcaa55b.herokuapp.com/callback'
+        : 'http://localhost:3000/callback',
     },
     function(accessToken, refreshToken, expires_in, profile, done) {
       // Save user info and tokens in the session
@@ -56,26 +64,12 @@ app.use((req, res, next) => {
 });
 
 // Update the Spotify auth route
-app.get('/auth/spotify', (req, res, next) => {
-    console.log('Auth route hit');
-    console.log('Session:', req.session);
-    console.log('Environment variables:', {
-        SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
-        SPOTIFY_REDIRECT_URI: process.env.SPOTIFY_REDIRECT_URI,
-        APP_URL: process.env.APP_URL
-    });
-    passport.authenticate('spotify', {
-        scope: ['user-read-email', 'playlist-modify-public', 'playlist-modify-private']
-    })(req, res, next);
-});
+app.get('/login', passport.authenticate('spotify', {
+  scope: ['user-read-email', 'playlist-modify-public', 'playlist-modify-private']
+}));
 
 // Update the callback route
-app.get('/auth/spotify/callback',
-    (req, res, next) => {
-        console.log('Callback route hit');
-        console.log('Query parameters:', req.query);
-        next();
-    },
+app.get('/callback',
     passport.authenticate('spotify', { failureRedirect: '/' }),
     (req, res) => {
         console.log('Authentication successful');
@@ -83,28 +77,6 @@ app.get('/auth/spotify/callback',
         res.redirect('/app');
     }
 );
-
-// Legacy login route (can be removed if not needed)
-app.get('/login', (req, res) => {
-    const scopes = ['user-read-private', 'user-read-email', 'playlist-modify-public', 'playlist-modify-private'];
-    const authorizeURL = spotifyApi.createAuthorizeURL(scopes);
-    res.redirect(authorizeURL);
-});
-
-// Legacy callback route (can be removed if not needed)
-app.get('/callback', async (req, res) => {
-    const { code } = req.query;
-    try {
-        const data = await spotifyApi.authorizationCodeGrant(code);
-        const accessToken = data.body['access_token'];
-        const refreshToken = data.body['refresh_token'];
-
-        res.redirect(`/index.html#access_token=${accessToken}`);
-    } catch (err) {
-        console.error('Error getting tokens', err);
-        res.redirect('/?error=invalid_token');
-    }
-});
 
 // Route to fetch user profile
 app.get('/api/me', async (req, res) => {
