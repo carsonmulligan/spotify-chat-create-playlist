@@ -1,32 +1,37 @@
-import OpenAI from 'openai';
+import axios from 'axios';
 import dotenv from 'dotenv';
-
-// User Journey:
-// 1. User enters a prompt for playlist creation
-// 2. This module processes the prompt using OpenAI's API
-// 3. Returns song suggestions based on the prompt
 
 dotenv.config();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+const openai = axios.create({
+  baseURL: 'https://api.openai.com/v1',
+  headers: {
+    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    'Content-Type': 'application/json',
+  },
 });
 
-export const chat = async (req, res) => {
-  const { prompt } = req.body;
-
+export const generatePlaylistFromGPT = async (prompt) => {
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const response = await openai.post('/chat/completions', {
+      model: 'gpt-3.5-turbo',
       messages: [
-        { role: "system", content: "You are a helpful assistant that suggests songs for playlists." },
-        { role: "user", content: prompt }
+        {
+          role: 'system',
+          content:
+            "You are a helpful assistant that creates Spotify playlists. Respond with a JSON object containing 'name', 'description', and 'tracks' (an array of objects with 'name' and 'artist' properties). Include up to 99 tracks.",
+        },
+        {
+          role: 'user',
+          content: `Create a playlist based on this description: ${prompt}`,
+        },
       ],
     });
 
-    res.json({ response: completion.choices[0].message.content });
+    const completion = response.data.choices[0].message.content;
+    return JSON.parse(completion); // Structured playlist data
   } catch (error) {
-    console.error('OpenAI API error:', error);
-    res.status(500).json({ error: 'Error processing your request' });
+    console.error('Error generating playlist with GPT:', error);
+    throw error;
   }
 };
