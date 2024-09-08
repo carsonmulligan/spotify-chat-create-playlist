@@ -63,11 +63,14 @@ app.get('/callback', async (req, res) => {
     });
 
     const { access_token, refresh_token } = tokenResponse.data;
+    
+    // Ensure the access_token is properly sent back to the client
     res.redirect(`/index.html#access_token=${access_token}`);
   } catch (error) {
     res.redirect('/#error=authentication_failed');
   }
 });
+
 
 app.post('/api/create-playlist', async (req, res) => {
   const { prompt, accessToken } = req.body;
