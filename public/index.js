@@ -1,3 +1,6 @@
+// File: index.js
+// Description: Frontend logic for Spotify AI Playlist Creator
+
 let accessToken = null;
 
 const loginButton = document.getElementById('login-button');

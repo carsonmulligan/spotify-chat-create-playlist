@@ -1,3 +1,6 @@
+// File: openAITest.js
+// Description: Test suite for the OpenAI functionality
+
 import OpenAI from "openai";
 import express from "express";
 import dotenv from "dotenv";

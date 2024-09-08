@@ -1,3 +1,6 @@
+// File: createPlaylist.js
+// Description: Handles the creation of a new playlist on Spotify
+
 import { generatePlaylistFromGPT } from './openAI.js';
 import { spotifyApi } from './spotifyAuth.js';
 

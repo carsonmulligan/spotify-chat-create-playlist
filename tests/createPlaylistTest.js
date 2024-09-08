@@ -1,3 +1,6 @@
+// File: createPlaylistTest.js
+// Description: Test suite for the createPlaylist function
+
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';

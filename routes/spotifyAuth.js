@@ -1,3 +1,6 @@
+// File: spotifyAuth.js
+// Description: Handles Spotify authentication and token management 
+
 import SpotifyWebApi from 'spotify-web-api-node';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
