@@ -1,8 +1,8 @@
 import SpotifyWebApi from 'spotify-web-api-node';
+import crypto from 'crypto';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -10,7 +10,6 @@ const __dirname = dirname(__filename);
 // Load environment variables
 dotenv.config({ path: join(__dirname, '..', '.env') });
 
-// Spotify Web API instance
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
@@ -21,7 +20,7 @@ const spotifyApi = new SpotifyWebApi({
 export const spotifyLogin = (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
   res.cookie('spotify_auth_state', state, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
-  const scopes = ['playlist-modify-private', 'playlist-modify-public','user-read-private','user-read-email'];
+  const scopes = ['playlist-modify-private', 'playlist-modify-public', 'user-read-private', 'user-read-email'];
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
   
   console.log('Redirecting to Spotify authorize URL:', authorizeURL);
