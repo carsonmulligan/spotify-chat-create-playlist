@@ -21,7 +21,7 @@ window.onload = () => {
         playlistCreator.style.display = 'block';
         result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
         
-        // Fetch the user profile using the correct access token
+        // Correctly fetch the user profile
         fetch(`/api/me?access_token=${accessToken}`)
           .then(response => response.json())
           .then(data => {
@@ -36,8 +36,10 @@ window.onload = () => {
         result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
     }
 
+    // Clear the hash from the URL
     window.location.hash = '';
 };
+
 
 // After successful authentication
 fetch(`/api/me?access_token=${accessToken}`)

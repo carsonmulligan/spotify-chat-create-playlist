@@ -71,6 +71,45 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'An unexpected error occurred', details: err.message });
 });
 
+
+app.get('/api/me', async (req, res) => {
+  let accessToken = req.query.access_token;
+
+  if (!accessToken || accessToken === 'null') {
+    return res.status(400).json({ error: 'Access token is required' });
+  }
+
+  // Retry logic for token refresh
+  const fetchUserProfile = async (retryCount = 0) => {
+    try {
+      spotifyApi.setAccessToken(accessToken);
+      const me = await spotifyApi.getMe();
+      return res.json(me.body);
+    } catch (error) {
+      // Check for 403 or token-related errors
+      if (error.statusCode === 401 && retryCount < 2) {
+        try {
+          console.log('Access token expired. Attempting to refresh...');
+          const refreshData = await spotifyApi.refreshAccessToken();
+          accessToken = refreshData.body['access_token'];
+          spotifyApi.setAccessToken(accessToken);
+
+          console.log('New access token:', accessToken);
+          return await fetchUserProfile(retryCount + 1); // Retry after refreshing the token
+        } catch (refreshError) {
+          console.error('Error refreshing access token:', refreshError);
+          return res.status(500).json({ error: 'Failed to refresh access token', details: refreshError.message });
+        }
+      } else {
+        console.error('Error fetching user profile:', error);
+        return res.status(500).json({ error: 'Failed to fetch user profile', details: error.message });
+      }
+    }
+  };
+
+  await fetchUserProfile();
+});
+
 // Server listens on the specified port
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
