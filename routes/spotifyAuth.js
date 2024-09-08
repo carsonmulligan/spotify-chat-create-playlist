@@ -34,14 +34,21 @@ export const spotifyCallback = async (req, res) => {
   const storedState = req.session.spotifyAuthState;
 
   if (state === null || state !== storedState) {
+    console.error('State mismatch. Received:', state, 'Stored:', storedState);
     return res.redirect('/#error=state_mismatch');
   }
 
   delete req.session.spotifyAuthState;
 
   try {
+    console.log('Exchanging code for tokens');
     const data = await spotifyApi.authorizationCodeGrant(code);
     const { access_token, refresh_token, expires_in } = data.body;
+
+    console.log('Received tokens from Spotify');
+    console.log('Access token:', access_token.substring(0, 10) + '...');
+    console.log('Refresh token:', refresh_token.substring(0, 10) + '...');
+    console.log('Expires in:', expires_in);
 
     req.session.accessToken = access_token;
     req.session.refreshToken = refresh_token;
@@ -53,7 +60,8 @@ export const spotifyCallback = async (req, res) => {
     res.redirect(`${process.env.FRONTEND_URI || 'http://localhost:3000'}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`);
   } catch (error) {
     console.error('Error getting Spotify tokens:', error);
-    res.redirect(`${process.env.FRONTEND_URI || 'http://localhost:3000'}/#error=spotify_auth_error`);
+    console.error('Error details:', error.response ? error.response.data : 'No response data');
+    res.redirect(`${process.env.FRONTEND_URI || 'http://localhost:3000'}/#error=spotify_auth_error&message=${encodeURIComponent(error.message)}`);
   }
 };
 
@@ -78,14 +86,21 @@ export const refreshAccessToken = async (req, res, next) => {
 };
 
 export const ensureAuthenticated = (req, res, next) => {
+  console.log('Checking authentication');
+  console.log('Session access token:', req.session.accessToken ? 'Set' : 'Not set');
+  console.log('Session expires at:', new Date(req.session.expiresAt));
+  console.log('Current time:', new Date());
+
   if (!req.session.accessToken) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
 
   if (Date.now() > req.session.expiresAt) {
+    console.log('Token expired, refreshing');
     return refreshAccessToken(req, res, next);
   }
 
+  console.log('Setting access token for Spotify API');
   spotifyApi.setAccessToken(req.session.accessToken);
   next();
 };

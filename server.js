@@ -70,14 +70,15 @@ app.post('/api/create-playlist', ensureAuthenticated, createPlaylist);
 
 // Route to get user profile
 app.get('/api/me', ensureAuthenticated, async (req, res) => {
-  console.log('Fetching user profile with access token:', req.session.accessToken);
+  console.log('Fetching user profile');
+  console.log('Access token:', req.session.accessToken.substring(0, 10) + '...');
   try {
     const me = await spotifyApi.getMe();
     console.log('User profile fetched successfully:', me.body);
     res.json(me.body);
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    console.error('Error details:', error.body);
+    console.error('Error details:', error.response ? error.response.data : 'No response data');
     res.status(500).json({ error: 'Failed to fetch user profile', details: error.message });
   }
 });
@@ -133,4 +134,25 @@ app.get('/api/session', (req, res) => {
     expiresAt: req.session.expiresAt,
     currentTime: Date.now()
   });
+});
+
+// Route to refresh token
+app.get('/refresh-token', async (req, res) => {
+  if (!req.session.refreshToken) {
+    return res.status(400).json({ error: 'No refresh token available' });
+  }
+
+  try {
+    spotifyApi.setRefreshToken(req.session.refreshToken);
+    const data = await spotifyApi.refreshAccessToken();
+    const { access_token, expires_in } = data.body;
+
+    req.session.accessToken = access_token;
+    req.session.expiresAt = Date.now() + expires_in * 1000;
+
+    res.json({ message: 'Token refreshed successfully' });
+  } catch (error) {
+    console.error('Error refreshing token:', error);
+    res.status(500).json({ error: 'Failed to refresh token', details: error.message });
+  }
 });
