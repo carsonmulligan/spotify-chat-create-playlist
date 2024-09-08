@@ -17,9 +17,11 @@ window.onload = () => {
     accessToken = params.get('access_token');
     
     if (accessToken) {
+        console.log('Access Token:', accessToken); // Add this line for debugging
         loginButton.style.display = 'none';
         playlistCreator.style.display = 'block';
         result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
+        fetchUserProfile(); // Call this function after setting the accessToken
     } else if (params.get('error')) {
         result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
     }
@@ -27,16 +29,22 @@ window.onload = () => {
     window.location.hash = '';
 };
 
-// After successful authentication
-fetch(`/api/me?access_token=${accessToken}`)
-  .then(response => response.json())
-  .then(data => {
-    console.log('User profile:', data);
-    // Now you can proceed with playlist creation
-  })
-  .catch(error => {
-    console.error('Error fetching user profile:', error);
-  });
+function fetchUserProfile() {
+    if (!accessToken) {
+        console.error('No access token available');
+        return;
+    }
+
+    fetch(`/api/me?access_token=${accessToken}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('User profile:', data);
+            // Now you can proceed with playlist creation
+        })
+        .catch(error => {
+            console.error('Error fetching user profile:', error);
+        });
+}
 
 promptExamples.forEach(example => {
     example.addEventListener('click', (e) => {

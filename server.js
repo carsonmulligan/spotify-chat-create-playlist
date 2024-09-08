@@ -8,6 +8,7 @@ import { generatePlaylistFromGPT } from './routes/openAI.js';
 import { createPlaylist } from './routes/createPlaylist.js';
 import cookieParser from 'cookie-parser';
 import SpotifyWebApi from 'spotify-web-api-node';
+import cors from 'cors';
 
 // User Journey:
 // 1. User visits the homepage
@@ -32,6 +33,10 @@ const app = express();
 app.use(cookieParser());  // Ensure cookie parsing
 app.use(express.json());
 app.use(express.static('public'));
+app.use(cors({
+  origin: process.env.FRONTEND_URI || 'http://localhost:3000',
+  credentials: true
+}));
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -64,7 +69,7 @@ app.get('/api/me', async (req, res) => {
   }
 
   try {
-    const spotifyApi = new SpotifyWebApi({ accessToken });
+    spotifyApi.setAccessToken(accessToken);
     const me = await spotifyApi.getMe();
     res.json(me.body);
   } catch (error) {
