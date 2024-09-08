@@ -59,12 +59,13 @@ app.use((err, req, res, next) => {
 
 app.get('/api/me', async (req, res) => {
   const accessToken = req.query.access_token;
-  if (!accessToken) {
+  
+  if (!accessToken || accessToken === 'null') {
     return res.status(400).json({ error: 'Access token is required' });
   }
 
   try {
-    const spotifyApi = new SpotifyWebApi({ accessToken });
+    spotifyApi.setAccessToken(accessToken);  // Set the token for the API
     const me = await spotifyApi.getMe();
     res.json(me.body);
   } catch (error) {
@@ -72,6 +73,7 @@ app.get('/api/me', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch user profile', details: error.message });
   }
 });
+
 
 const port = process.env.PORT || 3000;
 
