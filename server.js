@@ -9,7 +9,6 @@ import { createPlaylist } from './routes/createPlaylist.js';
 import cookieParser from 'cookie-parser';
 import SpotifyWebApi from 'spotify-web-api-node';
 
-
 // User Journey:
 // 1. User visits the homepage
 // 2. User clicks "Login with Spotify" and is redirected to Spotify login
@@ -24,14 +23,13 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: process.env.SPOTIFY_REDIRECT_URI,
 });
 
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
-app.use(cookieParser());  // Make sure this line is present
+app.use(cookieParser());  // Ensure cookie parsing
 app.use(express.json());
 app.use(express.static('public'));
 
@@ -52,7 +50,6 @@ app.get('/login', spotifyLogin);
 app.get('/callback', spotifyCallback);
 app.post('/api/generate-playlist', generatePlaylistFromGPT);
 app.post('/api/create-playlist', createPlaylist);
-// app.post('/api/chat', chat);  // This line is commented out
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -76,7 +73,6 @@ app.get('/api/me', async (req, res) => {
   }
 });
 
-// Add this line near the top of your file, after the imports
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
