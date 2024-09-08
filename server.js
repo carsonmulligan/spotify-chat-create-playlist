@@ -95,26 +95,11 @@ app.get('/callback',
         console.log('Query parameters:', req.query);
         next();
     },
-    (req, res, next) => {
-        passport.authenticate('spotify', (err, user, info) => {
-            if (err) {
-                console.error('Authentication error:', err);
-                return res.redirect('/');
-            }
-            if (!user) {
-                console.log('Authentication failed:', info);
-                return res.redirect('/');
-            }
-            req.logIn(user, (err) => {
-                if (err) {
-                    console.error('Login error:', err);
-                    return res.redirect('/');
-                }
-                console.log('Authentication successful');
-                console.log('User:', user);
-                return res.redirect('/app');
-            });
-        })(req, res, next);
+    passport.authenticate('spotify', { failureRedirect: '/' }),
+    (req, res) => {
+        console.log('Authentication successful');
+        console.log('User:', req.user);
+        res.redirect('/app'); // Make sure this is correct
     }
 );
 
@@ -173,10 +158,20 @@ app.post('/api/create-playlist', express.json(), async (req, res) => {
 // Route to handle successful authentication redirect
 app.get('/app', (req, res) => {
     if (req.isAuthenticated()) {
+        console.log('User authenticated, serving app.html');
         res.sendFile(path.join(__dirname, 'public', 'app.html'));
     } else {
+        console.log('User not authenticated, redirecting to home');
         res.redirect('/');
     }
+});
+
+// Add this route for debugging
+app.get('/auth-status', (req, res) => {
+    res.json({
+        authenticated: req.isAuthenticated(),
+        user: req.user
+    });
 });
 
 // Update the catch-all route
