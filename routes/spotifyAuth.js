@@ -49,7 +49,6 @@ export const spotifyCallback = async (req, res) => {
     console.log('Refresh token:', refresh_token.substring(0, 10) + '...');
     console.log('Expires in:', expires_in);
 
-    // Set the access token on the API object
     spotifyApi.setAccessToken(access_token);
 
     const redirectURL = `${process.env.FRONTEND_URI || 'http://localhost:3000'}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`;

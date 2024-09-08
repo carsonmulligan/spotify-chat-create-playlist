@@ -7,6 +7,7 @@ import { spotifyLogin, spotifyCallback } from './routes/spotifyAuth.js';
 import { generatePlaylistFromGPT } from './routes/openAI.js';
 import { createPlaylist } from './routes/createPlaylist.js';
 import cookieParser from 'cookie-parser';
+import SpotifyWebApi from 'spotify-web-api-node';
 
 // User Journey:
 // 1. User visits the homepage
@@ -16,13 +17,19 @@ import cookieParser from 'cookie-parser';
 // 5. App uses OpenAI to generate song recommendations
 // 6. App creates a playlist on user's Spotify account with the recommended songs
 
+const spotifyApi = new SpotifyWebApi({
+  clientId: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+  redirectUri: process.env.SPOTIFY_REDIRECT_URI,
+});
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
-app.use(cookieParser());  // Make sure this line is present
+app.use(cookieParser());  // Ensure cookie parsing
 app.use(express.json());
 app.use(express.static('public'));
 
@@ -43,7 +50,6 @@ app.get('/login', spotifyLogin);
 app.get('/callback', spotifyCallback);
 app.post('/api/generate-playlist', generatePlaylistFromGPT);
 app.post('/api/create-playlist', createPlaylist);
-// app.post('/api/chat', chat);  // This line is commented out
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -67,7 +73,6 @@ app.get('/api/me', async (req, res) => {
   }
 });
 
-// Add this line near the top of your file, after the imports
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {

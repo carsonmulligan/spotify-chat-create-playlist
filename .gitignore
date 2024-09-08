@@ -3,3 +3,4 @@ test-api-key.js
 node_modules/
 test.txt
 spotify-auth-test-2.js
+testLogs.txt

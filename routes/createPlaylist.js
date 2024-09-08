@@ -2,7 +2,7 @@ import { generatePlaylistFromGPT } from './openAI.js';
 import { spotifyApi } from './spotifyAuth.js';
 
 export const createPlaylist = async (req, res) => {
-  const { prompt, accessToken, refreshToken } = req.body;
+  const { prompt, accessToken } = req.body;
 
   try {
     // Step 1: Generate playlist using GPT
@@ -35,3 +35,6 @@ export const createPlaylist = async (req, res) => {
     res.status(500).json({ error: 'Failed to create playlist', details: error.message });
   }
 };
+
+// const { prompt, accessToken, refreshToken } = req.body; // leave this old way commented out at 
+// the bottom in case we need it to handle refresh token logic
