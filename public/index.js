@@ -39,12 +39,15 @@ function fetchUserProfile() {
         .then(response => response.json())
         .then(data => {
             console.log('User profile:', data);
-            // Now you can proceed with playlist creation
+            if (data.error) {
+                console.error('Error fetching user profile:', data.error);
+            }
         })
         .catch(error => {
             console.error('Error fetching user profile:', error);
         });
 }
+
 
 promptExamples.forEach(example => {
     example.addEventListener('click', (e) => {
