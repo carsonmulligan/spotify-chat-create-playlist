@@ -7,10 +7,12 @@ const playlistPrompt = document.getElementById('playlist-prompt');
 const result = document.getElementById('result');
 const promptExamples = document.querySelectorAll('.prompt-example');
 
+// Event listener for login button
 loginButton.addEventListener('click', () => {
     window.location.href = '/login';
 });
 
+// When the window loads, check if we have an access token
 window.onload = () => {
     const hash = window.location.hash.substring(1);
     const params = new URLSearchParams(hash);
@@ -26,15 +28,17 @@ window.onload = () => {
         result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
     }
 
-    window.location.hash = '';
+    window.location.hash = ''; // Clear the hash
 };
 
+// Function to fetch the user profile
 function fetchUserProfile() {
     if (!accessToken) {
         console.error('No access token available');
         return;
     }
 
+    // Fetch user profile using the access token
     fetch(`/api/me?access_token=${accessToken}`)
         .then(response => response.json())
         .then(data => {
@@ -48,7 +52,7 @@ function fetchUserProfile() {
         });
 }
 
-
+// Add event listener for example prompts
 promptExamples.forEach(example => {
     example.addEventListener('click', (e) => {
         e.preventDefault();
@@ -56,6 +60,7 @@ promptExamples.forEach(example => {
     });
 });
 
+// Add event listener to create the playlist
 createPlaylistButton.addEventListener('click', async () => {
     const prompt = playlistPrompt.value;
     
@@ -81,19 +86,7 @@ createPlaylistButton.addEventListener('click', async () => {
 
         if (!response.ok) throw new Error('Failed to create playlist');
         
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let playlistData = '';
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value);
-            playlistData += chunk;
-            result.innerHTML = `<p>Generating playlist: ${playlistData}</p>`;
-        }
-
-        const data = JSON.parse(playlistData);
+        const data = await response.json();
         result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;
     } catch (error) {
         console.error('Error:', error);
