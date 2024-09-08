@@ -1,4 +1,3 @@
-
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -20,34 +19,23 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: process.env.SPOTIFY_REDIRECT_URI
 });
 
-export const spotifyLogin = (req, res) => {
-  const scopes = ['playlist-modify-private', 'playlist-modify-public'];
-  res.redirect(spotifyApi.createAuthorizeURL(scopes));
-};
-
-export const spotifyCallback = async (req, res) => {
-  const { code, state } = req.query;
-  const storedState = req.cookies ? req.cookies['spotify_auth_state'] : null;
-
-  if (!state || state !== storedState) {
-    console.error('State mismatch in Spotify callback');
-    return res.redirect('/#error=state_mismatch');
-  }
-
-  res.clearCookie('spotify_auth_state');
-
+export const generatePlaylistFromGPT = async (prompt) => {
   try {
-    const data = await spotifyApi.authorizationCodeGrant(code);
-    const { access_token, refresh_token, expires_in } = data.body;
+    console.log('Sending request to OpenAI');
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {"role": "system", "content": "You are a helpful assistant that creates Spotify playlists. Respond with a JSON object containing 'name', 'description', and 'tracks' (an array of objects with 'name' and 'artist' properties). Include up to 20 tracks."},
+        {"role": "user", "content": prompt}
+      ],
+    });
 
-    // Instead of setting cookies, we'll redirect with the tokens in the URL
-    const redirectURL = `${process.env.SPOTIFY_FRONTEND_URI || 'http://localhost:3000'}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`;
-    
-    console.log('Redirecting to:', redirectURL);
-    res.redirect(redirectURL);
+    console.log('Received response from OpenAI');
+    const content = completion.choices[0].message.content;
+    return JSON.parse(content);
   } catch (error) {
-    console.error('Error getting Spotify tokens:', error);
-    res.redirect(`${process.env.SPOTIFY_FRONTEND_URI || 'http://localhost:3000'}/#error=spotify_auth_error`);
+    console.error('OpenAI API Error:', error);
+    throw error;
   }
 };
 
