@@ -68,6 +68,8 @@ app.get('/api/me', async (req, res) => {
     return res.status(400).json({ error: 'Access token is required' });
   }
 
+  console.log('Setting access token:', accessToken); // Log the token for debugging
+
   try {
     spotifyApi.setAccessToken(accessToken);
     const me = await spotifyApi.getMe();
@@ -77,6 +79,7 @@ app.get('/api/me', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch user profile', details: error.message });
   }
 });
+
 
 const port = process.env.PORT || 3000;
 
