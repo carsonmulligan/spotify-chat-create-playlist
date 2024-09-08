@@ -6,7 +6,6 @@ import path from 'path';
 import { spotifyLogin, spotifyCallback, spotifyApi } from './routes/spotifyAuth.js';
 import { generatePlaylistFromGPT } from './routes/openAI.js';
 import { createPlaylist } from './routes/createPlaylist.js';
-import { getRecommendations } from './routes/recommendations.js';
 import cookieParser from 'cookie-parser';
 
 // User Journey:
@@ -46,7 +45,6 @@ app.get('/login', spotifyLogin);
 app.get('/callback', spotifyCallback);
 app.post('/api/generate-playlist', generatePlaylistFromGPT);
 app.post('/api/create-playlist', createPlaylist);
-app.post('/api/get-recommendations', getRecommendations);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
