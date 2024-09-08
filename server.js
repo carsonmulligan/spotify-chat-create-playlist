@@ -10,14 +10,7 @@ import cookieParser from 'cookie-parser';
 import SpotifyWebApi from 'spotify-web-api-node';
 import cors from 'cors';
 
-// User Journey:
-// 1. User visits the homepage
-// 2. User clicks "Login with Spotify" and is redirected to Spotify login
-// 3. After successful login, user is redirected back to the app with a new access token
-// 4. User enters a prompt for playlist creation
-// 5. App uses OpenAI to generate song recommendations
-// 6. App creates a playlist on user's Spotify account with the recommended songs
-
+// Spotify API initialization
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
@@ -56,19 +49,12 @@ app.get('/callback', spotifyCallback);
 app.post('/api/generate-playlist', generatePlaylistFromGPT);
 app.post('/api/create-playlist', createPlaylist);
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ error: 'An unexpected error occurred', details: err.message });
-});
-
+// API endpoint to fetch the current user's profile
 app.get('/api/me', async (req, res) => {
   const accessToken = req.query.access_token;
   if (!accessToken) {
     return res.status(400).json({ error: 'Access token is required' });
   }
-
-  console.log('Setting access token:', accessToken); // Log the token for debugging
 
   try {
     spotifyApi.setAccessToken(accessToken);
@@ -80,6 +66,11 @@ app.get('/api/me', async (req, res) => {
   }
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'An unexpected error occurred', details: err.message });
+});
 
 const port = process.env.PORT || 3000;
 
