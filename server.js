@@ -1,6 +1,9 @@
 import express from 'express';
 import SpotifyWebApi from 'spotify-web-api-node';
 import dotenv from 'dotenv';
+const session = require('express-session');
+const passport = require('passport');
+const SpotifyStrategy = require('passport-spotify').Strategy;
 
 dotenv.config();
 
@@ -68,6 +71,43 @@ app.post('/api/create-playlist', express.json(), async (req, res) => {
         res.status(500).json({ error: 'Failed to create playlist' });
     }
 });
+
+// Set up Spotify authentication strategy
+passport.use(
+  new SpotifyStrategy(
+    {
+      clientID: process.env.SPOTIFY_CLIENT_ID,
+      clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+      callbackURL: 'http://localhost:3000/auth/spotify/callback',
+    },
+    function(accessToken, refreshToken, expires_in, profile, done) {
+      // Save the tokens and user info in the session
+      return done(null, { profile, accessToken, refreshToken });
+    }
+  )
+);
+
+// Serialize user for the session
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((user, done) => done(null, user));
+
+// Set up session middleware
+app.use(session({ secret: 'your_session_secret', resave: true, saveUninitialized: true }));
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Spotify auth routes
+app.get('/auth/spotify', passport.authenticate('spotify', {
+  scope: ['user-read-email', 'playlist-modify-public', 'playlist-modify-private']
+}));
+
+app.get('/auth/spotify/callback',
+  passport.authenticate('spotify', { failureRedirect: '/login' }),
+  function(req, res) {
+    // Successful authentication, redirect to the main app page
+    res.redirect('/app');
+  }
+);
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
