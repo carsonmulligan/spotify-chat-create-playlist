@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import session from 'express-session';
 import passport from 'passport';
 import { Strategy as SpotifyStrategy } from 'passport-spotify';
+import path from 'path';
 
 dotenv.config();
 
@@ -20,7 +21,12 @@ const spotifyApi = new SpotifyWebApi({
 app.use(express.static('public'));
 
 // Set up session middleware for user authentication
-app.use(session({ secret: 'your_session_secret', resave: true, saveUninitialized: true }));
+app.use(session({ 
+    secret: process.env.SESSION_SECRET, 
+    resave: false, 
+    saveUninitialized: false,
+    cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -30,7 +36,7 @@ passport.use(
     {
       clientID: process.env.SPOTIFY_CLIENT_ID,
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-      callbackURL: 'http://localhost:3000/auth/spotify/callback',
+      callbackURL: `${process.env.APP_URL}/auth/spotify/callback`,
     },
     function(accessToken, refreshToken, expires_in, profile, done) {
       // Save user info and tokens in the session
@@ -50,10 +56,10 @@ app.get('/auth/spotify', passport.authenticate('spotify', {
 
 // Callback route after Spotify authentication
 app.get('/auth/spotify/callback',
-  passport.authenticate('spotify', { failureRedirect: '/login' }),
+  passport.authenticate('spotify', { failureRedirect: '/' }),
   function(req, res) {
     // Successful authentication, redirect to the main app page
-    res.redirect('/app');
+    res.redirect('/app.html');
   }
 );
 
@@ -106,7 +112,16 @@ app.post('/api/create-playlist', express.json(), async (req, res) => {
     }
 });
 
+// Route to handle successful authentication redirect
+app.get('/app', (req, res) => {
+    if (req.isAuthenticated()) {
+        res.sendFile(path.join(__dirname, 'public', 'app.html'));
+    } else {
+        res.redirect('/');
+    }
+});
+
 // Start the server
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+    console.log(`Server running on port ${port}`);
 });

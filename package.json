@@ -1,26 +1,19 @@
 {
   "name": "spotify-chat-create-playlist",
   "version": "1.0.0",
-  "description": "A simple web app to create Spotify playlists using AI.",
-  "main": "server.js",
   "type": "module",
+  "engines": {
+    "node": "14.x"
+  },
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "axios": "^0.21.1",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "express-session": "^1.18.0",
-    "openai": "^4.0.0",
-    "passport": "^0.7.0",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "express-session": "^1.17.2",
+    "passport": "^0.5.0",
     "passport-spotify": "^2.0.0",
     "spotify-web-api-node": "^5.0.2"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.7"
-  },
-  "engines": {
-    "node": ">=16.15.1"
   }
 }
