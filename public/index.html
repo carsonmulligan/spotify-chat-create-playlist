@@ -9,11 +9,56 @@
     <h1>Spotify Playlist Creator</h1>
     <button id="login-button">Login with Spotify</button>
     <div id="playlist-form" style="display: none;">
-        <input type="text" id="playlist-name" placeholder="Playlist Name">
-        <input type="text" id="playlist-description" placeholder="Playlist Description">
+        <input type="text" id="prompt" placeholder="Describe your playlist">
         <button id="create-playlist-button">Create Playlist</button>
     </div>
     <p id="status-message"></p>
-    <script src="/index.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginButton = document.getElementById('login-button');
+            const createPlaylistButton = document.getElementById('create-playlist-button');
+            const promptInput = document.getElementById('prompt');
+            const statusMessage = document.getElementById('status-message');
+
+            let accessToken = null;
+
+            // Check if we have tokens in the URL
+            const hashParams = new URLSearchParams(window.location.hash.substr(1));
+            accessToken = hashParams.get('access_token');
+
+            if (accessToken) {
+                loginButton.style.display = 'none';
+                document.getElementById('playlist-form').style.display = 'block';
+            }
+
+            loginButton.addEventListener('click', () => {
+                window.location.href = '/login';
+            });
+
+            createPlaylistButton.addEventListener('click', async () => {
+                const prompt = promptInput.value;
+
+                if (!prompt) {
+                    statusMessage.textContent = 'Please enter a playlist description.';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/create-playlist', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ prompt, accessToken })
+                    });
+
+                    const data = await response.json();
+                    statusMessage.textContent = `Playlist created! View it here: https://open.spotify.com/playlist/${data.playlistId}`;
+                } catch (error) {
+                    statusMessage.textContent = 'Failed to create playlist.';
+                }
+            });
+        });
+    </script>
 </body>
 </html>

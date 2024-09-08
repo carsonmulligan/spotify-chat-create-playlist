@@ -70,7 +70,8 @@ app.get('/callback', async (req, res) => {
       }
     });
     const { access_token, refresh_token } = response.data;
-    res.redirect(`/create-playlist#access_token=${access_token}&refresh_token=${refresh_token}`);
+    // Send the access token to the frontend as part of the redirect
+    res.redirect(`/create-playlist#access_token=${access_token}`);
   } catch (error) {
     res.redirect('/#error=authentication_failed');
   }
