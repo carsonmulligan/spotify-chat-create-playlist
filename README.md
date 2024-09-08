@@ -18,7 +18,7 @@ Or type your own custom playlist description below!
 - **Spotify Integration**: Playlists are created directly in your Spotify account.
 - **Smart Music Recommendations**: Discover new tracks that fit your mood and taste.
 
-## 🛠️ How to Use
+## 🛠️ How to 
 
 1. **Login with Spotify**: Click the login button to authenticate with your Spotify account.
 2. **Describe Your Playlist**: Enter a description of the playlist you want or click one of the example prompts above.
