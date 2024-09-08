@@ -58,31 +58,29 @@ app.use((err, req, res, next) => {
 });
 
 app.get('/api/me', async (req, res) => {
-  const accessToken = req.query.access_token;
+  let accessToken = req.query.access_token;
 
   if (!accessToken || accessToken === 'null') {
     return res.status(400).json({ error: 'Access token is required' });
   }
 
-  // Helper function to retry the request
+  // Retry logic for token refresh
   const fetchUserProfile = async (retryCount = 0) => {
     try {
-      spotifyApi.setAccessToken(accessToken);  // Set the token for the API client
-      const me = await spotifyApi.getMe();  // Fetch the user profile
-      return res.json(me.body);  // Return the profile data
+      spotifyApi.setAccessToken(accessToken);
+      const me = await spotifyApi.getMe();
+      return res.json(me.body);
     } catch (error) {
-      if (error.statusCode === 401 && retryCount < 2) {  // Check for token expiration (401 Unauthorized)
-        console.log('Access token expired. Attempting to refresh...');
+      // Check for 403 or token-related errors
+      if (error.statusCode === 401 && retryCount < 2) {
         try {
-          const refreshData = await spotifyApi.refreshAccessToken();  // Refresh the access token
-          const newAccessToken = refreshData.body['access_token'];
-          console.log('New access token:', newAccessToken);
-          
-          // Update the access token for future requests
-          spotifyApi.setAccessToken(newAccessToken);
-          
-          // Retry fetching the profile with the new token
-          return await fetchUserProfile(retryCount + 1);
+          console.log('Access token expired. Attempting to refresh...');
+          const refreshData = await spotifyApi.refreshAccessToken();
+          accessToken = refreshData.body['access_token'];
+          spotifyApi.setAccessToken(accessToken);
+
+          console.log('New access token:', accessToken);
+          return await fetchUserProfile(retryCount + 1); // Retry after refreshing the token
         } catch (refreshError) {
           console.error('Error refreshing access token:', refreshError);
           return res.status(500).json({ error: 'Failed to refresh access token', details: refreshError.message });
@@ -94,9 +92,9 @@ app.get('/api/me', async (req, res) => {
     }
   };
 
-  // Start by attempting to fetch the profile
   await fetchUserProfile();
 });
+
 
 
 const port = process.env.PORT || 3000;
