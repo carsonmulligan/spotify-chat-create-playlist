@@ -3,8 +3,8 @@ import dotenv from "dotenv";
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import path from 'path';
-import { spotifyLogin, spotifyCallback, spotifyApi } from './routes/spotifyAuth.js';
-import { generatePlaylistFromGPT } from './routes/openAI.js';
+import { spotifyLogin, spotifyCallback } from './routes/spotifyAuth.js';
+import { generatePlaylistFromGPT, chat, spotifyApi } from './routes/openAI.js';
 import { createPlaylist } from './routes/createPlaylist.js';
 import cookieParser from 'cookie-parser';
 
@@ -45,6 +45,7 @@ app.get('/login', spotifyLogin);
 app.get('/callback', spotifyCallback);
 app.post('/api/generate-playlist', generatePlaylistFromGPT);
 app.post('/api/create-playlist', createPlaylist);
+app.post('/api/chat', chat);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

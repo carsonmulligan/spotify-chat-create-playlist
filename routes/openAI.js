@@ -83,8 +83,4 @@ export const chat = async (req, res) => {
   }
 };
 
-// Export the openai instance
-export { openai };
-
-// Export the spotifyApi instance
-export { spotifyApi };
+export { openai, spotifyApi };

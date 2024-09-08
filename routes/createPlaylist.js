@@ -1,19 +1,5 @@
 import { generatePlaylistFromGPT } from './openAI.js';
-import { spotifyApi } from './spotifyAuth.js';
-
-async function refreshAccessToken(refreshToken) {
-  try {
-    console.log('Refreshing Spotify access token...');
-    spotifyApi.setRefreshToken(refreshToken);
-    const data = await spotifyApi.refreshAccessToken();
-    console.log('Access token refreshed!');
-    spotifyApi.setAccessToken(data.body.access_token);
-    return data.body.access_token;
-  } catch (error) {
-    console.error('Error refreshing access token:', error);
-    throw error;
-  }
-}
+import { spotifyApi } from './openAI.js';
 
 export const createPlaylist = async (req, res) => {
   const { prompt, accessToken, refreshToken } = req.body;
