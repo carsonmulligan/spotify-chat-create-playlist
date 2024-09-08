@@ -67,6 +67,9 @@ app.get('/api/me', async (req, res) => {
   }
 });
 
+// Add this line near the top of your file, after the imports
+const port = process.env.PORT || 3000;
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
   console.log('Environment:', process.env.NODE_ENV);
