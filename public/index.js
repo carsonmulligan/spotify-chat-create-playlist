@@ -20,6 +20,18 @@ window.onload = () => {
         loginButton.style.display = 'none';
         playlistCreator.style.display = 'block';
         result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
+        
+        // Fetch the user profile using the correct access token
+        fetch(`/api/me?access_token=${accessToken}`)
+          .then(response => response.json())
+          .then(data => {
+            console.log('User profile:', data);
+            result.innerHTML += `<p>Welcome, ${data.display_name}!</p>`;
+          })
+          .catch(error => {
+            console.error('Error fetching user profile:', error);
+            result.innerHTML += `<p>Error fetching user profile: ${error.message}</p>`;
+          });
     } else if (params.get('error')) {
         result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
     }
