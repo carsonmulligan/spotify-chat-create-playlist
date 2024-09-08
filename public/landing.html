@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Meta tags and title -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI-Powered Spotify Playlist Creator</title>
+    <!-- Linking stylesheets -->
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
+        <!-- Hero section with app title and description -->
         <header class="hero">
             <h1>AI-Powered Spotify Playlist Creator</h1>
             <p>Create the perfect playlist with just a few words</p>
         </header>
 
+        <!-- Section explaining how the app works -->
         <section class="how-it-works">
             <h2>How It Works</h2>
             <ol>
@@ -24,14 +28,17 @@
             </ol>
         </section>
 
+        <!-- Call-to-action section with login button -->
         <section class="cta">
             <button id="login-button" class="button">Get Started with Spotify</button>
         </section>
     </div>
 
     <script>
+        // Event listener for the login button
         document.getElementById('login-button').addEventListener('click', function() {
-            window.location.href = '/auth/spotify'; // Updated to use the correct auth route
+            // Redirect to the Spotify authentication route when clicked
+            window.location.href = '/auth/spotify';
         });
     </script>
 </body>

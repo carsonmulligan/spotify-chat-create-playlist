@@ -16,15 +16,15 @@ const spotifyApi = new SpotifyWebApi({
     redirectUri: process.env.SPOTIFY_REDIRECT_URI,
 });
 
-// Serve static files
+// Serve static files (including landing.html)
 app.use(express.static('public'));
 
-// Set up session middleware
+// Set up session middleware for user authentication
 app.use(session({ secret: 'your_session_secret', resave: true, saveUninitialized: true }));
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Set up Spotify authentication strategy
+// Configure Spotify authentication strategy
 passport.use(
   new SpotifyStrategy(
     {
@@ -33,21 +33,22 @@ passport.use(
       callbackURL: 'http://localhost:3000/auth/spotify/callback',
     },
     function(accessToken, refreshToken, expires_in, profile, done) {
-      // Save the tokens and user info in the session
+      // Save user info and tokens in the session
       return done(null, { profile, accessToken, refreshToken });
     }
   )
 );
 
-// Serialize user for the session
+// Serialize and deserialize user for session management
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
-// Spotify auth routes
+// Route for initiating Spotify authentication
 app.get('/auth/spotify', passport.authenticate('spotify', {
   scope: ['user-read-email', 'playlist-modify-public', 'playlist-modify-private']
 }));
 
+// Callback route after Spotify authentication
 app.get('/auth/spotify/callback',
   passport.authenticate('spotify', { failureRedirect: '/login' }),
   function(req, res) {
@@ -56,13 +57,14 @@ app.get('/auth/spotify/callback',
   }
 );
 
-// Existing routes
+// Legacy login route (can be removed if not needed)
 app.get('/login', (req, res) => {
     const scopes = ['user-read-private', 'user-read-email', 'playlist-modify-public', 'playlist-modify-private'];
     const authorizeURL = spotifyApi.createAuthorizeURL(scopes);
     res.redirect(authorizeURL);
 });
 
+// Legacy callback route (can be removed if not needed)
 app.get('/callback', async (req, res) => {
     const { code } = req.query;
     try {
@@ -77,6 +79,7 @@ app.get('/callback', async (req, res) => {
     }
 });
 
+// Route to fetch user profile
 app.get('/api/me', async (req, res) => {
     try {
         const { access_token } = req.query;
@@ -89,6 +92,7 @@ app.get('/api/me', async (req, res) => {
     }
 });
 
+// Route to create a playlist
 app.post('/api/create-playlist', express.json(), async (req, res) => {
     const { prompt, accessToken } = req.body;
 
@@ -102,6 +106,7 @@ app.post('/api/create-playlist', express.json(), async (req, res) => {
     }
 });
 
+// Start the server
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });
