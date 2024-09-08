@@ -22,11 +22,9 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
-app.use(cookieParser());
-const port = process.env.PORT || 3000;
-
-app.use(express.static('public'));
+app.use(cookieParser());  // Make sure this line is present
 app.use(express.json());
+app.use(express.static('public'));
 
 // Logging middleware
 app.use((req, res, next) => {

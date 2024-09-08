@@ -1,15 +1,18 @@
 import { spotifyApi } from './openAI.js';
+import crypto from 'crypto';
 
 export const spotifyLogin = (req, res) => {
+  const state = crypto.randomBytes(16).toString('hex');
+  res.cookie('spotify_auth_state', state);
   const scopes = ['playlist-modify-private', 'playlist-modify-public'];
-  res.redirect(spotifyApi.createAuthorizeURL(scopes));
+  res.redirect(spotifyApi.createAuthorizeURL(scopes, state));
 };
 
 export const spotifyCallback = async (req, res) => {
   const { code, state } = req.query;
   const storedState = req.cookies ? req.cookies['spotify_auth_state'] : null;
 
-  if (!state || state !== storedState) {
+  if (state === null || state !== storedState) {
     console.error('State mismatch in Spotify callback');
     return res.redirect('/#error=state_mismatch');
   }
