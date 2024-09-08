@@ -3,62 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotify Playlist Creator</title>
+    <title>AI Spotify Playlist Creator</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Spotify Playlist Creator</h1>
-    <button id="login-button">Login with Spotify</button>
-    <div id="playlist-form" style="display: none;">
-        <input type="text" id="prompt" placeholder="Describe your playlist">
-        <button id="create-playlist-button">Create Playlist</button>
+    <div class="container">
+        <h1>AI Spotify Playlist Creator</h1>
+        <button id="login-button">Login with Spotify</button>
+        <div id="playlist-creator" style="display: none;">
+            <h2>Create a Playlist</h2>
+            <p>Instructions: Tell the AI what type of playlist you want</p>
+            <div id="prompt-examples">
+                <h3>Quick Start: Try These Prompts!</h3>
+                <ul>
+                    <li><a href="#" class="prompt-example">Seven songs by Jeanne Moreau, seven songs by artists like her</a></li>
+                    <li><a href="#" class="prompt-example">Hong Kong Pop Classics in 1998</a></li>
+                    <li><a href="#" class="prompt-example">Country Songs about Oklahoma</a></li>
+                </ul>
+            </div>
+            <textarea id="playlist-prompt" rows="4" placeholder="Describe your playlist..."></textarea>
+            <button id="create-playlist-button">Create Playlist</button>
+        </div>
+        <div id="result"></div>
     </div>
-    <p id="status-message"></p>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const loginButton = document.getElementById('login-button');
-            const createPlaylistButton = document.getElementById('create-playlist-button');
-            const promptInput = document.getElementById('prompt');
-            const statusMessage = document.getElementById('status-message');
-
-            let accessToken = null;
-
-            // Check if we have tokens in the URL
-            const hashParams = new URLSearchParams(window.location.hash.substr(1));
-            accessToken = hashParams.get('access_token');
-
-            if (accessToken) {
-                loginButton.style.display = 'none';
-                document.getElementById('playlist-form').style.display = 'block';
-            }
-
-            loginButton.addEventListener('click', () => {
-                window.location.href = '/login';
-            });
-
-            createPlaylistButton.addEventListener('click', async () => {
-                const prompt = promptInput.value;
-
-                if (!prompt) {
-                    statusMessage.textContent = 'Please enter a playlist description.';
-                    return;
-                }
-
-                try {
-                    const response = await fetch('/api/create-playlist', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ prompt, accessToken })
-                    });
-
-                    const data = await response.json();
-                    statusMessage.textContent = `Playlist created! View it here: https://open.spotify.com/playlist/${data.playlistId}`;
-                } catch (error) {
-                    statusMessage.textContent = 'Failed to create playlist.';
-                }
-            });
-        });
-    </script>
+    <script src="index.js"></script>
 </body>
 </html>

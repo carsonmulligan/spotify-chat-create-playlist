@@ -1,58 +1,79 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const loginButton = document.getElementById('login-button');
-    const createPlaylistButton = document.getElementById('create-playlist-button');
-    const playlistNameInput = document.getElementById('playlist-name');
-    const playlistDescriptionInput = document.getElementById('playlist-description');
-    const statusMessage = document.getElementById('status-message');
+let accessToken = null;
 
-    let accessToken = null;
-    let refreshToken = null;
+const loginButton = document.getElementById('login-button');
+const playlistCreator = document.getElementById('playlist-creator');
+const createPlaylistButton = document.getElementById('create-playlist-button');
+const playlistPrompt = document.getElementById('playlist-prompt');
+const result = document.getElementById('result');
+const promptExamples = document.querySelectorAll('.prompt-example');
 
-    // Check if we have tokens in the URL (after login redirect)
-    const hashParams = new URLSearchParams(window.location.hash.substr(1));
-    accessToken = hashParams.get('access_token');
-    refreshToken = hashParams.get('refresh_token');
+// Redirect to Spotify login
+loginButton.addEventListener('click', () => {
+    window.location.href = '/login';
+});
 
+// Check if user has logged in (using hash)
+window.onload = () => {
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    accessToken = params.get('access_token');
+    
     if (accessToken) {
-        // We have an access token, so the user is logged in
         loginButton.style.display = 'none';
-        createPlaylistButton.style.display = 'block';
-        statusMessage.textContent = 'Logged in successfully!';
+        playlistCreator.style.display = 'block';
+        result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
+        
+        // Fetch user profile
+        fetch(`/api/me?access_token=${accessToken}`)
+          .then(response => response.json())
+          .then(data => {
+            console.log('User profile:', data);
+          })
+          .catch(error => {
+            console.error('Error fetching user profile:', error);
+          });
+    } else if (params.get('error')) {
+        result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
     }
 
-    loginButton.addEventListener('click', () => {
-        // Redirect to the server's login route
-        window.location.href = '/login';
+    window.location.hash = '';
+};
+
+// Handle prompt example clicks
+promptExamples.forEach(example => {
+    example.addEventListener('click', (e) => {
+        e.preventDefault();
+        playlistPrompt.value = e.target.textContent;
     });
+});
 
-    createPlaylistButton.addEventListener('click', async () => {
-        const name = playlistNameInput.value;
-        const description = playlistDescriptionInput.value;
+// Handle playlist creation
+createPlaylistButton.addEventListener('click', async () => {
+    const prompt = playlistPrompt.value;
+    
+    try {
+        result.innerHTML = '<p>Creating playlist...</p>';
+        
+        const response = await fetch('/api/create-playlist', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                prompt: prompt,
+                accessToken: accessToken
+            })
+        });
 
-        if (!name) {
-            statusMessage.textContent = 'Please enter a playlist name.';
-            return;
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.details || 'Failed to create playlist');
         }
-
-        try {
-            const response = await fetch('/api/create-playlist', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
-                },
-                body: JSON.stringify({ name, description, tracks: [] }) // You can add logic to include tracks later
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to create playlist');
-            }
-
-            const data = await response.json();
-            statusMessage.textContent = `Playlist created successfully! ID: ${data.playlistId}`;
-        } catch (error) {
-            console.error('Error creating playlist:', error);
-            statusMessage.textContent = 'Failed to create playlist. Please try again.';
-        }
-    });
+        
+        const data = await response.json();
+        result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;
+    } catch (error) {
+        console.error('Error:', error);
+        result.innerHTML = `<p>Error: ${error.message}</p>`;
+    }
 });
