@@ -2,13 +2,13 @@
 // Description: Frontend logic for Spotify AI Playlist Creator
 
 let accessToken = null;
+let refreshToken = null;
 
 const loginButton = document.getElementById('login-button');
 const playlistCreator = document.getElementById('playlist-creator');
 const createPlaylistButton = document.getElementById('create-playlist-button');
 const playlistPrompt = document.getElementById('playlist-prompt');
 const result = document.getElementById('result');
-const promptExamples = document.querySelectorAll('.prompt-example');
 
 loginButton.addEventListener('click', () => {
     window.location.href = '/login';
@@ -18,49 +18,34 @@ window.onload = () => {
     const hash = window.location.hash.substring(1);
     const params = new URLSearchParams(hash);
     accessToken = params.get('access_token');
+    refreshToken = params.get('refresh_token');
     
     if (accessToken) {
         loginButton.style.display = 'none';
         playlistCreator.style.display = 'block';
-        result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
-        
-        // Correctly fetch the user profile
-        fetch(`/api/me?access_token=${accessToken}`)
-          .then(response => response.json())
-          .then(data => {
-            console.log('User profile:', data);
-            result.innerHTML += `<p>Welcome, ${data.display_name}!</p>`;
-          })
-          .catch(error => {
-            console.error('Error fetching user profile:', error);
-            result.innerHTML += `<p>Error fetching user profile: ${error.message}</p>`;
-          });
+        fetchUserProfile();
     } else if (params.get('error')) {
         result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
     }
 
-    // Clear the hash from the URL
     window.location.hash = '';
 };
 
-
-// After successful authentication
-fetch(`/api/me?access_token=${accessToken}`)
-  .then(response => response.json())
-  .then(data => {
-    console.log('User profile:', data);
-    // Now you can proceed with playlist creation
-  })
-  .catch(error => {
-    console.error('Error fetching user profile:', error);
-  });
-
-promptExamples.forEach(example => {
-    example.addEventListener('click', (e) => {
-        e.preventDefault();
-        playlistPrompt.value = e.target.textContent;
-    });
-});
+async function fetchUserProfile() {
+    try {
+        const response = await fetch('/api/me', {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+        if (!response.ok) throw new Error('Failed to fetch user profile');
+        const data = await response.json();
+        result.innerHTML = `<p>Welcome, ${data.display_name}!</p>`;
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        result.innerHTML = `<p>Error fetching user profile: ${error.message}</p>`;
+    }
+}
 
 createPlaylistButton.addEventListener('click', async () => {
     const prompt = playlistPrompt.value;
@@ -74,27 +59,12 @@ createPlaylistButton.addEventListener('click', async () => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${accessToken}`
             },
-            body: JSON.stringify({
-                prompt: prompt,
-                accessToken: accessToken
-            })
+            body: JSON.stringify({ prompt })
         });
 
         if (!response.ok) throw new Error('Failed to create playlist');
         
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let playlistData = '';
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value);
-            playlistData += chunk;
-            result.innerHTML = `<p>Generating playlist: ${playlistData}</p>`;
-        }
-
-        const data = JSON.parse(playlistData);
+        const data = await response.json();
         result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;
     } catch (error) {
         console.error('Error:', error);
