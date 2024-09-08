@@ -46,12 +46,3 @@ textarea {
     margin-top: 20px;
 }
 
-button#logout-button {
-    font-family: var(--font-family);
-    background-color: var(--background-color);
-    color: var(--text-color);
-    border: 2px solid var(--border-color);
-    padding: 10px 20px;
-    cursor: pointer;
-    margin-top: 10px;
-}
