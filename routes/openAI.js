@@ -1,38 +1,102 @@
-import axios from 'axios';
+
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import OpenAI from "openai";
+import SpotifyWebApi from 'spotify-web-api-node';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-const openai = axios.create({
-  baseURL: 'https://api.openai.com/v1',
-  headers: {
-    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    'Content-Type': 'application/json',
-  },
+dotenv.config({ path: join(__dirname, '..', '.env') });
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const generatePlaylistFromGPT = async (req, res) => {
-  const { prompt } = req.body;
-  try {
-    const response = await openai.post('/chat/completions', {
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content:
-            "You are a helpful assistant that creates Spotify playlists. Respond with a JSON object containing 'name', 'description', and 'tracks' (an array of objects with 'name' and 'artist' properties). Include up to 99 tracks.",
-        },
-        {
-          role: 'user',
-          content: `Create a playlist based on this description: ${prompt}`,
-        },
-      ],
-    });
+const spotifyApi = new SpotifyWebApi({
+  clientId: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+  redirectUri: process.env.SPOTIFY_REDIRECT_URI
+});
 
-    const completion = response.data.choices[0].message.content;
-    res.json(JSON.parse(completion)); // Structured playlist data
+export const spotifyLogin = (req, res) => {
+  const scopes = ['playlist-modify-private', 'playlist-modify-public'];
+  res.redirect(spotifyApi.createAuthorizeURL(scopes));
+};
+
+export const spotifyCallback = async (req, res) => {
+  const { code, state } = req.query;
+  const storedState = req.cookies ? req.cookies['spotify_auth_state'] : null;
+
+  if (!state || state !== storedState) {
+    console.error('State mismatch in Spotify callback');
+    return res.redirect('/#error=state_mismatch');
+  }
+
+  res.clearCookie('spotify_auth_state');
+
+  try {
+    const data = await spotifyApi.authorizationCodeGrant(code);
+    const { access_token, refresh_token, expires_in } = data.body;
+
+    // Instead of setting cookies, we'll redirect with the tokens in the URL
+    const redirectURL = `${process.env.SPOTIFY_FRONTEND_URI || 'http://localhost:3000'}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`;
+    
+    console.log('Redirecting to:', redirectURL);
+    res.redirect(redirectURL);
   } catch (error) {
-    console.error('Error generating playlist with GPT:', error);
-    res.status(500).json({ error: 'Failed to generate playlist', details: error.message });
+    console.error('Error getting Spotify tokens:', error);
+    res.redirect(`${process.env.SPOTIFY_FRONTEND_URI || 'http://localhost:3000'}/#error=spotify_auth_error`);
   }
 };
+
+export const chat = async (req, res) => {
+  console.log('Received chat request:', req.body);
+  
+  try {
+    console.log('Sending request to OpenAI');
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {"role": "system", "content": "You are a helpful assistant that creates Spotify playlists."},
+        {"role": "user", "content": req.body.message}
+      ],
+      stream: true,
+    });
+
+    console.log('Received stream from OpenAI, starting to write response');
+
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    });
+
+    let fullResponse = '';
+
+    for await (const chunk of completion) {
+      if (chunk.choices[0].delta.content) {
+        const content = chunk.choices[0].delta.content;
+        console.log('Sending chunk:', content);
+        fullResponse += content;
+        res.write(`data: ${JSON.stringify({ content })}\n\n`);
+      }
+    }
+
+    console.log('Finished streaming response');
+    console.log('Full response:', fullResponse);
+    res.write(`data: ${JSON.stringify({ content: '[DONE]' })}\n\n`);
+    res.end();
+
+  } catch (error) {
+    console.error('OpenAI API Error:', error);
+    res.status(500).json({ error: 'An error occurred while processing your request.', details: error.message });
+  }
+};
+
+// Export the openai instance
+export { openai };
+
+// Export the spotifyApi instance
+export { spotifyApi };
