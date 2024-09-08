@@ -1,5 +1,4 @@
 let accessToken = null;
-const loginButton = document.getElementById('login-button');
 const logoutButton = document.getElementById('logout-button');
 const playlistCreator = document.getElementById('playlist-creator');
 const createPlaylistButton = document.getElementById('create-playlist-button');
@@ -15,7 +14,7 @@ window.onload = () => {
     
     if (accessToken) {
         // If access token exists, hide login button and show playlist creator
-        loginButton.style.display = 'none';
+        logoutButton.style.display = 'block';
         playlistCreator.style.display = 'block';
         result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
         
@@ -28,12 +27,20 @@ window.onload = () => {
           .catch(error => {
             console.error('Error fetching user profile:', error);
           });
-    } else if (params.get('error')) {
-        result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
+    } else {
+        result.innerHTML = '<p>Please login first!</p>';
     }
 
     window.location.hash = ''; // Clear the hash after processing
 };
+
+// Handle prompt examples
+promptExamples.forEach(example => {
+    example.addEventListener('click', (e) => {
+        e.preventDefault();
+        playlistPrompt.value = e.target.textContent;
+    });
+});
 
 // Handle playlist creation
 createPlaylistButton.addEventListener('click', async () => {
@@ -66,16 +73,8 @@ createPlaylistButton.addEventListener('click', async () => {
     }
 });
 
-// Handle prompt examples
-promptExamples.forEach(example => {
-    example.addEventListener('click', (e) => {
-        e.preventDefault();
-        playlistPrompt.value = e.target.textContent;
-    });
-});
-
 // Logout functionality
 logoutButton.addEventListener('click', () => {
     accessToken = null;
-    window.location.href = '/'; // Redirect to landing page
+    window.location.href = '/'; // Redirect back to landing page
 });
