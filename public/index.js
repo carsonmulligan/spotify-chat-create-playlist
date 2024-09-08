@@ -1,18 +1,29 @@
 let accessToken = null;
 
+const loginButton = document.getElementById('login-button');
+const playlistCreator = document.getElementById('playlist-creator');
 const createPlaylistButton = document.getElementById('create-playlist-button');
 const playlistPrompt = document.getElementById('playlist-prompt');
 const result = document.getElementById('result');
 const promptExamples = document.querySelectorAll('.prompt-example');
+const logoutButton = document.createElement('button');
 
-// Check if access token is available after login
+// Check if user has logged in (using hash)
 window.onload = () => {
     const hash = window.location.hash.substring(1);
     const params = new URLSearchParams(hash);
     accessToken = params.get('access_token');
     
     if (accessToken) {
-        document.getElementById('playlist-creator').style.display = 'block';
+        loginButton.style.display = 'none';
+        playlistCreator.style.display = 'block';
+        result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
+
+        // Add Logout Button
+        logoutButton.textContent = 'Logout';
+        logoutButton.style.marginTop = '20px';
+        logoutButton.style.display = 'block';
+        document.body.appendChild(logoutButton);
     } else if (params.get('error')) {
         result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
     }
@@ -31,10 +42,10 @@ promptExamples.forEach(example => {
 // Handle playlist creation
 createPlaylistButton.addEventListener('click', async () => {
     const prompt = playlistPrompt.value;
-
+    
     try {
         result.innerHTML = '<p>Creating playlist...</p>';
-
+        
         const response = await fetch('/api/create-playlist', {
             method: 'POST',
             headers: { 
@@ -42,19 +53,29 @@ createPlaylistButton.addEventListener('click', async () => {
             },
             body: JSON.stringify({
                 prompt: prompt,
-                accessToken: accessToken
+                accessToken: accessToken // Ensure accessToken is passed correctly
             })
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.details || 'Failed to create playlist');
-        }
-
         const data = await response.json();
-        result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to create playlist');
+        }
+        
+        result.innerHTML = `<p>Playlist created! View it <a href="https://open.spotify.com/playlist/${data.playlistId}" target="_blank">here</a>.</p>`;
     } catch (error) {
-        console.error('Error:', error);
         result.innerHTML = `<p>Error: ${error.message}</p>`;
     }
+});
+
+// Logout function to clear the access token and reload the page
+logoutButton.addEventListener('click', () => {
+    accessToken = null;
+    localStorage.clear(); // Clear any stored tokens
+    result.innerHTML = '<p>Logged out. Redirecting to login...</p>';
+    
+    setTimeout(() => {
+        window.location.href = '/'; // Redirect back to landing page or login
+    }, 1000);
 });
