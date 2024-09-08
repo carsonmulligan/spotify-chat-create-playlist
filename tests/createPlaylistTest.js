@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { createPlaylist } from '../routes/createPlaylist.js';
+import { spotifyApi } from '../routes/spotifyAuth.js';
 
 // Load environment variables
 const __filename = fileURLToPath(import.meta.url);
@@ -12,12 +13,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '..', '.env') });
 
 // Mock request and response objects for testing
-const mockRequest = (body) => {
-  return {
-    body
-  };
-};
-
+const mockRequest = (body) => ({ body });
 const mockResponse = () => {
   const res = {};
   res.status = jest.fn().mockReturnValue(res);
@@ -26,17 +22,26 @@ const mockResponse = () => {
 };
 
 const testCreatePlaylist = async () => {
-  const req = mockRequest({
-    prompt: 'Top 10 songs of 2021',
-    accessToken: process.env.SPOTIFY_ACCESS_TOKEN // Use the access token from .env file
-  });
+  try {
+    // Refresh the access token
+    spotifyApi.setRefreshToken(process.env.SPOTIFY_REFRESH_TOKEN);
+    const data = await spotifyApi.refreshAccessToken();
+    const accessToken = data.body['access_token'];
+    console.log('Access token refreshed successfully');
 
-  const res = mockResponse();
+    const req = mockRequest({
+      prompt: 'Top 10 songs of 2021',
+      accessToken: accessToken
+    });
 
-  await createPlaylist(req, res);
+    const res = mockResponse();
 
-  // Log the response
-  console.log('Response:', res.json.mock.calls);
+    await createPlaylist(req, res);
+
+    console.log('Response:', res.json.mock.calls);
+  } catch (error) {
+    console.error('Error in testCreatePlaylist:', error);
+  }
 };
 
 testCreatePlaylist();

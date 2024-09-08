@@ -1,96 +1,86 @@
-import SpotifyWebApi from 'spotify-web-api-node';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { spotifyApi } from '../routes/spotifyAuth.js';
 
-// Load environment variables
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-// Initialize Spotify API with your credentials
-const spotifyApi = new SpotifyWebApi({
-  clientId: process.env.SPOTIFY_CLIENT_ID,
-  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  redirectUri: process.env.SPOTIFY_REDIRECT_URI,
-});
+dotenv.config({ path: join(__dirname, '..', '.env') });
 
-// Access token and refresh token from environment or previous session (replace with your tokens)
-let accessToken = process.env.SPOTIFY_ACCESS_TOKEN || null;
-let refreshToken = process.env.SPOTIFY_REFRESH_TOKEN || null;
+async function testSpotifyAuth() {
+  console.log('Testing Spotify Authentication');
 
-// Ensure refreshToken is set in the Spotify API instance
-if (refreshToken) {
-  spotifyApi.setRefreshToken(refreshToken);
-} else {
-  console.error('Refresh token must be supplied.');
-  process.exit(1); // Exit the process if no refresh token is found
-}
+  // 1. Verify environment variables
+  console.log('1. Verifying environment variables:');
+  console.log('SPOTIFY_CLIENT_ID:', process.env.SPOTIFY_CLIENT_ID ? 'Set' : 'Not set');
+  console.log('SPOTIFY_CLIENT_SECRET:', process.env.SPOTIFY_CLIENT_SECRET ? 'Set' : 'Not set');
+  console.log('SPOTIFY_REDIRECT_URI:', process.env.SPOTIFY_REDIRECT_URI);
 
-// Helper function to refresh token if expired
-async function refreshAccessToken() {
-  try {
-    if (!refreshToken) {
-      console.error('No refresh token available');
-      return;
+  // 2. Test creating authorization URL
+  console.log('\n2. Testing authorization URL creation:');
+  const scopes = ['user-read-private', 'user-read-email', 'playlist-modify-private', 'playlist-modify-public'];
+  const state = 'some-state-value';
+  const authUrl = spotifyApi.createAuthorizeURL(scopes, state);
+  console.log('Authorization URL:', authUrl);
+
+  // 3. Test refreshing access token (if refresh token is available)
+  console.log('\n3. Testing token refresh:');
+  if (process.env.SPOTIFY_REFRESH_TOKEN) {
+    try {
+      spotifyApi.setRefreshToken(process.env.SPOTIFY_REFRESH_TOKEN);
+      const data = await spotifyApi.refreshAccessToken();
+      console.log('Access token refreshed successfully');
+      console.log('New access token:', data.body['access_token'].substring(0, 10) + '...');
+      console.log('Token expires in:', data.body['expires_in'], 'seconds');
+      
+      // Set the new access token for further tests
+      spotifyApi.setAccessToken(data.body['access_token']);
+    } catch (error) {
+      console.error('Error refreshing access token:', error.message);
     }
-    const data = await spotifyApi.refreshAccessToken();
-    accessToken = data.body['access_token'];
-    console.log('New access token:', accessToken);
-
-    // Set the new access token in the Spotify API instance
-    spotifyApi.setAccessToken(accessToken);
-
-    // Update the environment variable (if needed) or store in session
-    // Optionally, update refresh token if Spotify provided a new one
-    refreshToken = data.body['refresh_token'] || refreshToken;
-    console.log('Refresh token:', refreshToken);
-  } catch (error) {
-    console.error('Error refreshing access token:', error);
+  } else {
+    console.log('No refresh token available in .env file');
   }
-}
 
-// Step 1: Set the initial access token and refresh token in Spotify API
-if (accessToken) {
-  spotifyApi.setAccessToken(accessToken);
-}
-
-// Step 2: Fetch user profile to verify the access token is valid
-async function fetchUserProfile() {
+  // 4. Test fetching user profile
+  console.log('\n4. Testing user profile fetch:');
   try {
     const me = await spotifyApi.getMe();
-    console.log('User profile:', me.body);
+    console.log('User profile fetched successfully');
+    console.log('Display name:', me.body.display_name);
+    console.log('Email:', me.body.email);
+    console.log('Spotify URI:', me.body.uri);
   } catch (error) {
-    if (error.statusCode === 401) {
-      console.log('Access token expired, refreshing...');
-      await refreshAccessToken();
-      await fetchUserProfile(); // Retry fetching profile after refreshing token
-    } else {
-      console.error('Error fetching user profile:', error);
+    console.error('Error fetching user profile:', error.message);
+    if (error.statusCode) {
+      console.error('Status code:', error.statusCode);
     }
+    if (error.body) {
+      console.error('Error body:', error.body);
+    }
+  }
+
+  // 5. Test creating a playlist (if access token is available)
+  console.log('\n5. Testing playlist creation:');
+  if (spotifyApi.getAccessToken()) {
+    try {
+      const playlist = await spotifyApi.createPlaylist('Test Playlist', { 'description': 'Created by test script', 'public': false });
+      console.log('Playlist created successfully');
+      console.log('Playlist ID:', playlist.body.id);
+      console.log('Playlist URL:', playlist.body.external_urls.spotify);
+    } catch (error) {
+      console.error('Error creating playlist:', error.message);
+      if (error.statusCode) {
+        console.error('Status code:', error.statusCode);
+      }
+      if (error.body) {
+        console.error('Error body:', error.body);
+      }
+    }
+  } else {
+    console.log('No access token available for playlist creation test');
   }
 }
 
-// Step 3: Create a simple playlist on the user's account
-async function createTestPlaylist() {
-  try {
-    const playlist = await spotifyApi.createPlaylist('Test Playlist', {
-      description: 'Playlist created during debugging',
-      public: false,
-    });
-    console.log('Playlist created:', playlist.body);
-  } catch (error) {
-    if (error.statusCode === 401) {
-      console.log('Access token expired, refreshing...');
-      await refreshAccessToken();
-      await createTestPlaylist(); // Retry playlist creation after refreshing token
-    } else {
-      console.error('Error creating playlist:', error);
-    }
-  }
-}
-
-// Main function to test the flow
-async function testSpotifyAPI() {
-  await fetchUserProfile(); // Step 2: Verify access token by fetching user profile
-  await createTestPlaylist(); // Step 3: Create a playlist to test further API calls
-}
-
-// Run the test
-testSpotifyAPI();
+testSpotifyAuth().catch(console.error);
