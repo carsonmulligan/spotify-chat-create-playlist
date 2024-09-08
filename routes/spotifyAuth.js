@@ -65,37 +65,36 @@ export const spotifyCallback = async (req, res) => {
   }
 };
 
-// Middleware for checking token expiration and refreshing if necessary
 export const ensureSpotifyToken = async (req, res, next) => {
   const { accessToken, refreshToken, expiresAt } = req.session;
 
   // Check if the access token is expired
   if (Date.now() > expiresAt) {
-    console.log('Access token expired. Refreshing token...');
+      console.log('Access token expired. Refreshing token...');
 
-    try {
-      // Refresh the access token using the refresh token
-      const data = await spotifyApi.refreshAccessToken();
-      const newAccessToken = data.body['access_token'];
-      const expiresIn = data.body['expires_in'];
+      try {
+          // Refresh the access token using the refresh token
+          const data = await spotifyApi.refreshAccessToken();
+          const newAccessToken = data.body['access_token'];
+          const expiresIn = data.body['expires_in'];
 
-      // Update session with new access token and expiration time
-      req.session.accessToken = newAccessToken;
-      req.session.expiresAt = Date.now() + expiresIn * 1000;  // New expiration time
+          // Update session with new access token and expiration time
+          req.session.accessToken = newAccessToken;
+          req.session.expiresAt = Date.now() + expiresIn * 1000;  // New expiration time
 
-      // Set new access token on Spotify API instance
-      spotifyApi.setAccessToken(newAccessToken);
+          // Set new access token on Spotify API instance
+          spotifyApi.setAccessToken(newAccessToken);
 
-      console.log('New access token received:', newAccessToken.substring(0, 10) + '...');
-      next();  // Proceed to the next middleware
-    } catch (error) {
-      console.error('Error refreshing access token:', error);
-      res.status(500).json({ error: 'Failed to refresh access token', details: error.message });
-    }
+          console.log('New access token received:', newAccessToken.substring(0, 10) + '...');
+          next();  // Proceed to the next middleware
+      } catch (error) {
+          console.error('Error refreshing access token:', error);
+          res.status(500).json({ error: 'Failed to refresh access token', details: error.message });
+      }
   } else {
-    // Token is still valid, proceed to the next middleware
-    spotifyApi.setAccessToken(accessToken);  // Ensure the current access token is set
-    next();
+      // Token is still valid, proceed to the next middleware
+      spotifyApi.setAccessToken(accessToken);  // Ensure the current access token is set
+      next();
   }
 };
 
