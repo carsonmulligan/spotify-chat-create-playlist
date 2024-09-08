@@ -17,11 +17,11 @@ window.onload = () => {
     accessToken = params.get('access_token');
     
     if (accessToken) {
-        console.log('Access Token:', accessToken); // Add this line for debugging
+        console.log('New Access Token:', accessToken);
         loginButton.style.display = 'none';
         playlistCreator.style.display = 'block';
         result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
-        fetchUserProfile(); // Call this function after setting the accessToken
+        fetchUserProfile();
     } else if (params.get('error')) {
         result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
     }
@@ -55,6 +55,11 @@ promptExamples.forEach(example => {
 
 createPlaylistButton.addEventListener('click', async () => {
     const prompt = playlistPrompt.value;
+    
+    if (!accessToken) {
+        result.innerHTML = '<p>Please log in to create a playlist.</p>';
+        return;
+    }
     
     try {
         result.innerHTML = '<p>Creating playlist...</p>';

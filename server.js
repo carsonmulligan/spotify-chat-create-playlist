@@ -13,7 +13,7 @@ import cors from 'cors';
 // User Journey:
 // 1. User visits the homepage
 // 2. User clicks "Login with Spotify" and is redirected to Spotify login
-// 3. After successful login, user is redirected back to the app
+// 3. After successful login, user is redirected back to the app with a new access token
 // 4. User enters a prompt for playlist creation
 // 5. App uses OpenAI to generate song recommendations
 // 6. App creates a playlist on user's Spotify account with the recommended songs
