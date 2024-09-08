@@ -118,6 +118,28 @@ app.get('/api/me', async (req, res) => {
   await fetchUserProfile();
 });
 
+// Route to test token refresh
+// Visit http://localhost:3000/test-refresh to manually trigger the token refresh and test if it works.
+app.get('/test-refresh', async (req, res) => {
+  try {
+    if (!req.session.refreshToken) {
+      return res.status(400).send('Refresh token is missing.');
+    }
+
+    spotifyApi.setRefreshToken(req.session.refreshToken);
+    const data = await spotifyApi.refreshAccessToken();
+    const newAccessToken = data.body['access_token'];
+
+    req.session.accessToken = newAccessToken;
+    req.session.expiresAt = Date.now() + data.body['expires_in'] * 1000;
+    res.send(`New access token: ${newAccessToken}`);
+  } catch (error) {
+    console.error('Error refreshing token:', error);
+    res.status(500).send('Failed to refresh access token');
+  }
+});
+
+
 // Server listens on the specified port
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

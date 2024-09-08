@@ -1,6 +1,3 @@
-// File: testSpotifyAuth.js
-// Description: A simple script to test Spotify API token management and playlist creation.
-
 import SpotifyWebApi from 'spotify-web-api-node';
 import dotenv from 'dotenv';
 
@@ -18,14 +15,32 @@ const spotifyApi = new SpotifyWebApi({
 let accessToken = process.env.SPOTIFY_ACCESS_TOKEN || null;
 let refreshToken = process.env.SPOTIFY_REFRESH_TOKEN || null;
 
+// Ensure refreshToken is set in the Spotify API instance
+if (refreshToken) {
+  spotifyApi.setRefreshToken(refreshToken);
+} else {
+  console.error('Refresh token must be supplied.');
+  process.exit(1); // Exit the process if no refresh token is found
+}
+
 // Helper function to refresh token if expired
 async function refreshAccessToken() {
   try {
+    if (!refreshToken) {
+      console.error('No refresh token available');
+      return;
+    }
     const data = await spotifyApi.refreshAccessToken();
     accessToken = data.body['access_token'];
     console.log('New access token:', accessToken);
+
     // Set the new access token in the Spotify API instance
     spotifyApi.setAccessToken(accessToken);
+
+    // Update the environment variable (if needed) or store in session
+    // Optionally, update refresh token if Spotify provided a new one
+    refreshToken = data.body['refresh_token'] || refreshToken;
+    console.log('Refresh token:', refreshToken);
   } catch (error) {
     console.error('Error refreshing access token:', error);
   }
@@ -34,9 +49,6 @@ async function refreshAccessToken() {
 // Step 1: Set the initial access token and refresh token in Spotify API
 if (accessToken) {
   spotifyApi.setAccessToken(accessToken);
-}
-if (refreshToken) {
-  spotifyApi.setRefreshToken(refreshToken);
 }
 
 // Step 2: Fetch user profile to verify the access token is valid
