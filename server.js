@@ -3,9 +3,9 @@ import dotenv from "dotenv";
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import path from 'path';
-import { spotifyLogin, spotifyCallback } from './routes/spotify.js';
+import { spotifyLogin, spotifyCallback } from './routes/spotifyAuth.js';
 import { generatePlaylistFromGPT, chat, spotifyApi } from './routes/openAI.js';
-import { createPlaylist } from './routes/playlist.js';
+import { createPlaylist } from './routes/createPlaylist.js';
 import cookieParser from 'cookie-parser';
 
 // User Journey:

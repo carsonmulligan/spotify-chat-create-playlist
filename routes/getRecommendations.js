@@ -1,4 +1,4 @@
-import { spotifyApi } from './spotify.js';
+import { spotifyApi } from './spotifyAuth.js';
 
 export const getRecommendations = async (req, res) => {
   const { seed, accessToken } = req.body;

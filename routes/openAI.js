@@ -19,68 +19,85 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: process.env.SPOTIFY_REDIRECT_URI
 });
 
+// Define the function schema for generating a playlist
+const functionSchema = {
+  name: "generate_playlist",
+  description: "Create a playlist from user input",
+  parameters: {
+    type: "object",
+    properties: {
+      name: { type: "string", description: "Name of the playlist" },
+      description: { type: "string", description: "Description of the playlist" },
+      tracks: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            name: { type: "string", description: "Track name" },
+            artist: { type: "string", description: "Artist name" }
+          },
+          required: ["name", "artist"]
+        }
+      }
+    },
+    required: ["name", "tracks"]
+  }
+};
+
 export const generatePlaylistFromGPT = async (prompt) => {
   try {
     console.log('Sending request to OpenAI');
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        {"role": "system", "content": "You are a helpful assistant that creates Spotify playlists. Respond with a JSON object containing 'name', 'description', and 'tracks' (an array of objects with 'name' and 'artist' properties). Include up to 20 tracks."},
+        {"role": "system", "content": "You are a helpful assistant that creates Spotify playlists based on user input."},
         {"role": "user", "content": prompt}
       ],
+      functions: [functionSchema],
+      function_call: { name: "generate_playlist" },
     });
 
     console.log('Received response from OpenAI');
-    const content = completion.choices[0].message.content;
-    return JSON.parse(content);
+    const content = completion.choices[0].message.function_call.arguments;
+    return JSON.parse(content);  // Parsed JSON with playlist name, description, and tracks
   } catch (error) {
     console.error('OpenAI API Error:', error);
     throw error;
   }
 };
 
-export const chat = async (req, res) => {
-  console.log('Received chat request:', req.body);
-  
+export const createPlaylist = async (req, res) => {
+  const { prompt, accessToken } = req.body;
+
   try {
-    console.log('Sending request to OpenAI');
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {"role": "system", "content": "You are a helpful assistant that creates Spotify playlists."},
-        {"role": "user", "content": req.body.message}
-      ],
-      stream: true,
+    // Step 1: Generate playlist using GPT with function calling
+    const playlistData = await generatePlaylistFromGPT(prompt);
+    console.log('Generated playlist from GPT:', playlistData);
+
+    // Step 2: Set Spotify access token
+    spotifyApi.setAccessToken(accessToken);
+
+    // Step 3: Create Spotify playlist
+    const playlist = await spotifyApi.createPlaylist(playlistData.name, {
+      description: playlistData.description,
+      public: false,
     });
 
-    console.log('Received stream from OpenAI, starting to write response');
-
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-    });
-
-    let fullResponse = '';
-
-    for await (const chunk of completion) {
-      if (chunk.choices[0].delta.content) {
-        const content = chunk.choices[0].delta.content;
-        console.log('Sending chunk:', content);
-        fullResponse += content;
-        res.write(`data: ${JSON.stringify({ content })}\n\n`);
+    const trackUris = [];
+    for (const track of playlistData.tracks) {
+      const searchResults = await spotifyApi.searchTracks(
+        `track:${track.name} artist:${track.artist}`
+      );
+      if (searchResults.body.tracks.items.length > 0) {
+        trackUris.push(searchResults.body.tracks.items[0].uri);
       }
     }
 
-    console.log('Finished streaming response');
-    console.log('Full response:', fullResponse);
-    res.write(`data: ${JSON.stringify({ content: '[DONE]' })}\n\n`);
-    res.end();
-
+    await spotifyApi.addTracksToPlaylist(playlist.body.id, trackUris);
+    res.json({ success: true, playlistUrl: playlist.body.external_urls.spotify });
   } catch (error) {
-    console.error('OpenAI API Error:', error);
-    res.status(500).json({ error: 'An error occurred while processing your request.', details: error.message });
+    console.error('Error creating playlist:', error);
+    res.status(500).json({ error: 'Failed to create playlist', details: error.message });
   }
 };
-
-export { openai, spotifyApi };
