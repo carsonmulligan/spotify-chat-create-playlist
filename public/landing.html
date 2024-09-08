@@ -12,4 +12,34 @@
             <a href="/index.html">App</a>
         </nav>
         <header class="hero">
-            <h1>
+            <h1>AI-Powered Spotify Playlist Creator</h1>
+            <p>Create the perfect playlist with just a few words</p>
+        </header>
+
+        <section class="features">
+            <div class="feature">
+                <h2>Natural Language</h2>
+                <p>Describe your mood or theme, and let AI do the rest</p>
+            </div>
+            <div class="feature">
+                <h2>Spotify Integration</h2>
+                <p>Playlists are created directly in your Spotify account</p>
+            </div>
+            <div class="feature">
+                <h2>Smart Recommendations</h2>
+                <p>Discover new music that fits your taste</p>
+            </div>
+        </section>
+
+        <section class="cta">
+            <button id="login-button" class="button">Login with Spotify</button>
+        </section>
+    </div>
+
+    <script>
+        document.getElementById('login-button').addEventListener('click', function() {
+            window.location.href = '/login';  // Redirect to Spotify login
+        });
+    </script>
+</body>
+</html>
