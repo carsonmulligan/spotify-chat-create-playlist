@@ -48,8 +48,26 @@ passport.use(
         : 'http://localhost:3000/callback',
     },
     function(accessToken, refreshToken, expires_in, profile, done) {
-      // Save user info and tokens in the session
-      return done(null, { profile, accessToken, refreshToken });
+      console.log('Spotify strategy callback');
+      console.log('Access Token:', accessToken);
+      console.log('Refresh Token:', refreshToken);
+      console.log('Expires In:', expires_in);
+      
+      // Manually fetch the user profile
+      fetch('https://api.spotify.com/v1/me', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Manually fetched profile:', JSON.stringify(data, null, 2));
+        return done(null, { profile: data, accessToken, refreshToken });
+      })
+      .catch(error => {
+        console.error('Error fetching profile:', error);
+        return done(error);
+      });
     }
   )
 );
@@ -66,16 +84,37 @@ app.use((req, res, next) => {
 
 // Update the Spotify auth route
 app.get('/login', passport.authenticate('spotify', {
-  scope: ['user-read-email', 'playlist-modify-public', 'playlist-modify-private']
+  scope: ['user-read-email', 'user-read-private', 'playlist-modify-public', 'playlist-modify-private'],
+  showDialog: true
 }));
 
 // Update the callback route
 app.get('/callback',
-    passport.authenticate('spotify', { failureRedirect: '/' }),
-    (req, res) => {
-        console.log('Authentication successful');
-        console.log('User:', req.user);
-        res.redirect('/app');
+    (req, res, next) => {
+        console.log('Callback route hit');
+        console.log('Query parameters:', req.query);
+        next();
+    },
+    (req, res, next) => {
+        passport.authenticate('spotify', (err, user, info) => {
+            if (err) {
+                console.error('Authentication error:', err);
+                return res.redirect('/');
+            }
+            if (!user) {
+                console.log('Authentication failed:', info);
+                return res.redirect('/');
+            }
+            req.logIn(user, (err) => {
+                if (err) {
+                    console.error('Login error:', err);
+                    return res.redirect('/');
+                }
+                console.log('Authentication successful');
+                console.log('User:', user);
+                return res.redirect('/app');
+            });
+        })(req, res, next);
     }
 );
 
@@ -149,4 +188,13 @@ app.use((req, res) => {
 // Start the server
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
+});
+
+// Route to check the current session
+app.get('/check-session', (req, res) => {
+    if (req.isAuthenticated()) {
+        res.json({ authenticated: true, user: req.user });
+    } else {
+        res.json({ authenticated: false });
+    }
 });
