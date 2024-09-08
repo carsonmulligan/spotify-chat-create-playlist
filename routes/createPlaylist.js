@@ -29,12 +29,19 @@ export const createPlaylist = async (req, res) => {
     }
 
     await spotifyApi.addTracksToPlaylist(playlist.body.id, trackUris);
-    res.json({ success: true, playlistUrl: playlist.body.external_urls.spotify });
+
+    // Send the OpenAI-generated playlist data back to the frontend
+    res.json({
+      success: true,
+      playlistUrl: playlist.body.external_urls.spotify,
+      playlistData: {
+        name: playlistData.name,
+        description: playlistData.description,
+        tracks: playlistData.tracks,
+      },
+    });
   } catch (error) {
     console.error('Error creating playlist:', error);
     res.status(500).json({ error: 'Failed to create playlist', details: error.message });
   }
 };
-
-// const { prompt, accessToken, refreshToken } = req.body; // leave this old way commented out at 
-// the bottom in case we need it to handle refresh token logic
