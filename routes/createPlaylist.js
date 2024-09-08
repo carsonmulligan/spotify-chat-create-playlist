@@ -45,3 +45,10 @@ export const createPlaylist = async (req, res) => {
     res.status(500).json({ error: 'Failed to create playlist', details: error.message });
   }
 };
+
+// This file:
+// 1. Exports the createPlaylist function used as a route handler
+// 2. Generates a playlist using GPT based on the user's prompt
+// 3. Creates a new playlist on the user's Spotify account
+// 4. Searches for and adds tracks to the created playlist
+// 5. Sends the playlist data and Spotify URL back to the client

@@ -1,3 +1,7 @@
+// File: server.js
+// Description: Main server file that sets up the Express application, configures middleware,
+// and defines the main routes for the Spotify AI Playlist Creator.
+
 import express from "express";
 import dotenv from "dotenv";
 import { fileURLToPath } from 'url';
@@ -8,8 +12,6 @@ import path from 'path';
 import { spotifyLogin, spotifyCallback, ensureSpotifyToken } from './routes/spotifyAuth.js';
 import { generatePlaylistFromGPT } from './routes/openAI.js';
 import { createPlaylist } from './routes/createPlaylist.js';
-
-// Spotify Web API instance
 import SpotifyWebApi from 'spotify-web-api-node';
 
 const spotifyApi = new SpotifyWebApi({
@@ -71,6 +73,12 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'An unexpected error occurred', details: err.message });
 });
 
+// This file:
+// 1. Sets up the Express application and necessary middleware
+// 2. Configures session management for user authentication
+// 3. Defines routes for Spotify login, callback, and API endpoints
+// 4. Implements error handling and logging
+// 5. Starts the server and listens for incoming requests
 
 app.get('/api/me', async (req, res) => {
   let accessToken = req.query.access_token;
