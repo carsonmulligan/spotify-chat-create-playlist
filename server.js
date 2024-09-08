@@ -4,11 +4,13 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import path from 'path';
 import { spotifyLogin, spotifyCallback } from './routes/spotifyAuth.js';
+import { generatePlaylistFromGPT } from './routes/openAI.js';
 import { createPlaylist } from './routes/createPlaylist.js';
 import cookieParser from 'cookie-parser';
 import SpotifyWebApi from 'spotify-web-api-node';
 import cors from 'cors';
 
+// Spotify API initialization
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
@@ -21,7 +23,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
-app.use(cookieParser());
+app.use(cookieParser());  // Ensure cookie parsing
 app.use(express.json());
 app.use(express.static('public'));
 app.use(cors({
@@ -38,7 +40,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// Fetch user's Spotify profile
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/login', spotifyLogin);
+app.get('/callback', spotifyCallback);
+app.post('/api/generate-playlist', generatePlaylistFromGPT);
+app.post('/api/create-playlist', createPlaylist);
+
+// API endpoint to fetch the current user's profile
 app.get('/api/me', async (req, res) => {
   const accessToken = req.query.access_token;
   if (!accessToken) {
@@ -46,16 +57,21 @@ app.get('/api/me', async (req, res) => {
   }
 
   try {
-    spotifyApi.setAccessToken(accessToken); // Ensure correct token usage
+    spotifyApi.setAccessToken(accessToken);
     const me = await spotifyApi.getMe();
     res.json(me.body);
   } catch (error) {
-    console.error('Error fetching user profile:', error.message);
+    console.error('Error fetching user profile:', error);
     res.status(500).json({ error: 'Failed to fetch user profile', details: error.message });
   }
 });
 
-// Start the server
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'An unexpected error occurred', details: err.message });
+});
+
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
