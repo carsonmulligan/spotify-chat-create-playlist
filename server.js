@@ -20,9 +20,9 @@ const spotifyApi = new SpotifyWebApi({
 // Serve static files (including landing.html)
 app.use(express.static('public'));
 
-// Set up session middleware for user authentication
+// Update session middleware
 app.use(session({ 
-    secret: process.env.SESSION_SECRET, 
+    secret: process.env.SESSION_SECRET || 'your_fallback_secret', 
     resave: false, 
     saveUninitialized: false,
     cookie: { secure: process.env.NODE_ENV === 'production' }
@@ -49,18 +49,39 @@ passport.use(
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
-// Route for initiating Spotify authentication
-app.get('/auth/spotify', passport.authenticate('spotify', {
-  scope: ['user-read-email', 'playlist-modify-public', 'playlist-modify-private']
-}));
+// Add this middleware for logging
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
 
-// Callback route after Spotify authentication
+// Update the Spotify auth route
+app.get('/auth/spotify', (req, res, next) => {
+    console.log('Auth route hit');
+    console.log('Session:', req.session);
+    console.log('Environment variables:', {
+        SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
+        SPOTIFY_REDIRECT_URI: process.env.SPOTIFY_REDIRECT_URI,
+        APP_URL: process.env.APP_URL
+    });
+    passport.authenticate('spotify', {
+        scope: ['user-read-email', 'playlist-modify-public', 'playlist-modify-private']
+    })(req, res, next);
+});
+
+// Update the callback route
 app.get('/auth/spotify/callback',
-  passport.authenticate('spotify', { failureRedirect: '/' }),
-  function(req, res) {
-    // Successful authentication, redirect to the main app page
-    res.redirect('/app.html');
-  }
+    (req, res, next) => {
+        console.log('Callback route hit');
+        console.log('Query parameters:', req.query);
+        next();
+    },
+    passport.authenticate('spotify', { failureRedirect: '/' }),
+    (req, res) => {
+        console.log('Authentication successful');
+        console.log('User:', req.user);
+        res.redirect('/app');
+    }
 );
 
 // Legacy login route (can be removed if not needed)
@@ -119,6 +140,12 @@ app.get('/app', (req, res) => {
     } else {
         res.redirect('/');
     }
+});
+
+// Update the catch-all route
+app.use((req, res) => {
+    console.log(`404: ${req.method} ${req.url}`);
+    res.status(404).send('Not Found');
 });
 
 // Start the server

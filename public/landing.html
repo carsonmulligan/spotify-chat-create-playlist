@@ -8,6 +8,15 @@
     <!-- Linking stylesheets -->
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        .debug-info {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -32,13 +41,47 @@
         <section class="cta">
             <button id="login-button" class="button">Get Started with Spotify</button>
         </section>
+        <section class="debug">
+            <button id="debug-button" class="button">Toggle Debug Mode</button>
+            <div id="debug-info" class="debug-info"></div>
+        </section>
     </div>
 
     <script>
-        // Event listener for the login button
-        document.getElementById('login-button').addEventListener('click', function() {
-            // Redirect to the Spotify authentication route when clicked
-            window.location.href = '/auth/spotify';
+        let debugMode = false;
+        const debugInfo = document.getElementById('debug-info');
+
+        function log(message) {
+            console.log(message);
+            if (debugMode) {
+                debugInfo.innerHTML += message + '<br>';
+            }
+        }
+
+        document.getElementById('login-button').addEventListener('click', function(e) {
+            e.preventDefault();
+            log('Login button clicked');
+            fetch('/auth/spotify', { method: 'GET' })
+                .then(response => {
+                    log(`Response status: ${response.status}`);
+                    if (response.redirected) {
+                        log(`Redirecting to: ${response.url}`);
+                        window.location.href = response.url;
+                    } else {
+                        return response.text();
+                    }
+                })
+                .then(text => {
+                    if (text) log(`Response body: ${text}`);
+                })
+                .catch(error => log(`Error: ${error}`));
+        });
+
+        document.getElementById('debug-button').addEventListener('click', function() {
+            debugMode = !debugMode;
+            debugInfo.style.display = debugMode ? 'block' : 'none';
+            if (!debugMode) debugInfo.innerHTML = '';
+            log(`Debug mode ${debugMode ? 'enabled' : 'disabled'}`);
         });
     </script>
 </body>
