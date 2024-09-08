@@ -6,7 +6,6 @@ const createPlaylistButton = document.getElementById('create-playlist-button');
 const playlistPrompt = document.getElementById('playlist-prompt');
 const result = document.getElementById('result');
 const promptExamples = document.querySelectorAll('.prompt-example');
-const logoutButton = document.createElement('button');
 
 // Check if user has logged in (using hash)
 window.onload = () => {
@@ -15,17 +14,10 @@ window.onload = () => {
     accessToken = params.get('access_token');
     
     if (accessToken) {
-        loginButton.style.display = 'none';
         playlistCreator.style.display = 'block';
-        result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
-
-        // Add Logout Button
-        logoutButton.textContent = 'Logout';
-        logoutButton.style.marginTop = '20px';
-        logoutButton.style.display = 'block';
-        document.body.appendChild(logoutButton);
-    } else if (params.get('error')) {
-        result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
+    } else {
+        // If no access token, redirect to landing/login page
+        window.location.href = '/';
     }
 
     window.location.hash = '';
@@ -67,15 +59,4 @@ createPlaylistButton.addEventListener('click', async () => {
     } catch (error) {
         result.innerHTML = `<p>Error: ${error.message}</p>`;
     }
-});
-
-// Logout function to clear the access token and reload the page
-logoutButton.addEventListener('click', () => {
-    accessToken = null;
-    localStorage.clear(); // Clear any stored tokens
-    result.innerHTML = '<p>Logged out. Redirecting to login...</p>';
-    
-    setTimeout(() => {
-        window.location.href = '/'; // Redirect back to landing page or login
-    }, 1000);
 });
