@@ -1,10 +1,9 @@
 let accessToken = null;
-const logoutButton = document.getElementById('logout-button');
+const loginButton = document.getElementById('login-button');
 const playlistCreator = document.getElementById('playlist-creator');
 const createPlaylistButton = document.getElementById('create-playlist-button');
 const playlistPrompt = document.getElementById('playlist-prompt');
 const result = document.getElementById('result');
-const promptExamples = document.querySelectorAll('.prompt-example');
 
 // Fetch access token from URL hash
 window.onload = () => {
@@ -13,34 +12,16 @@ window.onload = () => {
     accessToken = params.get('access_token');
     
     if (accessToken) {
-        // If access token exists, hide login button and show playlist creator
-        logoutButton.style.display = 'block';
+        // If access token exists, show the playlist creator section
+        loginButton.style.display = 'none';
         playlistCreator.style.display = 'block';
         result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
-        
-        // Fetch user profile
-        fetch(`/api/me?access_token=${accessToken}`)
-          .then(response => response.json())
-          .then(data => {
-            console.log('User profile:', data);
-          })
-          .catch(error => {
-            console.error('Error fetching user profile:', error);
-          });
     } else {
         result.innerHTML = '<p>Please login first!</p>';
     }
 
     window.location.hash = ''; // Clear the hash after processing
 };
-
-// Handle prompt examples
-promptExamples.forEach(example => {
-    example.addEventListener('click', (e) => {
-        e.preventDefault();
-        playlistPrompt.value = e.target.textContent;
-    });
-});
 
 // Handle playlist creation
 createPlaylistButton.addEventListener('click', async () => {
@@ -71,10 +52,4 @@ createPlaylistButton.addEventListener('click', async () => {
         console.error('Error:', error);
         result.innerHTML = `<p>Error: ${error.message}</p>`;
     }
-});
-
-// Logout functionality
-logoutButton.addEventListener('click', () => {
-    accessToken = null;
-    window.location.href = '/'; // Redirect back to landing page
 });
