@@ -69,16 +69,16 @@ app.get('/callback', async (req, res) => {
   }
 });
 
-// Create playlist route
 app.post('/api/create-playlist', async (req, res) => {
   const { prompt, accessToken } = req.body;
 
   try {
+    // Generate playlist from OpenAI prompt
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
-        { role: 'system', content: 'You are a playlist creator' },
-        { role: 'user', content: `Create a playlist based on: ${prompt}` }
+        { role: 'system', content: 'You are a playlist creator. You will return the output in JSON format.' }, // Ensure 'json' is mentioned
+        { role: 'user', content: `Create a playlist in JSON format based on the following description: ${prompt}` }
       ],
       response_format: { type: 'json_object' }
     });
@@ -86,6 +86,7 @@ app.post('/api/create-playlist', async (req, res) => {
     const playlistData = JSON.parse(completion.choices[0].message.content);
     const { name, description, tracks } = playlistData;
 
+    // Create Spotify playlist
     const createPlaylistResponse = await axios.post(
       'https://api.spotify.com/v1/me/playlists',
       { name, description, public: false },
@@ -107,6 +108,7 @@ app.post('/api/create-playlist', async (req, res) => {
     res.status(500).json({ error: 'Failed to create playlist' });
   }
 });
+
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
