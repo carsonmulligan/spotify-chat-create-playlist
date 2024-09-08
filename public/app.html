@@ -5,12 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Spotify Playlist Creator - App</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        #loading-bar {
+            font-family: monospace;
+            white-space: pre;
+            margin: 20px 0;
+        }
+        #result {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to AI Spotify Playlist Creator</h1>
-        <p>You're logged in. Start creating playlists!</p>
-        <!-- Add your playlist creation form and other app features here -->
+        <h1>AI Spotify Playlist Creator</h1>
+        <div id="query-section">
+            <textarea id="query-input" rows="4" placeholder="Describe the playlist you want..."></textarea>
+            <button id="generate-button">Generate Playlist</button>
+        </div>
+        <div id="loading-bar"></div>
+        <div id="result"></div>
     </div>
     <script src="app.js"></script>
 </body>

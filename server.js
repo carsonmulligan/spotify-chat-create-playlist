@@ -1,13 +1,14 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import SpotifyWebApi from 'spotify-web-api-node';
-import dotenv from 'dotenv';
 import session from 'express-session';
 import passport from 'passport';
 import { Strategy as SpotifyStrategy } from 'passport-spotify';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
-dotenv.config();
+import OpenAI from 'openai';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,7 +29,7 @@ app.use(express.static('public'));
 
 // Update session middleware
 app.use(session({ 
-    secret: process.env.SESSION_SECRET, 
+    secret: process.env.SESSION_SECRET || 'fallback_secret_for_development', 
     resave: false, 
     saveUninitialized: false,
     cookie: { secure: process.env.NODE_ENV === 'production' }
@@ -93,11 +94,36 @@ app.get('/api/me', async (req, res) => {
 
 // Route to create a playlist
 app.post('/api/create-playlist', express.json(), async (req, res) => {
-    const { prompt, accessToken } = req.body;
+    const { prompt } = req.body;
 
     try {
-        spotifyApi.setAccessToken(accessToken);
-        const playlist = await spotifyApi.createPlaylist('Generated Playlist', { description: prompt, public: false });
+        // Use OpenAI to generate playlist suggestions
+        const openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY,
+        });
+
+        const completion = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo",
+            messages: [
+                { role: "system", content: "You are a helpful assistant that suggests songs for playlists." },
+                { role: "user", content: `Suggest 10 songs for a playlist with the following description: ${prompt}` }
+            ],
+        });
+
+        const suggestedSongs = completion.choices[0].message.content.split('\n');
+
+        // Use Spotify API to create a playlist with the suggested songs
+        const user = await spotifyApi.getMe();
+        const playlist = await spotifyApi.createPlaylist(user.body.id, `AI Generated: ${prompt}`, { public: false });
+
+        // Search for and add each suggested song to the playlist
+        for (const song of suggestedSongs) {
+            const searchResults = await spotifyApi.searchTracks(song);
+            if (searchResults.body.tracks.items.length > 0) {
+                await spotifyApi.addTracksToPlaylist(playlist.body.id, [searchResults.body.tracks.items[0].uri]);
+            }
+        }
+
         res.json({ success: true, playlistUrl: playlist.body.external_urls.spotify });
     } catch (err) {
         console.error('Error creating playlist', err);
