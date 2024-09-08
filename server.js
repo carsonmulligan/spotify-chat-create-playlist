@@ -43,6 +43,14 @@ app.use((req, res, next) => {
   next();
 });
 
+// Add this near the top of your route definitions
+app.use((req, res, next) => {
+  if (req.session.accessToken) {
+    spotifyApi.setAccessToken(req.session.accessToken);
+  }
+  next();
+});
+
 // Serve the index.html on the homepage
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -62,11 +70,14 @@ app.post('/api/create-playlist', ensureAuthenticated, createPlaylist);
 
 // Route to get user profile
 app.get('/api/me', ensureAuthenticated, async (req, res) => {
+  console.log('Fetching user profile with access token:', req.session.accessToken);
   try {
     const me = await spotifyApi.getMe();
+    console.log('User profile fetched successfully:', me.body);
     res.json(me.body);
   } catch (error) {
     console.error('Error fetching user profile:', error);
+    console.error('Error details:', error.body);
     res.status(500).json({ error: 'Failed to fetch user profile', details: error.message });
   }
 });
@@ -112,4 +123,14 @@ app.listen(port, () => {
   console.log('Environment:', process.env.NODE_ENV);
   console.log('Spotify Client ID:', process.env.SPOTIFY_CLIENT_ID);
   console.log('Spotify Redirect URI:', process.env.SPOTIFY_REDIRECT_URI);
+});
+
+// Route to check the current session state
+app.get('/api/session', (req, res) => {
+  res.json({
+    accessToken: req.session.accessToken ? 'Set' : 'Not set',
+    refreshToken: req.session.refreshToken ? 'Set' : 'Not set',
+    expiresAt: req.session.expiresAt,
+    currentTime: Date.now()
+  });
 });

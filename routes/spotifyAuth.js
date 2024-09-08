@@ -23,7 +23,7 @@ const spotifyApi = new SpotifyWebApi({
 export const spotifyLogin = (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
   req.session.spotifyAuthState = state;
-  const scopes = ['playlist-modify-private', 'playlist-modify-public', 'user-read-private', 'user-read-email'];
+  const scopes = ['user-read-private', 'user-read-email', 'playlist-modify-private', 'playlist-modify-public'];
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
   res.redirect(authorizeURL);
 };
@@ -46,6 +46,9 @@ export const spotifyCallback = async (req, res) => {
     req.session.accessToken = access_token;
     req.session.refreshToken = refresh_token;
     req.session.expiresAt = Date.now() + expires_in * 1000;
+
+    spotifyApi.setAccessToken(access_token);
+    spotifyApi.setRefreshToken(refresh_token);
 
     res.redirect(`${process.env.FRONTEND_URI || 'http://localhost:3000'}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`);
   } catch (error) {
