@@ -51,14 +51,14 @@ export const spotifyCallback = async (req, res) => {
 
     spotifyApi.setAccessToken(access_token);
 
-    const redirectURL = `${process.env.FRONTEND_URI || 'http://localhost:3000'}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`;
+    const redirectURL = `${process.env.FRONTEND_URI || 'http://localhost:8888'}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`;
     
     console.log('Redirecting to:', redirectURL);
     res.redirect(redirectURL);
   } catch (error) {
     console.error('Error getting Spotify tokens:', error);
     console.error('Error details:', error.response ? error.response.data : 'No response data');
-    res.redirect(`${process.env.FRONTEND_URI || 'http://localhost:3000'}/#error=spotify_auth_error&message=${encodeURIComponent(error.message)}`);
+    res.redirect(`${process.env.FRONTEND_URI || 'http://localhost:8888'}/#error=spotify_auth_error&message=${encodeURIComponent(error.message)}`);
   }
 };
 
