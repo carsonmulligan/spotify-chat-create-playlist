@@ -10,6 +10,10 @@ import { createPlaylist } from './routes/createPlaylist.js';
 import cookieParser from 'cookie-parser';
 import SpotifyWebApi from 'spotify-web-api-node';
 
+// server.js
+require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 // User Journey:
 // 1. User visits the homepage
 // 2. User clicks "Login with Spotify" and is redirected to Spotify login
