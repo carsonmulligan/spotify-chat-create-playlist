@@ -1,0 +1,35 @@
+<!-- public/success.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Subscription Successful</title>
+</head>
+<body>
+  <h1>Thank you for subscribing!</h1>
+  <p>Your subscription is now active. You can create unlimited playlists.</p>
+  <button onclick="window.location.href='/index.html'">Go Back to App</button>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+    fetch(`/checkout-session?sessionId=${sessionId}`)
+      .then(response => response.json())
+      .then(session => {
+        // Notify the server about the successful subscription
+        return fetch('/subscribe', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.customer_email}`,
+          },
+          body: JSON.stringify({})
+        });
+      })
+      .then(() => {
+        console.log('Subscription status updated.');
+      })
+      .catch(error => {
+        console.error('Error updating subscription status:', error);
+      });
+  </script>
+</body>
+</html>
