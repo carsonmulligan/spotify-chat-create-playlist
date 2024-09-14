@@ -51,7 +51,7 @@ export const generatePlaylistFromGPT = async (prompt) => {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        {"role": "system", "content": "You are a helpful assistant that creates Spotify playlists based on user input. Up to 99 tracks per playlist."},
+        {"role": "system", "content": "You are a helpful assistant that creates Spotify playlists based on user input. Try to return around 50 relevant tracks. Up to 99 tracks per playlist."},
         {"role": "user", "content": prompt}
       ],
       functions: [functionSchema],
