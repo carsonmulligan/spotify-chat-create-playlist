@@ -1,4 +1,7 @@
 let accessToken = null;
+let playlistCount = 0;
+const MAX_FREE_PLAYLISTS = 3;
+const stripe = Stripe(window.STRIPE_PUBLISHABLE_KEY);
 
 const loginButton = document.getElementById('login-button');
 const playlistCreator = document.getElementById('playlist-creator');
@@ -6,6 +9,8 @@ const createPlaylistButton = document.getElementById('create-playlist-button');
 const playlistPrompt = document.getElementById('playlist-prompt');
 const result = document.getElementById('result');
 const promptExamples = document.querySelectorAll('.prompt-example');
+const upgradeButton = document.getElementById('upgrade-button');
+const playlistCountMessage = document.getElementById('playlist-count-message');
 
 loginButton.addEventListener('click', () => {
     window.location.href = '/login';
@@ -58,6 +63,11 @@ promptExamples.forEach(example => {
 });
 
 createPlaylistButton.addEventListener('click', async () => {
+    if (playlistCount >= MAX_FREE_PLAYLISTS) {
+        showUpgradeMessage();
+        return;
+    }
+
     const prompt = playlistPrompt.value;
     
     try {
@@ -91,8 +101,46 @@ createPlaylistButton.addEventListener('click', async () => {
 
         const data = JSON.parse(playlistData);
         result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;
+        playlistCount++;
+        updatePlaylistCountMessage();
     } catch (error) {
         console.error('Error:', error);
         result.innerHTML = `<p>Error: ${error.message}</p>`;
     }
 });
+
+function updatePlaylistCountMessage() {
+    const message = document.getElementById('playlist-count-message');
+    if (playlistCount < MAX_FREE_PLAYLISTS) {
+        message.textContent = `You have created ${playlistCount} out of ${MAX_FREE_PLAYLISTS} free playlists.`;
+    } else {
+        showUpgradeMessage();
+    }
+}
+
+function showUpgradeMessage() {
+    const message = document.getElementById('playlist-count-message');
+    message.textContent = 'You have reached the limit of free playlists. Please upgrade to Pro to create more.';
+    document.getElementById('upgrade-button').style.display = 'block';
+}
+
+document.getElementById('upgrade-button').addEventListener('click', async () => {
+    try {
+        const response = await fetch('/api/create-checkout-session', {
+            method: 'POST',
+        });
+        const session = await response.json();
+        const result = await stripe.redirectToCheckout({
+            sessionId: session.id,
+        });
+        if (result.error) {
+            alert(result.error.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    }
+});
+
+// Call this function when the page loads to initialize the message
+updatePlaylistCountMessage();

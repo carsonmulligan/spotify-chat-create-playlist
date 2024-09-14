@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Spotify Playlist Creator</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        window.STRIPE_PUBLISHABLE_KEY = '<%= process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY %>';
+    </script>
 </head>
 <body>
     <div class="container">
@@ -23,6 +27,8 @@
             </div>
             <textarea id="playlist-prompt" rows="4" placeholder="Describe your playlist..."></textarea>
             <button id="create-playlist-button">Create Playlist</button>
+            <p id="playlist-count-message"></p>
+            <button id="upgrade-button" style="display: none;">Upgrade to Pro</button>
         </div>
         <div id="result"></div>
     </div>
