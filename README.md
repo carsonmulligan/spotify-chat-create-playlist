@@ -1,4 +1,4 @@
-# 🎧 AI-Powered Spotify Playlist Creator
+# 🎧 TuneSmith AI: Natural Language Spotify Playlist Creator
 
 Welcome to the **AI-Powered Spotify Playlist Creator**! This app lets you create customized Spotify playlists by chatting with OpenAI's GPT-4o mini. 🎶
 
