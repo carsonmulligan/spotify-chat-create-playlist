@@ -1,7 +1,7 @@
 let accessToken = null;
 let playlistCount = 0;
 const MAX_FREE_PLAYLISTS = 3;
-const stripe = Stripe('your_stripe_publishable_key');
+const stripe = Stripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 const loginButton = document.getElementById('login-button');
 const playlistCreator = document.getElementById('playlist-creator');
