@@ -9,10 +9,11 @@ import { generatePlaylistFromGPT } from './routes/openAI.js';
 import { createPlaylist } from './routes/createPlaylist.js';
 import cookieParser from 'cookie-parser';
 import SpotifyWebApi from 'spotify-web-api-node';
+import Stripe from 'stripe';
 
 // server.js
-require('dotenv').config();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+dotenv.config();
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // User Journey:
 // 1. User visits the homepage
