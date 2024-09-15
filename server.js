@@ -18,6 +18,7 @@ import crypto from 'crypto';
 import Stripe from 'stripe';
 import { stat } from 'fs/promises';
 import fs from 'fs';
+import pg from 'pg';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -50,6 +51,14 @@ app.use((req, res, next) => {
   next();
 });
 
+// Replace the SQLite database initialization with PostgreSQL
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+app.locals.db = pool;
+
 // Initialize the database
 (async () => {
   const db = await open({
@@ -76,14 +85,32 @@ const spotifyApi = new SpotifyWebApi({
 
 // Routes
 app.get('/', (req, res) => {
-  console.log('Serving landing page');
   res.sendFile(path.join(__dirname, 'public', 'landing.html'));
 });
 
 app.get('/login', spotifyLogin);
 app.get('/callback', spotifyCallback);
 app.post('/api/generate-playlist', generatePlaylistFromGPT);
-app.post('/api/create-playlist', createPlaylist);
+app.post('/api/create-playlist', async (req, res) => {
+  const userId = req.session.userId;
+  const db = app.locals.db;
+
+  try {
+    const user = await db.get('SELECT * FROM users WHERE user_id = ?', [userId]);
+    if (user.playlist_count >= 3 && !user.is_subscribed) {
+      return res.status(403).json({ error: 'Playlist limit reached. Please subscribe to create more playlists.' });
+    }
+
+    // Increment playlist count
+    await db.run('UPDATE users SET playlist_count = playlist_count + 1 WHERE user_id = ?', [userId]);
+
+    // Call the existing createPlaylist function
+    await createPlaylist(req, res);
+  } catch (error) {
+    console.error('Error creating playlist:', error);
+    res.status(500).json({ error: 'Failed to create playlist', details: error.message });
+  }
+});
 
 // Stripe routes
 app.post('/create-checkout-session', (req, res) => createCheckoutSession(req, res, app.locals.db));
@@ -131,22 +158,19 @@ async function handleSuccessfulSubscription(session) {
 
 app.get('/config', getConfig);
 
+// Update the signup route
 app.post('/signup', async (req, res) => {
-  console.log('Received signup request:', req.body);
-  const { firstName, email } = req.body;
+  const { email } = req.body;
   const db = app.locals.db;
 
   try {
-    const existingUser = await db.get('SELECT * FROM users WHERE email = ?', [email]);
-    if (existingUser) {
-      console.log('User already exists:', email);
-      return res.json({ success: false, error: 'User already exists' });
-    }
+    // Save to PostgreSQL database
+    const result = await db.query(
+      'INSERT INTO users (email, user_id) VALUES ($1, $2) RETURNING *',
+      [email, uuidv4()]
+    );
 
-    const userId = uuidv4();
-    await db.run('INSERT INTO users (user_id, email, first_name) VALUES (?, ?, ?)', [userId, email, firstName]);
-    req.session.userId = userId;
-    console.log('User created:', userId);
+    console.log('User signed up:', result.rows[0]);
     res.json({ success: true });
   } catch (error) {
     console.error('Error during sign up:', error);
