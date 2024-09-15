@@ -1,9 +1,17 @@
 let stripe;
 
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://www.tunesmith-ai.com' 
+  : 'http://localhost:8888';
+
 fetch('/config')
     .then((response) => response.json())
     .then((data) => {
-        stripe = Stripe(data.publishableKey);
+        stripe = Stripe(data.publishableKey, {
+            stripeAccount: data.stripeAccount,
+            apiVersion: "2020-08-27",
+            protocol: "https"
+        });
     });
 
 const createPlaylistButton = document.getElementById('create-playlist-button');
@@ -13,7 +21,7 @@ const subscriptionInfo = document.getElementById('subscription-info');
 const promptExamples = document.querySelectorAll('.prompt-example');
 
 // Check if the user is authenticated
-fetch('/check-auth')
+fetch(`${API_BASE_URL}/check-auth`)
     .then(response => response.json())
     .then(data => {
         if (!data.authenticated) {
@@ -34,7 +42,7 @@ createPlaylistButton.addEventListener('click', async () => {
     try {
         result.innerHTML = '<p>Creating playlist...</p>';
         
-        const response = await fetch('/api/create-playlist', {
+        const response = await fetch(`${API_BASE_URL}/api/create-playlist`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
@@ -68,7 +76,7 @@ createPlaylistButton.addEventListener('click', async () => {
 
 async function startSubscription() {
     try {
-        const response = await fetch('/create-checkout-session', {
+        const response = await fetch(`${API_BASE_URL}/create-checkout-session`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });

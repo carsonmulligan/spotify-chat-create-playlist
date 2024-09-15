@@ -14,6 +14,8 @@ import { open } from 'sqlite';
 import session from 'express-session';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
+import https from 'https';
+import cors from 'cors';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -165,14 +167,31 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'An unexpected error occurred', details: err.message });
 });
 
-const port = process.env.PORT || 8888;
+if (process.env.NODE_ENV === 'production') {
+  // Force HTTPS
+  app.use((req, res, next) => {
+    if (req.header('x-forwarded-proto') !== 'https') {
+      res.redirect(`https://${req.header('host')}${req.url}`);
+    } else {
+      next();
+    }
+  });
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-  console.log('Environment:', process.env.NODE_ENV);
-  console.log('Spotify Client ID:', process.env.SPOTIFY_CLIENT_ID);
-  console.log('Spotify Redirect URI:', process.env.SPOTIFY_REDIRECT_URI);
-});
+  // Set up HTTPS server
+  const httpsOptions = {
+    key: fs.readFileSync('/path/to/your/privkey.pem'),
+    cert: fs.readFileSync('/path/to/your/fullchain.pem')
+  };
+
+  https.createServer(httpsOptions, app).listen(443, () => {
+    console.log('HTTPS Server running on port 443');
+  });
+} else {
+  // For development, continue using HTTP
+  app.listen(process.env.PORT || 8888, () => {
+    console.log(`Server running on port ${process.env.PORT || 8888}`);
+  });
+}
 
 // Add these routes
 app.get('/subscription-success.html', (req, res) => {
@@ -212,4 +231,19 @@ app.get('/tunesmith_product_demo.mp4', async (req, res) => {
     res.writeHead(200, head);
     fs.createReadStream(path).pipe(res);
   }
+});
+
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? 'https://www.tunesmith-ai.com' 
+    : 'http://localhost:8888',
+  credentials: true
+}));
+
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; frame-src https://js.stripe.com;"
+  );
+  next();
 });
