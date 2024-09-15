@@ -123,16 +123,9 @@ createPlaylistButton.addEventListener('click', async () => {
             const session = await sessionResponse.json();
             console.log('Checkout session created:', session.id);
 
-            if (!stripe) {
-                throw new Error('Stripe has not been initialized');
-            }
-
-            const { error } = await stripe.redirectToCheckout({
-                sessionId: session.id,
-            });
-            if (error) {
-                throw error;
-            }
+            // Redirect to Stripe Checkout
+            window.location.href = session.url;
+            return;
         }
 
         if (!response.ok) throw new Error('Failed to create playlist');

@@ -6,12 +6,12 @@ import path from 'path';
 import { spotifyLogin, spotifyCallback } from './routes/spotifyAuth.js';
 import { generatePlaylistFromGPT } from './routes/openAI.js';
 import { createPlaylist } from './routes/createPlaylist.js';
+import { createCheckoutSession, handleWebhook, getConfig } from './routes/stripeEvents.js';
 import cookieParser from 'cookie-parser';
 import SpotifyWebApi from 'spotify-web-api-node';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import session from 'express-session';
-import Stripe from 'stripe';
 import bodyParser from 'body-parser';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -21,7 +21,6 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Middleware
 app.use(cookieParser());
@@ -81,54 +80,14 @@ app.get('/callback', spotifyCallback);
 app.post('/api/generate-playlist', generatePlaylistFromGPT);
 app.post('/api/create-playlist', createPlaylist);
 
-app.post('/create-checkout-session', async (req, res) => {
-  console.log('Creating checkout session');
-  const db = req.app.locals.db;
-  const userId = req.session.userId;
-
-  console.log('User ID from session:', userId);
-
-  if (!userId) {
-    console.log('User not authenticated');
-    return res.status(401).json({ error: 'User not authenticated' });
-  }
-
-  const user = await db.get('SELECT * FROM users WHERE user_id = ?', [userId]);
-
-  console.log('User from database:', user);
-
-  if (!user) {
-    console.log('User not found in database');
-    return res.status(401).json({ error: 'User not found' });
-  }
-
-  try {
-    console.log('Creating Stripe checkout session');
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      mode: 'subscription',
-      line_items: [
-        {
-          price: process.env.STRIPE_PRICE_ID,
-          quantity: 1,
-        },
-      ],
-      customer_email: user.email,
-      success_url: `${process.env.DOMAIN}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.DOMAIN}/subscription-cancelled`,
-    });
-
-    console.log('Checkout session created:', session.id);
-    res.json({ id: session.id });
-  } catch (error) {
-    console.error('Error creating Stripe Checkout session:', error);
-    res.status(500).json({ error: 'Failed to create checkout session', details: error.message });
-  }
-});
+// Stripe routes
+app.post('/create-checkout-session', (req, res) => createCheckoutSession(req, res, app.locals.db));
+app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => handleWebhook(req, res, app.locals.db));
+app.get('/config', getConfig);
 
 app.post('/signup', async (req, res) => {
   const { firstName, email } = req.body;
-  const db = req.app.locals.db;
+  const db = app.locals.db;
 
   try {
     const existingUser = await db.get('SELECT * FROM users WHERE email = ?', [email]);
@@ -144,36 +103,6 @@ app.post('/signup', async (req, res) => {
     console.error('Error during sign up:', error);
     res.json({ success: false, error: error.message });
   }
-});
-
-app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  const db = req.app.locals.db;
-
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-  } catch (err) {
-    console.error('Webhook signature verification failed:', err);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  switch (event.type) {
-    case 'checkout.session.completed':
-      const session = event.data.object;
-      const email = session.customer_email;
-      try {
-        await db.run('UPDATE users SET is_subscribed = TRUE WHERE email = ?', [email]);
-      } catch (dbError) {
-        console.error('Database update failed:', dbError);
-      }
-      break;
-    default:
-      console.log(`Unhandled event type ${event.type}`);
-  }
-
-  res.json({ received: true });
 });
 
 app.get('/api/me', async (req, res) => {
@@ -208,7 +137,11 @@ app.listen(port, () => {
   console.log('Spotify Redirect URI:', process.env.SPOTIFY_REDIRECT_URI);
 });
 
-// Add this route
-app.get('/config', (req, res) => {
-  res.json({ publishableKey: process.env.STRIPE_PUBLISHABLE_KEY });
+// Add these routes
+app.get('/subscription-success.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'subscription-success.html'));
+});
+
+app.get('/subscription-cancelled.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'subscription-cancelled.html'));
 });
