@@ -19,25 +19,30 @@ window.onload = () => {
     
     if (accessToken) {
         localStorage.setItem('spotify_access_token', accessToken);
-        loginButton.style.display = 'none';
-        playlistCreator.style.display = 'block';
-        result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
-        
-        fetchUserProfile();
+        showPlaylistCreator();
     } else if (params.get('error')) {
         result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
     } else {
         // Check if we have a stored access token
         accessToken = localStorage.getItem('spotify_access_token');
         if (accessToken) {
-            loginButton.style.display = 'none';
-            playlistCreator.style.display = 'block';
-            fetchUserProfile();
+            showPlaylistCreator();
+        } else {
+            // If no access token, show login button
+            loginButton.style.display = 'block';
+            playlistCreator.style.display = 'none';
         }
     }
 
     window.location.hash = '';
 };
+
+function showPlaylistCreator() {
+    loginButton.style.display = 'none';
+    playlistCreator.style.display = 'block';
+    result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
+    fetchUserProfile();
+}
 
 function fetchUserProfile() {
     fetch(`/api/me`, {

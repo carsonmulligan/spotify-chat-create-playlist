@@ -2,20 +2,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Your head content -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuneSmith - AI-Powered Spotify Playlist Creator</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <div class="container">
-        <!-- Existing content -->
         <header class="hero">
-            <h1>AI-Powered Spotify Playlist Creator</h1>
+            <h1>TuneSmith: AI-Powered Spotify Playlist Creator</h1>
             <p>Create the perfect playlist with just a few words</p>
         </header>
 
-        <!-- Sign-Up Form -->
+        <section class="demo">
+            <h2>See TuneSmith in Action</h2>
+            <video width="100%" controls>
+                <source src="/tunesmith_product_demo.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </section>
+
+        <section class="features">
+            <h2>Features</h2>
+            <ul>
+                <li>AI-powered playlist generation</li>
+                <li>Seamless Spotify integration</li>
+                <li>Customizable playlists</li>
+                <li>Quick and easy to use</li>
+            </ul>
+        </section>
+
+        <section class="cta">
+            <h2>Ready to Create Your Perfect Playlist?</h2>
+            <a href="/login" class="button">Get Started with Spotify</a>
+        </section>
+
         <section class="signup">
-            <h2>Get Started</h2>
+            <h2>Sign Up for Updates</h2>
             <form id="signup-form">
                 <input type="text" name="first_name" placeholder="First Name" required>
                 <input type="email" name="email" placeholder="Email" required>
@@ -40,7 +63,7 @@
             .then(data => {
                 console.log('Signup response:', data);
                 if (data.success) {
-                    window.location.href = '/login';
+                    alert('Thanks for signing up! We\'ll keep you updated.');
                 } else {
                     alert('Sign up failed: ' + data.error);
                 }
