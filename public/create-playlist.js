@@ -5,9 +5,11 @@ fetch('/config')
     .then((data) => {
         stripe = Stripe(data.publishableKey, {
             stripeAccount: data.stripeAccount,
-            apiVersion: "2020-08-27",
-            protocol: "https"
+            apiVersion: "2020-08-27"
         });
+    })
+    .catch((error) => {
+        console.error('Error loading Stripe configuration:', error);
     });
 
 const createPlaylistButton = document.getElementById('create-playlist-button');

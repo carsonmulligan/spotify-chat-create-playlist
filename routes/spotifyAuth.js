@@ -15,9 +15,12 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: process.env.SPOTIFY_REDIRECT_URI
 });
 
+const isProduction = process.env.NODE_ENV === 'production';
+const FRONTEND_URI = isProduction ? 'https://www.tunesmith-ai.com' : 'http://localhost:8888';
+
 export const spotifyLogin = (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
-  res.cookie('spotify_auth_state', state, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+  res.cookie('spotify_auth_state', state, { httpOnly: true, secure: isProduction });
   const scopes = ['user-read-private', 'user-read-email', 'playlist-modify-private', 'playlist-modify-public'];
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
   console.log('Redirecting to Spotify authorize URL:', authorizeURL);
@@ -71,11 +74,11 @@ export const spotifyCallback = async (req, res) => {
     console.log('Session after Spotify login:', req.session);
 
     // Redirect to the create-playlist page
-    res.redirect('/create-playlist');
+    res.redirect(`${FRONTEND_URI}/create-playlist`);
   } catch (error) {
     console.error('Error getting Spotify tokens:', error);
     console.error('Error details:', error.response ? error.response.data : 'No response data');
-    res.redirect('/#error=spotify_auth_error');
+    res.redirect(`${FRONTEND_URI}/#error=spotify_auth_error`);
   }
 };
 

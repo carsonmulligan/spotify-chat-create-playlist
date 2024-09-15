@@ -4,7 +4,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const YOUR_DOMAIN = process.env.FRONTEND_URI || 'http://localhost:8888';
+const YOUR_DOMAIN = process.env.NODE_ENV === 'production' 
+  ? 'https://www.tunesmith-ai.com' 
+  : 'http://localhost:8888';
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 export const createCheckoutSession = async (req, res, db) => {

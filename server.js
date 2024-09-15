@@ -176,6 +176,12 @@ app.use((err, req, res, next) => {
 });
 
 const port = process.env.PORT || 8888;
+const isProduction = process.env.NODE_ENV === 'production';
+
+app.use(cors({
+  origin: isProduction ? 'https://www.tunesmith-ai.com' : 'http://localhost:8888',
+  credentials: true
+}));
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
@@ -196,13 +202,6 @@ app.get('/tunesmith_product_demo.mp4', async (req, res) => {
   const videoPath = path.join(__dirname, 'public', 'tunesmith_product_demo.mp4');
   res.sendFile(videoPath);
 });
-
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? 'https://www.tunesmith-ai.com' 
-    : 'http://localhost:8888',
-  credentials: true
-}));
 
 app.use((req, res, next) => {
   res.setHeader(
