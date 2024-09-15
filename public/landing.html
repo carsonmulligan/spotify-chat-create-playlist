@@ -22,7 +22,7 @@
                 <p>Create the perfect playlist with just a few words! ✨</p>
                 <p>Get 3 free playlists, then $2.99 per month for unlimited access.</p>
                 <a href="/login" class="button">Try it out with Spotify</a>
-                <button id="subscribe-button" class="button">Subscribe Now</button>
+                <!-- <button id="subscribe-button" class="button">Subscribe Now</button> -->
             </section>
 
             <section class="demo">
@@ -50,30 +50,52 @@
     </div>
     <script src="https://js.stripe.com/v3/"></script>
     <script>
-        document.getElementById('subscribe-button').addEventListener('click', async () => {
-            try {
-                const response = await fetch('/create-checkout-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
+        let stripe;
 
-                if (!response.ok) {
-                    throw new Error('Failed to create checkout session');
+        // Fetch the publishable key from the server
+        fetch('/config', { credentials: 'include' })
+            .then((response) => response.json())
+            .then((data) => {
+                console.log('Stripe publishable key:', data.publishableKey);
+                stripe = Stripe(data.publishableKey);
+            })
+            .catch((error) => {
+                console.error('Error loading Stripe config:', error);
+            });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const subscribeButton = document.getElementById('subscribe-button');
+            subscribeButton.addEventListener('click', async () => {
+                try {
+                    if (!stripe) {
+                        console.error('Stripe has not been initialized.');
+                        return;
+                    }
+
+                    const response = await fetch('/create-checkout-session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to create checkout session');
+                    }
+
+                    const session = await response.json();
+                    const result = await stripe.redirectToCheckout({
+                        sessionId: session.id,
+                    });
+
+                    if (result.error) {
+                        throw result.error;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Failed to start subscription process. Please try again.');
                 }
-
-                const session = await response.json();
-                const stripe = Stripe(session.publishableKey);
-                const result = await stripe.redirectToCheckout({
-                    sessionId: session.id,
-                });
-
-                if (result.error) {
-                    throw result.error;
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Failed to start subscription process. Please try again.');
-            }
+            });
         });
     </script>
 </body>
