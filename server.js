@@ -12,13 +12,8 @@ import SpotifyWebApi from 'spotify-web-api-node';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import session from 'express-session';
-import bodyParser from 'body-parser';
 import { v4 as uuidv4 } from 'uuid';
-import crypto from 'crypto';
-import Stripe from 'stripe';
-import { stat } from 'fs/promises';
 import fs from 'fs';
-import pg from 'pg';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -30,8 +25,8 @@ const app = express();
 // Middleware
 app.use(cookieParser());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
-app.use(bodyParser.json());
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -51,15 +46,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Replace the SQLite database initialization with PostgreSQL
-const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
-
-app.locals.db = pool;
-
-// Initialize the database
+// SQLite database initialization
 (async () => {
   const db = await open({
     filename: './database.sqlite',
@@ -96,13 +83,13 @@ app.post('/api/create-playlist', async (req, res) => {
   const db = app.locals.db;
 
   try {
-    const user = await db.get('SELECT * FROM users WHERE user_id = ?', [userId]);
+    const user = await db.get('SELECT * FROM users WHERE user_id = ?', userId);
     if (user.playlist_count >= 3 && !user.is_subscribed) {
       return res.status(403).json({ error: 'Playlist limit reached. Please subscribe to create more playlists.' });
     }
 
     // Increment playlist count
-    await db.run('UPDATE users SET playlist_count = playlist_count + 1 WHERE user_id = ?', [userId]);
+    await db.run('UPDATE users SET playlist_count = playlist_count + 1 WHERE user_id = ?', userId);
 
     // Call the existing createPlaylist function
     await createPlaylist(req, res);
@@ -114,48 +101,7 @@ app.post('/api/create-playlist', async (req, res) => {
 
 // Stripe routes
 app.post('/create-checkout-session', (req, res) => createCheckoutSession(req, res, app.locals.db));
-app.post('/webhook', express.raw({ type: 'application/json' }), (request, response) => {
-  const sig = request.headers['stripe-signature'];
-
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(request.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-  } catch (err) {
-    console.log(`⚠️  Webhook signature verification failed.`, err.message);
-    return response.sendStatus(400);
-  }
-
-  // Handle the event
-  switch (event.type) {
-    case 'checkout.session.completed':
-      const session = event.data.object;
-      // Handle successful checkout session
-      console.log('Checkout session completed:', session);
-      // Update user's subscription status in the database
-      handleSuccessfulSubscription(session);
-      break;
-    // ... handle other event types
-    default:
-      console.log(`Unhandled event type ${event.type}`);
-  }
-
-  // Return a 200 response to acknowledge receipt of the event
-  response.send();
-});
-
-async function handleSuccessfulSubscription(session) {
-  const db = app.locals.db;
-  const userEmail = session.customer_email;
-  
-  try {
-    await db.run('UPDATE users SET is_subscribed = TRUE WHERE email = ?', [userEmail]);
-    console.log(`Updated subscription status for user: ${userEmail}`);
-  } catch (error) {
-    console.error('Error updating user subscription status:', error);
-  }
-}
-
+app.post('/webhook', express.raw({ type: 'application/json' }), handleWebhook);
 app.get('/config', getConfig);
 
 // Update the signup route
@@ -164,13 +110,13 @@ app.post('/signup', async (req, res) => {
   const db = app.locals.db;
 
   try {
-    // Save to PostgreSQL database
-    const result = await db.query(
-      'INSERT INTO users (email, user_id) VALUES ($1, $2) RETURNING *',
+    // Save to SQLite database
+    const result = await db.run(
+      'INSERT INTO users (email, user_id) VALUES (?, ?)',
       [email, uuidv4()]
     );
 
-    console.log('User signed up:', result.rows[0]);
+    console.log('User signed up:', result);
     res.json({ success: true });
   } catch (error) {
     console.error('Error during sign up:', error);
