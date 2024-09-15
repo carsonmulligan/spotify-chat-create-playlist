@@ -14,6 +14,8 @@ import session from 'express-session';
 import { v4 as uuidv4 } from 'uuid';
 import cors from 'cors';
 
+const { Pool } = pg;  // Add this line to import Pool from pg
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
