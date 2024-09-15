@@ -52,6 +52,20 @@
     <script>
         document.getElementById('subscribe-button').addEventListener('click', async () => {
             try {
+                // Check if user is authenticated
+                const authResponse = await fetch('/check-auth');
+                const authData = await authResponse.json();
+                if (!authData.authenticated) {
+                    // Redirect to Spotify login
+                    window.location.href = '/login';
+                    return;
+                }
+
+                // Fetch Stripe publishable key
+                const configResponse = await fetch('/config');
+                const configData = await configResponse.json();
+                const stripe = Stripe(configData.publishableKey);
+
                 const response = await fetch('/create-checkout-session', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
@@ -62,7 +76,6 @@
                 }
 
                 const session = await response.json();
-                const stripe = Stripe(session.publishableKey);
                 const result = await stripe.redirectToCheckout({
                     sessionId: session.id,
                 });
