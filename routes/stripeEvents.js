@@ -5,6 +5,7 @@ dotenv.config();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const YOUR_DOMAIN = process.env.FRONTEND_URI || 'http://localhost:8888';
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 export const createCheckoutSession = async (req, res, db) => {
   console.log('Creating checkout session');
@@ -56,27 +57,40 @@ export const handleWebhook = async (req, res, db) => {
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
   } catch (err) {
-    console.error('Webhook signature verification failed:', err);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    console.log(`⚠️  Webhook signature verification failed.`, err.message);
+    return res.sendStatus(400);
   }
 
+  // Handle the event
   switch (event.type) {
     case 'checkout.session.completed':
       const session = event.data.object;
       const email = session.customer_email;
       try {
         await db.run('UPDATE users SET is_subscribed = TRUE WHERE email = ?', [email]);
+        console.log(`User with email ${email} has been subscribed.`);
       } catch (dbError) {
         console.error('Database update failed:', dbError);
       }
       break;
+    case 'payment_intent.succeeded':
+      const paymentIntent = event.data.object;
+      console.log(`PaymentIntent for ${paymentIntent.amount} was successful!`);
+      // You can add additional handling here if needed
+      break;
+    case 'payment_method.attached':
+      const paymentMethod = event.data.object;
+      console.log('PaymentMethod was attached to a Customer!');
+      // You can add additional handling here if needed
+      break;
     default:
-      console.log(`Unhandled event type ${event.type}`);
+      console.log(`Unhandled event type ${event.type}.`);
   }
 
-  res.json({ received: true });
+  // Return a 200 response to acknowledge receipt of the event
+  res.send();
 };
 
 export const getConfig = (req, res) => {
