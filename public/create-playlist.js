@@ -36,7 +36,10 @@ createPlaylistButton.addEventListener('click', async () => {
         
         const response = await fetch('/api/create-playlist', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('spotify_access_token')}`
+            },
             body: JSON.stringify({ prompt })
         });
 
@@ -51,7 +54,10 @@ createPlaylistButton.addEventListener('click', async () => {
             return;
         }
 
-        if (!response.ok) throw new Error('Failed to create playlist');
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to create playlist');
+        }
         
         const data = await response.json();
         result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;

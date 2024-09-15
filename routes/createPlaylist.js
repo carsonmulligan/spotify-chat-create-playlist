@@ -18,8 +18,17 @@ export const createPlaylist = async (req, res) => {
       return res.status(403).json({ error: 'You have reached your free playlist limit. Please subscribe to create more playlists.' });
     }
 
-    // Generate and create playlist (keep existing logic)
-    // ...
+    // Generate playlist using OpenAI
+    const songs = await generatePlaylistFromGPT(prompt);
+
+    // Create a new playlist on Spotify
+    spotifyApi.setAccessToken(accessToken);
+    const playlistName = `AI Playlist: ${prompt}`;
+    const playlist = await spotifyApi.createPlaylist(playlistName, { 'description': `Created with AI based on: ${prompt}`, 'public': false });
+
+    // Add tracks to the playlist
+    const trackUris = songs.map(song => `spotify:track:${song.id}`);
+    await spotifyApi.addTracksToPlaylist(playlist.body.id, trackUris);
 
     // Update playlist count
     await db.run('UPDATE users SET playlist_count = playlist_count + 1 WHERE user_id = ?', [userId]);
