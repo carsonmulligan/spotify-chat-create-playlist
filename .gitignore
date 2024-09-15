@@ -6,3 +6,8 @@ spotify-auth-test-2.js
 testLogs.txt
 combined.log
 error.log
+
+# Logs
+*.log
+combined.log
+error.log
