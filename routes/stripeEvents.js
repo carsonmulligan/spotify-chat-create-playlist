@@ -18,7 +18,8 @@ export const createCheckoutSession = async (req, res, db) => {
     return res.status(401).json({ error: 'User not authenticated' });
   }
 
-  const user = await db.get('SELECT * FROM users WHERE user_id = ?', [userId]);
+  const result = await db.query('SELECT * FROM users WHERE user_id = $1', [userId]);
+  const user = result.rows[0];
 
   console.log('User from database:', user);
 
@@ -70,6 +71,8 @@ export const handleWebhook = async (req, res) => {
       const session = event.data.object;
       // Handle successful checkout session
       console.log('Checkout session completed:', session);
+      // Update user's subscription status
+      await updateUserSubscription(session.customer_email);
       break;
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object;
@@ -82,6 +85,16 @@ export const handleWebhook = async (req, res) => {
   // Return a 200 response to acknowledge receipt of the event
   res.send();
 };
+
+async function updateUserSubscription(email) {
+  const db = global.app.locals.db;
+  try {
+    await db.query('UPDATE users SET is_subscribed = TRUE WHERE email = $1', [email]);
+    console.log(`Updated subscription status for user: ${email}`);
+  } catch (error) {
+    console.error('Error updating user subscription status:', error);
+  }
+}
 
 export const getConfig = (req, res) => {
   res.json({ publishableKey: process.env.STRIPE_PUBLISHABLE_KEY });

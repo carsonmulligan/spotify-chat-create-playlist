@@ -57,8 +57,8 @@ export const spotifyCallback = async (req, res) => {
 
     // Store user in database
     const db = req.app.locals.db;
-    await db.run(
-      'INSERT OR REPLACE INTO users (user_id, email, first_name) VALUES (?, ?, ?)',
+    await db.query(
+      'INSERT INTO users (user_id, email, first_name) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET email = $2, first_name = $3',
       [spotifyId, email, display_name]
     );
 

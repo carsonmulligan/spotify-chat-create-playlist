@@ -9,12 +9,9 @@ import { createPlaylist } from './routes/createPlaylist.js';
 import { createCheckoutSession, handleWebhook, getConfig } from './routes/stripeEvents.js';
 import cookieParser from 'cookie-parser';
 import SpotifyWebApi from 'spotify-web-api-node';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import pg from 'pg';
 import session from 'express-session';
 import { v4 as uuidv4 } from 'uuid';
-import fs from 'fs';
-import https from 'https';
 import cors from 'cors';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -48,22 +45,30 @@ app.use((req, res, next) => {
   next();
 });
 
-// SQLite database initialization
+// PostgreSQL database initialization
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+app.locals.db = pool;
+
+// Create the users table if it doesn't exist
 (async () => {
-  const db = await open({
-    filename: './database.sqlite',
-    driver: sqlite3.Database
-  });
-  app.locals.db = db;
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      user_id VARCHAR(255) PRIMARY KEY,
-      email VARCHAR(255) UNIQUE NOT NULL,
-      first_name VARCHAR(255),
-      playlist_count INTEGER NOT NULL DEFAULT 0,
-      is_subscribed BOOLEAN NOT NULL DEFAULT FALSE
-    );
-  `);
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        user_id VARCHAR(255) PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        first_name VARCHAR(255),
+        playlist_count INTEGER NOT NULL DEFAULT 0,
+        is_subscribed BOOLEAN NOT NULL DEFAULT FALSE
+      );
+    `);
+    console.log('Users table created or already exists');
+  } catch (error) {
+    console.error('Error creating users table:', error);
+  }
 })();
 
 const spotifyApi = new SpotifyWebApi({
@@ -72,29 +77,15 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: process.env.SPOTIFY_REDIRECT_URI,
 });
 
-// Update the root route to serve the landing page
+// Routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'landing.html'));
 });
 
-// Add a route for the create-playlist page
 app.get('/create-playlist', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'create-playlist.html'));
 });
 
-// Update the callback route to redirect to the create-playlist page
-app.get('/callback', spotifyCallback);
-
-// Add this route to check if the user is authenticated
-app.get('/check-auth', (req, res) => {
-  if (req.session.userId) {
-    res.json({ authenticated: true });
-  } else {
-    res.json({ authenticated: false });
-  }
-});
-
-// Routes
 app.get('/login', spotifyLogin);
 app.get('/callback', spotifyCallback);
 app.post('/api/generate-playlist', generatePlaylistFromGPT);
@@ -103,13 +94,14 @@ app.post('/api/create-playlist', async (req, res) => {
   const db = app.locals.db;
 
   try {
-    const user = await db.get('SELECT * FROM users WHERE user_id = ?', userId);
+    const result = await db.query('SELECT * FROM users WHERE user_id = $1', [userId]);
+    const user = result.rows[0];
     if (user.playlist_count >= 3 && !user.is_subscribed) {
       return res.status(403).json({ error: 'Playlist limit reached. Please subscribe to create more playlists.' });
     }
 
     // Increment playlist count
-    await db.run('UPDATE users SET playlist_count = playlist_count + 1 WHERE user_id = ?', userId);
+    await db.query('UPDATE users SET playlist_count = playlist_count + 1 WHERE user_id = $1', [userId]);
 
     // Call the existing createPlaylist function
     await createPlaylist(req, res);
@@ -124,19 +116,17 @@ app.post('/create-checkout-session', (req, res) => createCheckoutSession(req, re
 app.post('/webhook', express.raw({ type: 'application/json' }), handleWebhook);
 app.get('/config', getConfig);
 
-// Update the signup route
 app.post('/signup', async (req, res) => {
   const { email } = req.body;
   const db = app.locals.db;
 
   try {
-    // Save to SQLite database
-    const result = await db.run(
-      'INSERT INTO users (email, user_id) VALUES (?, ?)',
+    const result = await db.query(
+      'INSERT INTO users (email, user_id) VALUES ($1, $2) RETURNING *',
       [email, uuidv4()]
     );
 
-    console.log('User signed up:', result);
+    console.log('User signed up:', result.rows[0]);
     res.json({ success: true });
   } catch (error) {
     console.error('Error during sign up:', error);
@@ -167,33 +157,15 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'An unexpected error occurred', details: err.message });
 });
 
-if (process.env.NODE_ENV === 'production') {
-  // Force HTTPS
-  app.use((req, res, next) => {
-    if (req.header('x-forwarded-proto') !== 'https') {
-      res.redirect(`https://${req.header('host')}${req.url}`);
-    } else {
-      next();
-    }
-  });
+const port = process.env.PORT || 8888;
 
-  // Set up HTTPS server
-  const httpsOptions = {
-    key: fs.readFileSync('/path/to/your/privkey.pem'),
-    cert: fs.readFileSync('/path/to/your/fullchain.pem')
-  };
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+  console.log('Environment:', process.env.NODE_ENV);
+  console.log('Spotify Client ID:', process.env.SPOTIFY_CLIENT_ID);
+  console.log('Spotify Redirect URI:', process.env.SPOTIFY_REDIRECT_URI);
+});
 
-  https.createServer(httpsOptions, app).listen(443, () => {
-    console.log('HTTPS Server running on port 443');
-  });
-} else {
-  // For development, continue using HTTP
-  app.listen(process.env.PORT || 8888, () => {
-    console.log(`Server running on port ${process.env.PORT || 8888}`);
-  });
-}
-
-// Add these routes
 app.get('/subscription-success.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'subscription-success.html'));
 });
@@ -202,35 +174,9 @@ app.get('/subscription-cancelled.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'subscription-cancelled.html'));
 });
 
-// Add this route before your other routes
 app.get('/tunesmith_product_demo.mp4', async (req, res) => {
-  const path = 'public/tunesmith_product_demo.mp4';
-  const stat = await fs.promises.stat(path);
-  const fileSize = stat.size;
-  const range = req.headers.range;
-
-  if (range) {
-    const parts = range.replace(/bytes=/, "").split("-");
-    const start = parseInt(parts[0], 10);
-    const end = parts[1] ? parseInt(parts[1], 10) : fileSize-1;
-    const chunksize = (end-start)+1;
-    const file = fs.createReadStream(path, {start, end});
-    const head = {
-      'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-      'Accept-Ranges': 'bytes',
-      'Content-Length': chunksize,
-      'Content-Type': 'video/mp4',
-    };
-    res.writeHead(206, head);
-    file.pipe(res);
-  } else {
-    const head = {
-      'Content-Length': fileSize,
-      'Content-Type': 'video/mp4',
-    };
-    res.writeHead(200, head);
-    fs.createReadStream(path).pipe(res);
-  }
+  const videoPath = path.join(__dirname, 'public', 'tunesmith_product_demo.mp4');
+  res.sendFile(videoPath);
 });
 
 app.use(cors({

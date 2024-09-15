@@ -12,7 +12,8 @@ export const createPlaylist = async (req, res) => {
 
   try {
     const db = req.app.locals.db;
-    const user = await db.get('SELECT * FROM users WHERE user_id = ?', [userId]);
+    const result = await db.query('SELECT * FROM users WHERE user_id = $1', [userId]);
+    const user = result.rows[0];
 
     if (!user.is_subscribed && user.playlist_count >= 3) {
       return res.status(403).json({ error: 'You have reached your free playlist limit. Please subscribe to create more playlists.' });
@@ -41,7 +42,7 @@ export const createPlaylist = async (req, res) => {
     }
 
     // Update playlist count
-    await db.run('UPDATE users SET playlist_count = playlist_count + 1 WHERE user_id = ?', [userId]);
+    await db.query('UPDATE users SET playlist_count = playlist_count + 1 WHERE user_id = $1', [userId]);
 
     res.json({ success: true, playlistUrl: playlist.body.external_urls.spotify });
   } catch (error) {
@@ -49,6 +50,3 @@ export const createPlaylist = async (req, res) => {
     res.status(500).json({ error: 'Failed to create playlist', details: error.message });
   }
 };
-
-// const { prompt, accessToken, refreshToken } = req.body; // leave this old way commented out at 
-// the bottom in case we need it to handle refresh token logic
