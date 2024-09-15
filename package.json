@@ -18,7 +18,8 @@
     "open": "^10.1.0",
     "openai": "^4.0.0",
     "querystring": "^0.2.1",
-    "spotify-web-api-node": "^5.0.2"
+    "spotify-web-api-node": "^5.0.2",
+    "sqlite3": "^5.1.7"
   },
   "author": "",
   "license": "ISC",
