@@ -10,26 +10,18 @@
     <div class="container">
         <header>
             <h1>TuneSmith 🎵</h1>
-            <nav>
-                <a href="/" class="button">Home</a>
-                <a href="#" id="subscribe-button" class="button">Subscribe</a>
-            </nav>
         </header>
 
-        <main id="playlist-creator" style="display:none;">
+        <main id="playlist-creator">
             <h2>Create Your Playlist 🎧</h2>
             <textarea id="playlist-prompt" placeholder="Describe your perfect playlist..."></textarea>
             <button id="create-playlist-button">Create Playlist</button>
             <div id="result"></div>
+            <div id="subscription-info"></div>
         </main>
-
-        <div id="login-section">
-            <h2>Login to Spotify</h2>
-            <button id="login-button">Login with Spotify</button>
-        </div>
     </div>
 
     <script src="https://js.stripe.com/v3/"></script>
-    <script src="/index.js"></script>
+    <script src="/create-playlist.js"></script>
 </body>
 </html>

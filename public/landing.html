@@ -11,10 +11,6 @@
     <div class="container">
         <header>
             <h1>TuneSmith 🎵</h1>
-            <nav>
-                <a href="#signup" class="button">Sign Up</a>
-                <a href="#subscribe" class="button">Subscribe</a>
-            </nav>
         </header>
 
         <main>
@@ -41,74 +37,11 @@
                 </ul>
             </section>
 
-            <section id="signup" class="signup">
-                <h3>Sign Up for Updates 📬</h3>
-                <form id="signup-form">
-                    <input type="email" name="email" placeholder="Your email" required>
-                    <button type="submit">Sign Up</button>
-                </form>
-            </section>
-
-            <section id="subscribe" class="subscribe">
-                <h3>Subscribe for Unlimited Playlists 🎉</h3>
-                <button id="subscribe-button">Subscribe Now</button>
-            </section>
-
             <section class="cta">
                 <h3>Ready to Create Your Perfect Playlist? 🎵</h3>
-                <a href="/login" class="button">Get Started with Spotify</a>
+                <a href="/login" class="button">Try it out with Spotify</a>
             </section>
         </main>
     </div>
-
-    <script src="https://js.stripe.com/v3/"></script>
-    <script>
-        let stripe;
-
-        fetch('/config')
-            .then((response) => response.json())
-            .then((data) => {
-                stripe = Stripe(data.publishableKey);
-            });
-
-        document.getElementById('signup-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const email = e.target.email.value;
-            fetch('/signup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Thanks for signing up! We\'ll keep you updated.');
-                } else {
-                    alert('Sign up failed: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        });
-
-        document.getElementById('subscribe-button').addEventListener('click', function() {
-            fetch('/create-checkout-session', {
-                method: 'POST',
-            })
-            .then(response => response.json())
-            .then(session => {
-                return stripe.redirectToCheckout({ sessionId: session.id });
-            })
-            .then(result => {
-                if (result.error) {
-                    alert(result.error.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        });
-    </script>
 </body>
 </html>

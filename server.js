@@ -70,11 +70,47 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: process.env.SPOTIFY_REDIRECT_URI,
 });
 
-// Routes
+// Update the root route to serve the landing page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'landing.html'));
 });
 
+// Add a route for the create-playlist page
+app.get('/create-playlist', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'create-playlist.html'));
+});
+
+// Update the callback route to redirect to the create-playlist page
+app.get('/callback', async (req, res) => {
+  try {
+    const { code } = req.query;
+    const data = await spotifyApi.authorizationCodeGrant(code);
+    const { access_token, refresh_token } = data.body;
+
+    req.session.accessToken = access_token;
+    req.session.refreshToken = refresh_token;
+
+    // Fetch user profile and store user ID in session
+    spotifyApi.setAccessToken(access_token);
+    const me = await spotifyApi.getMe();
+    req.session.userId = me.body.id;
+
+    // Check if user exists in database, if not, create a new user
+    const db = app.locals.db;
+    let user = await db.get('SELECT * FROM users WHERE user_id = ?', [me.body.id]);
+    if (!user) {
+      await db.run('INSERT INTO users (user_id, email) VALUES (?, ?)', [me.body.id, me.body.email]);
+      user = { user_id: me.body.id, email: me.body.email, is_subscribed: false, playlist_count: 0 };
+    }
+
+    res.redirect('/create-playlist');
+  } catch (error) {
+    console.error('Error in Spotify callback:', error);
+    res.redirect('/#error=spotify_auth_error');
+  }
+});
+
+// Routes
 app.get('/login', spotifyLogin);
 app.get('/callback', spotifyCallback);
 app.post('/api/generate-playlist', generatePlaylistFromGPT);
