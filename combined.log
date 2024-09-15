@@ -125,3 +125,69 @@
 {"__stripe_mid":"f5bb14ed-e55a-43bf-adf8-f49fb012ce805b3596","_xsrf":"2|4ac85357|9e5f62bea8ac0ccc05674b575bb70229|1720702565","ajs_anonymous_id":"b5a8dea2-a56d-4d77-bf2d-d23159c456f4","connect.sid":"s:1MoMAOpaO7zAbQYNYIJ1KaeOEM0HgKeN.qU5facrVG23utNmyDEVHkhgQfj5/mYA8Z2ojanXjEG0","level":"info","message":"Cookies:","service":"playlist-service","spotify_refresh_token":"AQA4gat52Z1MpwmeEkjbGyzhCbotdfXKJ09AK9rerrnjKZXMm2moumlD53GwzyP7jkjGpZZjOF85k3qggOLltuiHVQpeGju2oM0TY68npvwWppLZvP8ja_6KSFQEwrgo4QQ"}
 {"level":"info","message":"::1 - - [15/Sep/2024:19:58:22 +0000] \"GET /config HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36\"","service":"playlist-service"}
 {"level":"info","message":"::1 - - [15/Sep/2024:19:58:22 +0000] \"GET /check-auth HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36\"","service":"playlist-service"}
+{"level":"info","message":"Server running on port 8888","service":"playlist-service"}
+{"level":"info","message":"Environment:","service":"playlist-service"}
+{"level":"info","message":"Spotify Client ID:","service":"playlist-service"}
+{"level":"info","message":"Spotify Redirect URI:","service":"playlist-service"}
+{"level":"info","message":"Successfully connected to the database","service":"playlist-service"}
+{"level":"info","message":"Users table created or already exists","service":"playlist-service"}
+{"level":"info","message":"[2024-09-15T20:05:28.667Z] GET /","service":"playlist-service"}
+{"level":"info","message":"Query:","service":"playlist-service"}
+{"level":"info","message":"Body:","service":"playlist-service"}
+{"connect.sid":"s:KgFafjfBtJ7yhbH7_xb6T_0ERYVEKYKx.0afphE3ECyDFIYp1DFqISUMKDqBJWruX1p3Xi/5HWIM","level":"info","message":"Cookies:","service":"playlist-service"}
+{"level":"info","message":"::1 - - [15/Sep/2024:20:05:28 +0000] \"GET / HTTP/1.1\" 200 3434 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15\"","service":"playlist-service"}
+{"level":"info","message":"[2024-09-15T20:05:43.442Z] GET /","service":"playlist-service"}
+{"level":"info","message":"Query:","service":"playlist-service"}
+{"level":"info","message":"Body:","service":"playlist-service"}
+{"level":"info","message":"Cookies:","service":"playlist-service"}
+{"level":"info","message":"::1 - - [15/Sep/2024:20:05:43 +0000] \"GET / HTTP/1.1\" 200 3434 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15\"","service":"playlist-service"}
+{"level":"info","message":"[2024-09-15T20:06:03.297Z] GET /","service":"playlist-service"}
+{"level":"info","message":"Query:","service":"playlist-service"}
+{"level":"info","message":"Body:","service":"playlist-service"}
+{"__stripe_mid":"f5bb14ed-e55a-43bf-adf8-f49fb012ce805b3596","_xsrf":"2|4ac85357|9e5f62bea8ac0ccc05674b575bb70229|1720702565","ajs_anonymous_id":"b5a8dea2-a56d-4d77-bf2d-d23159c456f4","connect.sid":"s:1MoMAOpaO7zAbQYNYIJ1KaeOEM0HgKeN.qU5facrVG23utNmyDEVHkhgQfj5/mYA8Z2ojanXjEG0","level":"info","message":"Cookies:","service":"playlist-service","spotify_refresh_token":"AQA4gat52Z1MpwmeEkjbGyzhCbotdfXKJ09AK9rerrnjKZXMm2moumlD53GwzyP7jkjGpZZjOF85k3qggOLltuiHVQpeGju2oM0TY68npvwWppLZvP8ja_6KSFQEwrgo4QQ"}
+{"level":"info","message":"::1 - - [15/Sep/2024:20:06:03 +0000] \"GET / HTTP/1.1\" 200 3434 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36\"","service":"playlist-service"}
+{"level":"info","message":"[2024-09-15T20:06:09.681Z] GET /login","service":"playlist-service"}
+{"level":"info","message":"Query:","service":"playlist-service"}
+{"level":"info","message":"Body:","service":"playlist-service"}
+{"__stripe_mid":"f5bb14ed-e55a-43bf-adf8-f49fb012ce805b3596","_xsrf":"2|4ac85357|9e5f62bea8ac0ccc05674b575bb70229|1720702565","ajs_anonymous_id":"b5a8dea2-a56d-4d77-bf2d-d23159c456f4","connect.sid":"s:uj-aUV-UKhtw1K1hOuHg0nG7jI243SkY.KlUj0xqAqdx1A905A8OJ+/EG+JTEuSLutlP3Z0EWQ0k","level":"info","message":"Cookies:","service":"playlist-service","spotify_refresh_token":"AQA4gat52Z1MpwmeEkjbGyzhCbotdfXKJ09AK9rerrnjKZXMm2moumlD53GwzyP7jkjGpZZjOF85k3qggOLltuiHVQpeGju2oM0TY68npvwWppLZvP8ja_6KSFQEwrgo4QQ"}
+{"level":"info","message":"::1 - - [15/Sep/2024:20:06:09 +0000] \"GET /login HTTP/1.1\" 302 321 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36\"","service":"playlist-service"}
+{"level":"info","message":"[2024-09-15T20:06:09.825Z] GET /callback?code=AQBiuio_XBotJF2TWSeuxqjGtJuhB2fVo3b0UDifYarMR3kz-Rr1aur99tMpBsKSE6tNC9EKEPoVzROd0YFXOZuLBD2mI6dOUC4UxlHxxvb7k0L1NOg3gTriZtAllW7XSeORVrl6k_9JBLJ5gU7jdJMAcjreRIHT8tyiO6vL9SFWxe5EW4tVFyGIP8gELLloAeui-P1xfdZUy0sXt4TTjmWCOSTQUjbOGJXJHwTxuKSI3bpP0F8M9dBOAYMWnWw9BdKocMkfFPx2fpqKJmiSNVaxY5o0oEk&state=6f4514c80a7348c06463af87428e4c12","service":"playlist-service"}
+{"code":"AQBiuio_XBotJF2TWSeuxqjGtJuhB2fVo3b0UDifYarMR3kz-Rr1aur99tMpBsKSE6tNC9EKEPoVzROd0YFXOZuLBD2mI6dOUC4UxlHxxvb7k0L1NOg3gTriZtAllW7XSeORVrl6k_9JBLJ5gU7jdJMAcjreRIHT8tyiO6vL9SFWxe5EW4tVFyGIP8gELLloAeui-P1xfdZUy0sXt4TTjmWCOSTQUjbOGJXJHwTxuKSI3bpP0F8M9dBOAYMWnWw9BdKocMkfFPx2fpqKJmiSNVaxY5o0oEk","level":"info","message":"Query:","service":"playlist-service","state":"6f4514c80a7348c06463af87428e4c12"}
+{"level":"info","message":"Body:","service":"playlist-service"}
+{"__stripe_mid":"f5bb14ed-e55a-43bf-adf8-f49fb012ce805b3596","_xsrf":"2|4ac85357|9e5f62bea8ac0ccc05674b575bb70229|1720702565","ajs_anonymous_id":"b5a8dea2-a56d-4d77-bf2d-d23159c456f4","connect.sid":"s:uj-aUV-UKhtw1K1hOuHg0nG7jI243SkY.KlUj0xqAqdx1A905A8OJ+/EG+JTEuSLutlP3Z0EWQ0k","level":"info","message":"Cookies:","service":"playlist-service","spotify_auth_state":"6f4514c80a7348c06463af87428e4c12","spotify_refresh_token":"AQA4gat52Z1MpwmeEkjbGyzhCbotdfXKJ09AK9rerrnjKZXMm2moumlD53GwzyP7jkjGpZZjOF85k3qggOLltuiHVQpeGju2oM0TY68npvwWppLZvP8ja_6KSFQEwrgo4QQ"}
+{"level":"info","message":"::1 - - [15/Sep/2024:20:06:10 +0000] \"GET /callback?code=AQBiuio_XBotJF2TWSeuxqjGtJuhB2fVo3b0UDifYarMR3kz-Rr1aur99tMpBsKSE6tNC9EKEPoVzROd0YFXOZuLBD2mI6dOUC4UxlHxxvb7k0L1NOg3gTriZtAllW7XSeORVrl6k_9JBLJ5gU7jdJMAcjreRIHT8tyiO6vL9SFWxe5EW4tVFyGIP8gELLloAeui-P1xfdZUy0sXt4TTjmWCOSTQUjbOGJXJHwTxuKSI3bpP0F8M9dBOAYMWnWw9BdKocMkfFPx2fpqKJmiSNVaxY5o0oEk&state=6f4514c80a7348c06463af87428e4c12 HTTP/1.1\" 302 66 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36\"","service":"playlist-service"}
+{"level":"info","message":"[2024-09-15T20:06:10.338Z] GET /create-playlist","service":"playlist-service"}
+{"level":"info","message":"Query:","service":"playlist-service"}
+{"level":"info","message":"Body:","service":"playlist-service"}
+{"__stripe_mid":"f5bb14ed-e55a-43bf-adf8-f49fb012ce805b3596","_xsrf":"2|4ac85357|9e5f62bea8ac0ccc05674b575bb70229|1720702565","ajs_anonymous_id":"b5a8dea2-a56d-4d77-bf2d-d23159c456f4","connect.sid":"s:uj-aUV-UKhtw1K1hOuHg0nG7jI243SkY.KlUj0xqAqdx1A905A8OJ+/EG+JTEuSLutlP3Z0EWQ0k","level":"info","message":"Cookies:","service":"playlist-service","spotify_refresh_token":"AQA4gat52Z1MpwmeEkjbGyzhCbotdfXKJ09AK9rerrnjKZXMm2moumlD53GwzyP7jkjGpZZjOF85k3qggOLltuiHVQpeGju2oM0TY68npvwWppLZvP8ja_6KSFQEwrgo4QQ"}
+{"level":"info","message":"::1 - - [15/Sep/2024:20:06:10 +0000] \"GET /create-playlist HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36\"","service":"playlist-service"}
+{"level":"info","message":"[2024-09-15T20:06:10.394Z] GET /config","service":"playlist-service"}
+{"level":"info","message":"Query:","service":"playlist-service"}
+{"level":"info","message":"Body:","service":"playlist-service"}
+{"__stripe_mid":"f5bb14ed-e55a-43bf-adf8-f49fb012ce805b3596","_xsrf":"2|4ac85357|9e5f62bea8ac0ccc05674b575bb70229|1720702565","ajs_anonymous_id":"b5a8dea2-a56d-4d77-bf2d-d23159c456f4","connect.sid":"s:uj-aUV-UKhtw1K1hOuHg0nG7jI243SkY.KlUj0xqAqdx1A905A8OJ+/EG+JTEuSLutlP3Z0EWQ0k","level":"info","message":"Cookies:","service":"playlist-service","spotify_refresh_token":"AQA4gat52Z1MpwmeEkjbGyzhCbotdfXKJ09AK9rerrnjKZXMm2moumlD53GwzyP7jkjGpZZjOF85k3qggOLltuiHVQpeGju2oM0TY68npvwWppLZvP8ja_6KSFQEwrgo4QQ"}
+{"level":"info","message":"[2024-09-15T20:06:10.396Z] GET /check-auth","service":"playlist-service"}
+{"level":"info","message":"Query:","service":"playlist-service"}
+{"level":"info","message":"Body:","service":"playlist-service"}
+{"__stripe_mid":"f5bb14ed-e55a-43bf-adf8-f49fb012ce805b3596","_xsrf":"2|4ac85357|9e5f62bea8ac0ccc05674b575bb70229|1720702565","ajs_anonymous_id":"b5a8dea2-a56d-4d77-bf2d-d23159c456f4","connect.sid":"s:uj-aUV-UKhtw1K1hOuHg0nG7jI243SkY.KlUj0xqAqdx1A905A8OJ+/EG+JTEuSLutlP3Z0EWQ0k","level":"info","message":"Cookies:","service":"playlist-service","spotify_refresh_token":"AQA4gat52Z1MpwmeEkjbGyzhCbotdfXKJ09AK9rerrnjKZXMm2moumlD53GwzyP7jkjGpZZjOF85k3qggOLltuiHVQpeGju2oM0TY68npvwWppLZvP8ja_6KSFQEwrgo4QQ"}
+{"level":"info","message":"::1 - - [15/Sep/2024:20:06:10 +0000] \"GET /config HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36\"","service":"playlist-service"}
+{"level":"info","message":"::1 - - [15/Sep/2024:20:06:10 +0000] \"GET /check-auth HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36\"","service":"playlist-service"}
+{"level":"info","message":"[2024-09-15T20:06:15.738Z] POST /api/create-playlist","service":"playlist-service"}
+{"level":"info","message":"Query:","service":"playlist-service"}
+{"level":"info","message":"Body:","prompt":"country songs about oklahoma","service":"playlist-service"}
+{"__stripe_mid":"f5bb14ed-e55a-43bf-adf8-f49fb012ce805b3596","_xsrf":"2|4ac85357|9e5f62bea8ac0ccc05674b575bb70229|1720702565","ajs_anonymous_id":"b5a8dea2-a56d-4d77-bf2d-d23159c456f4","connect.sid":"s:uj-aUV-UKhtw1K1hOuHg0nG7jI243SkY.KlUj0xqAqdx1A905A8OJ+/EG+JTEuSLutlP3Z0EWQ0k","level":"info","message":"Cookies:","service":"playlist-service","spotify_refresh_token":"AQA4gat52Z1MpwmeEkjbGyzhCbotdfXKJ09AK9rerrnjKZXMm2moumlD53GwzyP7jkjGpZZjOF85k3qggOLltuiHVQpeGju2oM0TY68npvwWppLZvP8ja_6KSFQEwrgo4QQ"}
+{"level":"info","message":"::1 - - [15/Sep/2024:20:06:15 +0000] \"POST /api/create-playlist HTTP/1.1\" 403 78 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36\"","service":"playlist-service"}
+{"level":"info","message":"[2024-09-15T20:06:17.464Z] POST /create-checkout-session","service":"playlist-service"}
+{"level":"info","message":"Query:","service":"playlist-service"}
+{"level":"info","message":"Body:","service":"playlist-service"}
+{"__stripe_mid":"f5bb14ed-e55a-43bf-adf8-f49fb012ce805b3596","_xsrf":"2|4ac85357|9e5f62bea8ac0ccc05674b575bb70229|1720702565","ajs_anonymous_id":"b5a8dea2-a56d-4d77-bf2d-d23159c456f4","connect.sid":"s:uj-aUV-UKhtw1K1hOuHg0nG7jI243SkY.KlUj0xqAqdx1A905A8OJ+/EG+JTEuSLutlP3Z0EWQ0k","level":"info","message":"Cookies:","service":"playlist-service","spotify_refresh_token":"AQA4gat52Z1MpwmeEkjbGyzhCbotdfXKJ09AK9rerrnjKZXMm2moumlD53GwzyP7jkjGpZZjOF85k3qggOLltuiHVQpeGju2oM0TY68npvwWppLZvP8ja_6KSFQEwrgo4QQ"}
+{"level":"info","message":"::1 - - [15/Sep/2024:20:06:18 +0000] \"POST /create-checkout-session HTTP/1.1\" 200 75 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36\"","service":"playlist-service"}
+{"level":"info","message":"[2024-09-15T20:08:28.264Z] POST /create-checkout-session","service":"playlist-service"}
+{"level":"info","message":"Query:","service":"playlist-service"}
+{"level":"info","message":"Body:","service":"playlist-service"}
+{"__stripe_mid":"f5bb14ed-e55a-43bf-adf8-f49fb012ce805b3596","_xsrf":"2|4ac85357|9e5f62bea8ac0ccc05674b575bb70229|1720702565","ajs_anonymous_id":"b5a8dea2-a56d-4d77-bf2d-d23159c456f4","connect.sid":"s:uj-aUV-UKhtw1K1hOuHg0nG7jI243SkY.KlUj0xqAqdx1A905A8OJ+/EG+JTEuSLutlP3Z0EWQ0k","level":"info","message":"Cookies:","service":"playlist-service","spotify_refresh_token":"AQA4gat52Z1MpwmeEkjbGyzhCbotdfXKJ09AK9rerrnjKZXMm2moumlD53GwzyP7jkjGpZZjOF85k3qggOLltuiHVQpeGju2oM0TY68npvwWppLZvP8ja_6KSFQEwrgo4QQ"}
+{"level":"info","message":"[2024-09-15T20:08:28.943Z] POST /create-checkout-session","service":"playlist-service"}
+{"level":"info","message":"Query:","service":"playlist-service"}
+{"level":"info","message":"Body:","service":"playlist-service"}
+{"__stripe_mid":"f5bb14ed-e55a-43bf-adf8-f49fb012ce805b3596","_xsrf":"2|4ac85357|9e5f62bea8ac0ccc05674b575bb70229|1720702565","ajs_anonymous_id":"b5a8dea2-a56d-4d77-bf2d-d23159c456f4","connect.sid":"s:uj-aUV-UKhtw1K1hOuHg0nG7jI243SkY.KlUj0xqAqdx1A905A8OJ+/EG+JTEuSLutlP3Z0EWQ0k","level":"info","message":"Cookies:","service":"playlist-service","spotify_refresh_token":"AQA4gat52Z1MpwmeEkjbGyzhCbotdfXKJ09AK9rerrnjKZXMm2moumlD53GwzyP7jkjGpZZjOF85k3qggOLltuiHVQpeGju2oM0TY68npvwWppLZvP8ja_6KSFQEwrgo4QQ"}
+{"level":"info","message":"::1 - - [15/Sep/2024:20:08:29 +0000] \"POST /create-checkout-session HTTP/1.1\" 200 75 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36\"","service":"playlist-service"}
+{"level":"info","message":"::1 - - [15/Sep/2024:20:08:29 +0000] \"POST /create-checkout-session HTTP/1.1\" 200 75 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36\"","service":"playlist-service"}

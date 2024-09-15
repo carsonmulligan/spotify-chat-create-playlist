@@ -4,9 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const YOUR_DOMAIN = process.env.NODE_ENV === 'production' 
-  ? 'https://www.tunesmith-ai.com' 
-  : 'http://localhost:8888';
+const YOUR_DOMAIN = process.env.DOMAIN || 'http://localhost:8888';
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 export const createCheckoutSession = async (req, res, db) => {
@@ -38,10 +36,12 @@ export const createCheckoutSession = async (req, res, db) => {
         price: process.env.STRIPE_PRICE_ID,
         quantity: 1,
       }],
-      success_url: `${process.env.DOMAIN}/subscription-success.html`,
-      cancel_url: `${process.env.DOMAIN}/subscription-cancelled.html`,
+      success_url: `${YOUR_DOMAIN}/subscription-success.html`,
+      cancel_url: `${YOUR_DOMAIN}/subscription-cancelled.html`,
       customer: customer ? customer.id : undefined,
     });
+
+    console.log('Checkout Session:', session); // Add this line for logging
 
     res.json({ id: session.id });
   } catch (error) {

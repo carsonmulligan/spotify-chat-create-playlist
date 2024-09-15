@@ -170,9 +170,6 @@ app.post('/api/create-playlist', async (req, res) => {
 // Stripe routes
 app.post('/create-checkout-session', (req, res) => createCheckoutSession(req, res, app.locals.db));
 app.post('/webhook', express.raw({ type: 'application/json' }), handleWebhook);
-app.get('/config', (req, res) => {
-    res.json({ publishableKey: process.env.STRIPE_PUBLISHABLE_KEY });
-});
 app.get('/config', getConfig);
 
 app.post('/signup', async (req, res) => {
