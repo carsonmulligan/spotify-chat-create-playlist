@@ -1,4 +1,5 @@
 let accessToken = null;
+let stripe;
 
 const loginButton = document.getElementById('login-button');
 const playlistCreator = document.getElementById('playlist-creator');
@@ -17,27 +18,54 @@ window.onload = () => {
     accessToken = params.get('access_token');
     
     if (accessToken) {
+        localStorage.setItem('spotify_access_token', accessToken);
         loginButton.style.display = 'none';
         playlistCreator.style.display = 'block';
         result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
         
-        // Fetch the user profile using the correct access token
-        fetch(`/api/me?access_token=${accessToken}`)
-          .then(response => response.json())
-          .then(data => {
-            console.log('User profile:', data);
-            result.innerHTML += `<p>Welcome, ${data.display_name}!</p>`;
-          })
-          .catch(error => {
-            console.error('Error fetching user profile:', error);
-            result.innerHTML += `<p>Error fetching user profile: ${error.message}</p>`;
-          });
+        fetchUserProfile();
     } else if (params.get('error')) {
         result.innerHTML = `<p>Error: ${params.get('error')}</p>`;
+    } else {
+        // Check if we have a stored access token
+        accessToken = localStorage.getItem('spotify_access_token');
+        if (accessToken) {
+            loginButton.style.display = 'none';
+            playlistCreator.style.display = 'block';
+            fetchUserProfile();
+        }
     }
 
     window.location.hash = '';
 };
+
+function fetchUserProfile() {
+    fetch(`/api/me`, {
+        headers: {
+            'Authorization': `Bearer ${accessToken}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('User profile:', data);
+        result.innerHTML += `<p>Welcome, ${data.display_name}!</p>`;
+    })
+    .catch(error => {
+        console.error('Error fetching user profile:', error);
+        result.innerHTML += `<p>Error fetching user profile: ${error.message}</p>`;
+    });
+}
+
+// Initialize Stripe
+fetch('/config')
+  .then((response) => response.json())
+  .then((data) => {
+    console.log('Stripe publishable key:', data.publishableKey);
+    stripe = Stripe(data.publishableKey);
+  })
+  .catch((error) => {
+    console.error('Error loading Stripe config:', error);
+  });
 
 // After successful authentication
 fetch(`/api/me?access_token=${accessToken}`)
@@ -75,21 +103,41 @@ createPlaylistButton.addEventListener('click', async () => {
             })
         });
 
-        if (!response.ok) throw new Error('Failed to create playlist');
-        
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let playlistData = '';
+        if (response.status === 403) {
+            console.log('Playlist limit reached, creating checkout session');
+            
+            const sessionResponse = await fetch('/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({})
+            });
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value);
-            playlistData += chunk;
-            result.innerHTML = `<p>Generating playlist: ${playlistData}</p>`;
+            if (!sessionResponse.ok) {
+                const errorData = await sessionResponse.json();
+                throw new Error(`Failed to create checkout session: ${errorData.error}`);
+            }
+
+            const session = await sessionResponse.json();
+            console.log('Checkout session created:', session.id);
+
+            if (!stripe) {
+                throw new Error('Stripe has not been initialized');
+            }
+
+            const { error } = await stripe.redirectToCheckout({
+                sessionId: session.id,
+            });
+            if (error) {
+                throw error;
+            }
         }
 
-        const data = JSON.parse(playlistData);
+        if (!response.ok) throw new Error('Failed to create playlist');
+        
+        const data = await response.json();
         result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;
     } catch (error) {
         console.error('Error:', error);
