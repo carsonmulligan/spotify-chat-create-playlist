@@ -1,0 +1,16 @@
+{"level":"info","message":"Server running on port 8888","service":"playlist-service"}
+{"level":"info","message":"Environment:","service":"playlist-service"}
+{"level":"info","message":"Spotify Client ID:","service":"playlist-service"}
+{"level":"info","message":"Spotify Redirect URI:","service":"playlist-service"}
+{"level":"info","message":"Successfully connected to the database","service":"playlist-service"}
+{"level":"info","message":"Users table created or already exists","service":"playlist-service"}
+{"level":"info","message":"[2024-09-15T19:54:04.507Z] GET /","service":"playlist-service"}
+{"level":"info","message":"Query:","service":"playlist-service"}
+{"level":"info","message":"Body:","service":"playlist-service"}
+{"__stripe_mid":"90ba42ed-7eac-4645-9cf8-b6b014cd80ef4da88a","connect.sid":"s:XB9HZqBWTPFNDWgCeVhxv7F0zQ2Nog8N.OVT8IbYCpCLuj4miXdPS1TvhW2QAyENS6OBuXwSDEXs","level":"info","message":"Cookies:","service":"playlist-service"}
+{"level":"info","message":"::1 - - [15/Sep/2024:19:54:04 +0000] \"GET / HTTP/1.1\" 200 2884 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15\"","service":"playlist-service"}
+{"level":"info","message":"[2024-09-15T19:54:07.824Z] GET /","service":"playlist-service"}
+{"level":"info","message":"Query:","service":"playlist-service"}
+{"level":"info","message":"Body:","service":"playlist-service"}
+{"__stripe_mid":"90ba42ed-7eac-4645-9cf8-b6b014cd80ef4da88a","connect.sid":"s:5YKLN8axXNwLJ3SPYygTFtNlzflm6oKr.q7TrN14sdhyD9GAxUQOgVuLIllDNdCX31a5ZCT4FCTE","level":"info","message":"Cookies:","service":"playlist-service"}
+{"level":"info","message":"::1 - - [15/Sep/2024:19:54:07 +0000] \"GET / HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15\"","service":"playlist-service"}
