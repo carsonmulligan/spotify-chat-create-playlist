@@ -27,6 +27,20 @@ dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
 
+// Set Content Security Policy before any other middleware
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; frame-src https://js.stripe.com;"
+  );
+  next();
+});
+
+// Use Helmet for security headers (configure CSP here if preferred)
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable Helmet's default CSP to avoid conflicts
+}));
+
 // Middleware
 app.use(cookieParser());
 app.use(express.json());
@@ -41,9 +55,6 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
-
-// Use Helmet for security headers
-app.use(helmet());
 
 // Setup rate limiting to prevent abuse
 const limiter = rateLimit({

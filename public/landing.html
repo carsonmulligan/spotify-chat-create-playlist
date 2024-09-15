@@ -65,9 +65,9 @@
 
                     // Fetch Stripe publishable key
                     const configResponse = await fetch('/config');
-                    const configData = await configResponse.json();
-                    console.log('Stripe Publishable Key:', configData.publishableKey);
-                    const stripe = Stripe(configData.publishableKey);
+                    const { publishableKey } = await configResponse.json();
+                    console.log('Stripe Publishable Key:', publishableKey);
+                    const stripe = Stripe(publishableKey);
 
                     if (!stripe) {
                         throw new Error('Stripe.js failed to initialize.');
@@ -95,7 +95,7 @@
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    alert(`Failed to start subscription process. ${error.message}`);
+                    alert(`Failed to start subscription process: ${error.message}`);
                 }
             });
         });
