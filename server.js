@@ -124,10 +124,8 @@ app.use((req, res, next) => {
 // PostgreSQL database initialization
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-    sslmode: 'require'
-  }
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  connectionTimeoutMillis: 5000 // Increase timeout to 5 seconds
 });
 pool.on('error', (err) => {
   logger.error('Unexpected error on idle client', err);
