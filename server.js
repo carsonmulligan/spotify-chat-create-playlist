@@ -27,23 +27,48 @@ dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
 
-// Middleware
+// Move these to the top of your middleware stack
+app.use(helmet());
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+app.use(cors({
+  origin: isProduction ? 'https://www.tunesmith-ai.com' : 'http://localhost:8888',
+  credentials: true
+}));
+
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
+
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true,
   cookie: { 
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction,
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
 
-// Use Helmet for security headers
-app.use(helmet());
+// Move this after all other middleware
+app.use(express.static('public'));
+
+// ... rest of your code ...
+
+// Ensure this route is defined
+app.get('/check-auth', (req, res) => {
+  res.json({ authenticated: !!req.session.userId });
+});
+
+// Move this to the bottom of your file
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; frame-src https://js.stripe.com;"
+  );
+  next();
+});
 
 // Setup rate limiting to prevent abuse
 const limiter = rateLimit({
@@ -133,17 +158,14 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: process.env.SPOTIFY_REDIRECT_URI,
 });
 
-// Routes
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'landing.html'));
-});
-
-app.get('/create-playlist', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'create-playlist.html'));
-});
-
+// Auth routes
 app.get('/login', spotifyLogin);
 app.get('/callback', spotifyCallback);
+app.get('/check-auth', (req, res) => {
+  res.json({ authenticated: !!req.session.userId });
+});
+
+// API routes
 app.post('/api/generate-playlist', generatePlaylistFromGPT);
 app.post('/api/create-playlist', async (req, res) => {
   const userId = req.session.userId;
@@ -171,6 +193,20 @@ app.post('/api/create-playlist', async (req, res) => {
 app.post('/create-checkout-session', (req, res) => createCheckoutSession(req, res, app.locals.db));
 app.post('/webhook', express.raw({ type: 'application/json' }), handleWebhook);
 app.get('/config', getConfig);
+
+// Static routes
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'landing.html'));
+});
+app.get('/create-playlist', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'create-playlist.html'));
+});
+app.get('/subscription-success.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'subscription-success.html'));
+});
+app.get('/subscription-cancelled.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'subscription-cancelled.html'));
+});
 
 app.post('/signup', async (req, res) => {
   const { email } = req.body;
@@ -214,12 +250,6 @@ app.use((err, req, res, next) => {
 });
 
 const port = process.env.PORT || 8888;
-const isProduction = process.env.NODE_ENV === 'production';
-
-app.use(cors({
-  origin: isProduction ? 'https://www.tunesmith-ai.com' : 'http://localhost:8888',
-  credentials: true
-}));
 
 app.listen(port, () => {
   logger.info(`Server running on port ${port}`);
@@ -228,27 +258,7 @@ app.listen(port, () => {
   logger.info('Spotify Redirect URI:', process.env.SPOTIFY_REDIRECT_URI);
 });
 
-app.get('/subscription-success.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'subscription-success.html'));
-});
-
-app.get('/subscription-cancelled.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'subscription-cancelled.html'));
-});
-
 app.get('/tunesmith_product_demo.mp4', async (req, res) => {
   const videoPath = path.join(__dirname, 'public', 'tunesmith_product_demo.mp4');
   res.sendFile(videoPath);
-});
-
-app.use((req, res, next) => {
-  res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; frame-src https://js.stripe.com;"
-  );
-  next();
-});
-
-app.get('/check-auth', (req, res) => {
-  res.json({ authenticated: !!req.session.userId });
 });
