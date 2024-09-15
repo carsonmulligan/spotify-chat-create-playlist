@@ -81,32 +81,14 @@ app.get('/create-playlist', (req, res) => {
 });
 
 // Update the callback route to redirect to the create-playlist page
-app.get('/callback', async (req, res) => {
-  try {
-    const { code } = req.query;
-    const data = await spotifyApi.authorizationCodeGrant(code);
-    const { access_token, refresh_token } = data.body;
+app.get('/callback', spotifyCallback);
 
-    req.session.accessToken = access_token;
-    req.session.refreshToken = refresh_token;
-
-    // Fetch user profile and store user ID in session
-    spotifyApi.setAccessToken(access_token);
-    const me = await spotifyApi.getMe();
-    req.session.userId = me.body.id;
-
-    // Check if user exists in database, if not, create a new user
-    const db = app.locals.db;
-    let user = await db.get('SELECT * FROM users WHERE user_id = ?', [me.body.id]);
-    if (!user) {
-      await db.run('INSERT INTO users (user_id, email) VALUES (?, ?)', [me.body.id, me.body.email]);
-      user = { user_id: me.body.id, email: me.body.email, is_subscribed: false, playlist_count: 0 };
-    }
-
-    res.redirect('/create-playlist');
-  } catch (error) {
-    console.error('Error in Spotify callback:', error);
-    res.redirect('/#error=spotify_auth_error');
+// Add this route to check if the user is authenticated
+app.get('/check-auth', (req, res) => {
+  if (req.session.userId) {
+    res.json({ authenticated: true });
+  } else {
+    res.json({ authenticated: false });
   }
 });
 

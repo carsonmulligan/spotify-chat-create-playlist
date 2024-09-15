@@ -18,7 +18,7 @@ const spotifyApi = new SpotifyWebApi({
 export const spotifyLogin = (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
   res.cookie('spotify_auth_state', state, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
-  const scopes = ['playlist-modify-private', 'playlist-modify-public'];
+  const scopes = ['user-read-private', 'user-read-email', 'playlist-modify-private', 'playlist-modify-public'];
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
   console.log('Redirecting to Spotify authorize URL:', authorizeURL);
   res.redirect(authorizeURL);
@@ -51,19 +51,31 @@ export const spotifyCallback = async (req, res) => {
 
     spotifyApi.setAccessToken(access_token);
 
+    // Fetch user profile
+    const me = await spotifyApi.getMe();
+    const { id: spotifyId, email, display_name } = me.body;
+
+    // Store user in database
+    const db = req.app.locals.db;
+    await db.run(
+      'INSERT OR REPLACE INTO users (user_id, email, first_name) VALUES (?, ?, ?)',
+      [spotifyId, email, display_name]
+    );
+
     // Store tokens in session
+    req.session.userId = spotifyId;
     req.session.accessToken = access_token;
     req.session.refreshToken = refresh_token;
     req.session.expiresIn = expires_in;
 
     console.log('Session after Spotify login:', req.session);
 
-    // Redirect to the frontend with the access token
-    res.redirect(`${process.env.FRONTEND_URI || 'http://localhost:8888'}/#access_token=${access_token}`);
+    // Redirect to the create-playlist page
+    res.redirect('/create-playlist');
   } catch (error) {
     console.error('Error getting Spotify tokens:', error);
     console.error('Error details:', error.response ? error.response.data : 'No response data');
-    res.redirect(`${process.env.FRONTEND_URI || 'http://localhost:8888'}/#error=spotify_auth_error&message=${encodeURIComponent(error.message)}`);
+    res.redirect('/#error=spotify_auth_error');
   }
 };
 

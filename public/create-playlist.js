@@ -11,6 +11,15 @@ const playlistPrompt = document.getElementById('playlist-prompt');
 const result = document.getElementById('result');
 const subscriptionInfo = document.getElementById('subscription-info');
 
+// Check if the user is authenticated
+fetch('/check-auth')
+    .then(response => response.json())
+    .then(data => {
+        if (!data.authenticated) {
+            window.location.href = '/login';
+        }
+    });
+
 createPlaylistButton.addEventListener('click', async () => {
     const prompt = playlistPrompt.value;
     
