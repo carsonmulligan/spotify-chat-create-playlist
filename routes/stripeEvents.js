@@ -30,6 +30,7 @@ export const createCheckoutSession = async (req, res, db) => {
   try {
     console.log('Creating Stripe checkout session');
     const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
       line_items: [
         {
           price: process.env.STRIPE_PRICE_ID,
@@ -43,8 +44,8 @@ export const createCheckoutSession = async (req, res, db) => {
       customer_email: user.email,
     });
 
-    console.log('Checkout session created:', session.id);
-    res.json({ url: session.url });
+    console.log('Checkout session created:', session);
+    res.json({ id: session.id });
   } catch (error) {
     console.error('Error creating Stripe Checkout session:', error);
     res.status(500).json({ error: 'Failed to create checkout session', details: error.message });

@@ -12,9 +12,8 @@ import SpotifyWebApi from 'spotify-web-api-node';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import session from 'express-session';
-import bodyParser from 'body-parser';
 import { v4 as uuidv4 } from 'uuid';
-import crypto from 'crypto';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -26,8 +25,8 @@ const app = express();
 // Middleware
 app.use(cookieParser());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
-app.use(bodyParser.json());
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -47,7 +46,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Initialize the database
+// SQLite database initialization
 (async () => {
   const db = await open({
     filename: './database.sqlite',
@@ -71,63 +70,71 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: process.env.SPOTIFY_REDIRECT_URI,
 });
 
-// Routes
+// Update the root route to serve the landing page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'landing.html'));
 });
 
+// Add a route for the create-playlist page
+app.get('/create-playlist', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'create-playlist.html'));
+});
+
+// Update the callback route to redirect to the create-playlist page
+app.get('/callback', spotifyCallback);
+
+// Add this route to check if the user is authenticated
+app.get('/check-auth', (req, res) => {
+  if (req.session.userId) {
+    res.json({ authenticated: true });
+  } else {
+    res.json({ authenticated: false });
+  }
+});
+
+// Routes
 app.get('/login', spotifyLogin);
 app.get('/callback', spotifyCallback);
 app.post('/api/generate-playlist', generatePlaylistFromGPT);
-app.post('/api/create-playlist', createPlaylist);
-
-// Stripe routes
-app.post('/create-checkout-session', (req, res) => createCheckoutSession(req, res, app.locals.db));
-app.post('/webhook', express.raw({ type: 'application/json' }), (request, response) => {
-  const sig = request.headers['stripe-signature'];
-
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(request.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-  } catch (err) {
-    console.log(`⚠️  Webhook signature verification failed.`, err.message);
-    return response.sendStatus(400);
-  }
-
-  // Handle the event
-  switch (event.type) {
-    case 'checkout.session.completed':
-      const session = event.data.object;
-      // Handle successful checkout session
-      console.log('Checkout session completed:', session);
-      break;
-    case 'payment_intent.succeeded':
-      const paymentIntent = event.data.object;
-      console.log('PaymentIntent was successful!');
-      break;
-    default:
-      console.log(`Unhandled event type ${event.type}`);
-  }
-
-  // Return a 200 response to acknowledge receipt of the event
-  response.send();
-});
-app.get('/config', getConfig);
-
-app.post('/signup', async (req, res) => {
-  const { firstName, email } = req.body;
+app.post('/api/create-playlist', async (req, res) => {
+  const userId = req.session.userId;
   const db = app.locals.db;
 
   try {
-    const existingUser = await db.get('SELECT * FROM users WHERE email = ?', [email]);
-    if (existingUser) {
-      return res.json({ success: false, error: 'User already exists' });
+    const user = await db.get('SELECT * FROM users WHERE user_id = ?', userId);
+    if (user.playlist_count >= 3 && !user.is_subscribed) {
+      return res.status(403).json({ error: 'Playlist limit reached. Please subscribe to create more playlists.' });
     }
 
-    const userId = uuidv4();
-    await db.run('INSERT INTO users (user_id, email, first_name) VALUES (?, ?, ?)', [userId, email, firstName]);
-    req.session.userId = userId;
+    // Increment playlist count
+    await db.run('UPDATE users SET playlist_count = playlist_count + 1 WHERE user_id = ?', userId);
+
+    // Call the existing createPlaylist function
+    await createPlaylist(req, res);
+  } catch (error) {
+    console.error('Error creating playlist:', error);
+    res.status(500).json({ error: 'Failed to create playlist', details: error.message });
+  }
+});
+
+// Stripe routes
+app.post('/create-checkout-session', (req, res) => createCheckoutSession(req, res, app.locals.db));
+app.post('/webhook', express.raw({ type: 'application/json' }), handleWebhook);
+app.get('/config', getConfig);
+
+// Update the signup route
+app.post('/signup', async (req, res) => {
+  const { email } = req.body;
+  const db = app.locals.db;
+
+  try {
+    // Save to SQLite database
+    const result = await db.run(
+      'INSERT INTO users (email, user_id) VALUES (?, ?)',
+      [email, uuidv4()]
+    );
+
+    console.log('User signed up:', result);
     res.json({ success: true });
   } catch (error) {
     console.error('Error during sign up:', error);
@@ -174,4 +181,35 @@ app.get('/subscription-success.html', (req, res) => {
 
 app.get('/subscription-cancelled.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'subscription-cancelled.html'));
+});
+
+// Add this route before your other routes
+app.get('/tunesmith_product_demo.mp4', async (req, res) => {
+  const path = 'public/tunesmith_product_demo.mp4';
+  const stat = await fs.promises.stat(path);
+  const fileSize = stat.size;
+  const range = req.headers.range;
+
+  if (range) {
+    const parts = range.replace(/bytes=/, "").split("-");
+    const start = parseInt(parts[0], 10);
+    const end = parts[1] ? parseInt(parts[1], 10) : fileSize-1;
+    const chunksize = (end-start)+1;
+    const file = fs.createReadStream(path, {start, end});
+    const head = {
+      'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+      'Accept-Ranges': 'bytes',
+      'Content-Length': chunksize,
+      'Content-Type': 'video/mp4',
+    };
+    res.writeHead(206, head);
+    file.pipe(res);
+  } else {
+    const head = {
+      'Content-Length': fileSize,
+      'Content-Type': 'video/mp4',
+    };
+    res.writeHead(200, head);
+    fs.createReadStream(path).pipe(res);
+  }
 });

@@ -2,52 +2,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Your head content -->
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuneSmith - AI-Powered Spotify Playlist Creator</title>
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <div class="container">
-        <!-- Existing content -->
-        <header class="hero">
-            <h1>AI-Powered Spotify Playlist Creator</h1>
-            <p>Create the perfect playlist with just a few words</p>
+        <header>
+            <h1>TuneSmith 🎵</h1>
+            <nav>
+                <a href="/login" class="button">Try it out with Spotify</a>
+            </nav>
         </header>
 
-        <!-- Sign-Up Form -->
-        <section class="signup">
-            <h2>Get Started</h2>
-            <form id="signup-form">
-                <input type="text" name="first_name" placeholder="First Name" required>
-                <input type="email" name="email" placeholder="Email" required>
-                <button type="submit">Sign Up</button>
-            </form>
-        </section>
-    </div>
+        <main>
+            <section class="hero">
+                <h2>AI-Powered Spotify Playlist Creator 🤖🎧</h2>
+                <p>Create the perfect playlist with just a few words! ✨</p>
+            </section>
 
-    <script>
-        document.getElementById('signup-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const firstName = e.target.first_name.value;
-            const email = e.target.email.value;
-            fetch('/signup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ firstName, email })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Redirect to login with Spotify
-                    window.location.href = '/login';
-                } else {
-                    // Show error message
-                    alert('Sign up failed: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        });
-    </script>
+            <section class="demo">
+                <h3>See TuneSmith in Action 🎬</h3>
+                <video width="100%" controls>
+                    <source src="/tunesmith_product_demo.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </section>
+
+            <section class="features">
+                <h3>Features 🚀</h3>
+                <ul>
+                    <li>🧠 AI-powered playlist generation</li>
+                    <li>🎵 Seamless Spotify integration</li>
+                    <li>🎨 Customizable playlists</li>
+                    <li>⚡ Quick and easy to use</li>
+                </ul>
+            </section>
+
+            <section class="cta">
+                <h3>Ready to Create Your Perfect Playlist? 🎵</h3>
+                <a href="/login" class="button">Try it out with Spotify</a>
+            </section>
+        </main>
+    </div>
 </body>
 </html>
