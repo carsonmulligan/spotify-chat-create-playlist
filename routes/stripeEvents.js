@@ -51,7 +51,7 @@ export const createCheckoutSession = async (req, res, db) => {
   }
 };
 
-export const handleWebhook = async (req, res, db) => {
+export const handleWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
 
   let event;
@@ -67,26 +67,15 @@ export const handleWebhook = async (req, res, db) => {
   switch (event.type) {
     case 'checkout.session.completed':
       const session = event.data.object;
-      const email = session.customer_email;
-      try {
-        await db.run('UPDATE users SET is_subscribed = TRUE WHERE email = ?', [email]);
-        console.log(`User with email ${email} has been subscribed.`);
-      } catch (dbError) {
-        console.error('Database update failed:', dbError);
-      }
+      // Handle successful checkout session
+      console.log('Checkout session completed:', session);
       break;
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object;
-      console.log(`PaymentIntent for ${paymentIntent.amount} was successful!`);
-      // You can add additional handling here if needed
-      break;
-    case 'payment_method.attached':
-      const paymentMethod = event.data.object;
-      console.log('PaymentMethod was attached to a Customer!');
-      // You can add additional handling here if needed
+      console.log('PaymentIntent was successful!');
       break;
     default:
-      console.log(`Unhandled event type ${event.type}.`);
+      console.log(`Unhandled event type ${event.type}`);
   }
 
   // Return a 200 response to acknowledge receipt of the event

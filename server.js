@@ -14,6 +14,7 @@ import { open } from 'sqlite';
 import session from 'express-session';
 import bodyParser from 'body-parser';
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -82,7 +83,36 @@ app.post('/api/create-playlist', createPlaylist);
 
 // Stripe routes
 app.post('/create-checkout-session', (req, res) => createCheckoutSession(req, res, app.locals.db));
-app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => handleWebhook(req, res, app.locals.db));
+app.post('/webhook', express.raw({ type: 'application/json' }), (request, response) => {
+  const sig = request.headers['stripe-signature'];
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(request.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.log(`⚠️  Webhook signature verification failed.`, err.message);
+    return response.sendStatus(400);
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case 'checkout.session.completed':
+      const session = event.data.object;
+      // Handle successful checkout session
+      console.log('Checkout session completed:', session);
+      break;
+    case 'payment_intent.succeeded':
+      const paymentIntent = event.data.object;
+      console.log('PaymentIntent was successful!');
+      break;
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  // Return a 200 response to acknowledge receipt of the event
+  response.send();
+});
 app.get('/config', getConfig);
 
 app.post('/signup', async (req, res) => {
