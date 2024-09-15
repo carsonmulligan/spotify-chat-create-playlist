@@ -50,30 +50,54 @@
     </div>
     <script src="https://js.stripe.com/v3/"></script>
     <script>
-        document.getElementById('subscribe-button').addEventListener('click', async () => {
-            try {
-                const response = await fetch('/create-checkout-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
+        document.addEventListener('DOMContentLoaded', () => {
+            const subscribeButton = document.getElementById('subscribe-button');
+            subscribeButton.addEventListener('click', async () => {
+                try {
+                    // Check if user is authenticated
+                    const authResponse = await fetch('/check-auth');
+                    const authData = await authResponse.json();
+                    if (!authData.authenticated) {
+                        // Redirect to Spotify login
+                        window.location.href = '/login';
+                        return;
+                    }
 
-                if (!response.ok) {
-                    throw new Error('Failed to create checkout session');
+                    // Fetch Stripe publishable key
+                    const configResponse = await fetch('/config');
+                    const { publishableKey } = await configResponse.json();
+                    console.log('Stripe Publishable Key:', publishableKey);
+                    const stripe = Stripe(publishableKey);
+
+                    if (!stripe) {
+                        throw new Error('Stripe.js failed to initialize.');
+                    }
+
+                    const response = await fetch('/create-checkout-session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to create checkout session');
+                    }
+
+                    const session = await response.json();
+                    console.log('Checkout Session ID:', session.id);
+
+                    const result = await stripe.redirectToCheckout({
+                        sessionId: session.id,
+                    });
+
+                    if (result.error) {
+                        throw result.error;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert(`Failed to start subscription process: ${error.message}`);
                 }
-
-                const session = await response.json();
-                const stripe = Stripe(session.publishableKey);
-                const result = await stripe.redirectToCheckout({
-                    sessionId: session.id,
-                });
-
-                if (result.error) {
-                    throw result.error;
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Failed to start subscription process. Please try again.');
-            }
+            });
         });
     </script>
 </body>

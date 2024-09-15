@@ -4,54 +4,49 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const YOUR_DOMAIN = process.env.NODE_ENV === 'production' 
-  ? 'https://www.tunesmith-ai.com' 
-  : 'http://localhost:8888';
+const YOUR_DOMAIN = process.env.DOMAIN || 'http://localhost:8888';
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 export const createCheckoutSession = async (req, res, db) => {
-  console.log('Creating checkout session');
-  const userId = req.session.userId;
-
-  console.log('User ID from session:', userId);
-
-  if (!userId) {
-    console.log('User not authenticated');
-    return res.status(401).json({ error: 'User not authenticated' });
-  }
-
-  const result = await db.query('SELECT * FROM users WHERE user_id = $1', [userId]);
-  const user = result.rows[0];
-
-  console.log('User from database:', user);
-
-  if (!user) {
-    console.log('User not found in database');
-    return res.status(401).json({ error: 'User not found' });
-  }
-
   try {
-    console.log('Creating Stripe checkout session');
+    const userId = req.session.userId;
+    let customer;
+
+    if (userId) {
+      // Fetch user from database
+      const result = await db.query('SELECT * FROM users WHERE user_id = $1', [userId]);
+      const user = result.rows[0];
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Create or retrieve Stripe customer
+      customer = await stripe.customers.create({
+        email: user.email,
+        metadata: { userId: user.user_id }
+      });
+    }
+
+    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price: process.env.STRIPE_PRICE_ID,
-          quantity: 1,
-        },
-      ],
       mode: 'subscription',
-      success_url: `${YOUR_DOMAIN}/subscription-success.html?session_id={CHECKOUT_SESSION_ID}`,
+      line_items: [{
+        price: process.env.STRIPE_PRICE_ID,
+        quantity: 1,
+      }],
+      success_url: `${YOUR_DOMAIN}/subscription-success.html`,
       cancel_url: `${YOUR_DOMAIN}/subscription-cancelled.html`,
-      automatic_tax: {enabled: true},
-      customer_email: user.email,
+      customer: customer ? customer.id : undefined,
     });
 
-    console.log('Checkout session created:', session);
+    console.log('Checkout Session:', session); // Add this line for logging
+
     res.json({ id: session.id });
   } catch (error) {
-    console.error('Error creating Stripe Checkout session:', error);
-    res.status(500).json({ error: 'Failed to create checkout session', details: error.message });
+    console.error('Error creating checkout session:', error);
+    res.status(500).json({ error: 'Failed to create checkout session' });
   }
 };
 

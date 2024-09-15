@@ -13,6 +13,10 @@ import pg from 'pg';
 import session from 'express-session';
 import { v4 as uuidv4 } from 'uuid';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import winston from 'winston';
 
 const { Pool } = pg;
 
@@ -22,6 +26,20 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
+
+// Set Content Security Policy before any other middleware
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; frame-src https://js.stripe.com;"
+  );
+  next();
+});
+
+// Use Helmet for security headers (configure CSP here if preferred)
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable Helmet's default CSP to avoid conflicts
+}));
 
 // Middleware
 app.use(cookieParser());
@@ -38,12 +56,41 @@ app.use(session({
   }
 }));
 
+// Setup rate limiting to prevent abuse
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later.'
+});
+app.use(limiter);
+
+// Setup Winston logger
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.json(),
+    defaultMeta: { service: 'playlist-service' },
+    transports: [
+        new winston.transports.File({ filename: 'error.log', level: 'error' }),
+        new winston.transports.File({ filename: 'combined.log' }),
+    ],
+});
+
+// If we're not in production then log to the console
+if (process.env.NODE_ENV !== 'production') {
+    logger.add(new winston.transports.Console({
+        format: winston.format.simple(),
+    }));
+}
+
+// Setup Morgan to use Winston for HTTP request logging
+app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
+
 // Logging middleware
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  console.log('Query:', req.query);
-  console.log('Body:', req.body);
-  console.log('Cookies:', req.cookies);
+  logger.info(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  logger.info('Query:', req.query);
+  logger.info('Body:', req.body);
+  logger.info('Cookies:', req.cookies);
   next();
 });
 
@@ -56,7 +103,7 @@ const pool = new Pool({
   }
 });
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
+  logger.error('Unexpected error on idle client', err);
   process.exit(-1);
 });
 
@@ -67,9 +114,9 @@ app.locals.db = {
 // Test the database connection
 pool.query('SELECT NOW()', (err, res) => {
   if (err) {
-    console.error('Error connecting to the database', err);
+    logger.error('Error connecting to the database', err);
   } else {
-    console.log('Successfully connected to the database');
+    logger.info('Successfully connected to the database');
   }
 });
 
@@ -85,9 +132,9 @@ pool.query('SELECT NOW()', (err, res) => {
         is_subscribed BOOLEAN NOT NULL DEFAULT FALSE
       );
     `);
-    console.log('Users table created or already exists');
+    logger.info('Users table created or already exists');
   } catch (error) {
-    console.error('Error creating users table:', error);
+    logger.error('Error creating users table:', error);
   }
 })();
 
@@ -126,7 +173,7 @@ app.post('/api/create-playlist', async (req, res) => {
     // Call the existing createPlaylist function
     await createPlaylist(req, res);
   } catch (error) {
-    console.error('Error creating playlist:', error);
+    logger.error('Error creating playlist:', error);
     res.status(500).json({ error: 'Failed to create playlist', details: error.message });
   }
 });
@@ -146,10 +193,10 @@ app.post('/signup', async (req, res) => {
       [email, uuidv4()]
     );
 
-    console.log('User signed up:', result.rows[0]);
+    logger.info('User signed up:', result.rows[0]);
     res.json({ success: true });
   } catch (error) {
-    console.error('Error during sign up:', error);
+    logger.error('Error during sign up:', error);
     res.json({ success: false, error: error.message });
   }
 });
@@ -166,15 +213,15 @@ app.get('/api/me', async (req, res) => {
     const me = await spotifyApi.getMe();
     res.json(me.body);
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    logger.error('Error fetching user profile:', error);
     res.status(500).json({ error: 'Failed to fetch user profile', details: error.message });
   }
 });
 
-// Error handling middleware
+// Implement centralized error handling
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ error: 'An unexpected error occurred', details: err.message });
+  logger.error(`Unhandled error: ${err.message}`);
+  res.status(500).json({ error: 'Something went wrong' });
 });
 
 const port = process.env.PORT || 8888;
@@ -186,10 +233,10 @@ app.use(cors({
 }));
 
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-  console.log('Environment:', process.env.NODE_ENV);
-  console.log('Spotify Client ID:', process.env.SPOTIFY_CLIENT_ID);
-  console.log('Spotify Redirect URI:', process.env.SPOTIFY_REDIRECT_URI);
+  logger.info(`Server running on port ${port}`);
+  logger.info('Environment:', process.env.NODE_ENV);
+  logger.info('Spotify Client ID:', process.env.SPOTIFY_CLIENT_ID);
+  logger.info('Spotify Redirect URI:', process.env.SPOTIFY_REDIRECT_URI);
 });
 
 app.get('/subscription-success.html', (req, res) => {
