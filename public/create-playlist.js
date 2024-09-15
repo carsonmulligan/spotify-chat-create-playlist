@@ -20,12 +20,13 @@ const promptExamples = document.querySelectorAll('.prompt-example');
 
 // Check if the user is authenticated
 fetch('/check-auth')
-    .then(response => response.json())
-    .then(data => {
-        if (!data.authenticated) {
-            window.location.href = '/login';
-        }
-    });
+  .then(response => response.json())
+  .then(data => {
+      if (!data.authenticated) {
+          window.location.href = '/login';
+      }
+  });
+
 
 promptExamples.forEach(example => {
     example.addEventListener('click', (e) => {

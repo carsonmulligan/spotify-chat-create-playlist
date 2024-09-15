@@ -27,6 +27,8 @@ dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
 
+app.use(express.static('public')); // Move this above session middleware
+
 // Move these to the top of your middleware stack
 app.use(helmet());
 
@@ -44,22 +46,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false, // Consider setting this to false unless you need an uninitialized session
   cookie: { 
-    secure: isProduction,
+    secure: isProduction, // This should be true in production with HTTPS
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
 
+
 // Move this after all other middleware
 app.use(express.static('public'));
 
-// ... rest of your code ...
-
-// Ensure this route is defined
-app.get('/check-auth', (req, res) => {
-  res.json({ authenticated: !!req.session.userId });
-});
 
 // Move this to the bottom of your file
 app.use((req, res, next) => {
@@ -95,6 +92,8 @@ if (process.env.NODE_ENV !== 'production') {
         format: winston.format.simple(),
     }));
 }
+
+
 
 // Setup Morgan to use Winston for HTTP request logging
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
