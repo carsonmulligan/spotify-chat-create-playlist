@@ -59,38 +59,44 @@ promptExamples.forEach(example => {
 
 createPlaylistButton.addEventListener('click', async () => {
     const prompt = playlistPrompt.value;
-    
+
     try {
         result.innerHTML = '<p>Creating playlist...</p>';
-        
+
         const response = await fetch('/api/create-playlist', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`
             },
-            body: JSON.stringify({
-                prompt: prompt,
-                accessToken: accessToken
-            })
+            body: JSON.stringify({ prompt })
         });
 
-        if (!response.ok) throw new Error('Failed to create playlist');
-        
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let playlistData = '';
+        const data = await response.json();
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value);
-            playlistData += chunk;
-            result.innerHTML = `<p>Generating playlist: ${playlistData}</p>`;
+        if (response.status === 403 && data.error.includes('Playlist limit reached')) {
+            result.innerHTML = `<p>${data.error}</p><button id="subscribe-button">Subscribe Now</button>`;
+            document.getElementById('subscribe-button').addEventListener('click', () => {
+                fetch('/create-checkout-session', {
+                    method: 'POST',
+                })
+                .then(response => response.json())
+                .then(session => {
+                    return stripe.redirectToCheckout({ sessionId: session.id });
+                })
+                .then(result => {
+                    if (result.error) {
+                        alert(result.error.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        } else if (response.ok) {
+            result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;
+        } else {
+            result.innerHTML = `<p>Error: ${data.error}</p>`;
         }
-
-        const data = JSON.parse(playlistData);
-        result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;
     } catch (error) {
         console.error('Error:', error);
         result.innerHTML = `<p>Error: ${error.message}</p>`;
