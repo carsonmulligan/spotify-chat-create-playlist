@@ -14,7 +14,7 @@ import session from 'express-session';
 import { v4 as uuidv4 } from 'uuid';
 import cors from 'cors';
 
-const { Pool } = pg;  // Add this line to import Pool from pg
+const { Pool } = pg;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -211,4 +211,8 @@ app.use((req, res, next) => {
     "default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; frame-src https://js.stripe.com;"
   );
   next();
+});
+
+app.get('/check-auth', (req, res) => {
+  res.json({ authenticated: !!req.session.userId });
 });
