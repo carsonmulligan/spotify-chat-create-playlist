@@ -74,6 +74,7 @@ const spotifyApi = new SpotifyWebApi({
 
 // Routes
 app.get('/', (req, res) => {
+  console.log('Serving landing page');
   res.sendFile(path.join(__dirname, 'public', 'landing.html'));
 });
 
@@ -129,18 +130,21 @@ async function handleSuccessfulSubscription(session) {
 app.get('/config', getConfig);
 
 app.post('/signup', async (req, res) => {
+  console.log('Received signup request:', req.body);
   const { firstName, email } = req.body;
   const db = app.locals.db;
 
   try {
     const existingUser = await db.get('SELECT * FROM users WHERE email = ?', [email]);
     if (existingUser) {
+      console.log('User already exists:', email);
       return res.json({ success: false, error: 'User already exists' });
     }
 
     const userId = uuidv4();
     await db.run('INSERT INTO users (user_id, email, first_name) VALUES (?, ?, ?)', [userId, email, firstName]);
     req.session.userId = userId;
+    console.log('User created:', userId);
     res.json({ success: true });
   } catch (error) {
     console.error('Error during sign up:', error);

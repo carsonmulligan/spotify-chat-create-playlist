@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <!-- Your head content -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <div class="container">
@@ -27,8 +27,10 @@
     <script>
         document.getElementById('signup-form').addEventListener('submit', function(e) {
             e.preventDefault();
+            console.log('Form submitted');
             const firstName = e.target.first_name.value;
             const email = e.target.email.value;
+            console.log('First Name:', firstName, 'Email:', email);
             fetch('/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -36,11 +38,10 @@
             })
             .then(response => response.json())
             .then(data => {
+                console.log('Signup response:', data);
                 if (data.success) {
-                    // Redirect to login with Spotify
                     window.location.href = '/login';
                 } else {
-                    // Show error message
                     alert('Sign up failed: ' + data.error);
                 }
             })
