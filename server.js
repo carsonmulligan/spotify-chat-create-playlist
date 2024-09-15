@@ -17,6 +17,7 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import winston from 'winston';
+import { refreshAccessToken } from './routes/spotifyAuth.js';
 
 const { Pool } = pg;
 
@@ -27,15 +28,37 @@ dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
 
-app.use(express.static('public')); // Move this above session middleware
+// Middleware
 
-// Move these to the top of your middleware stack
-app.use(helmet());
+// Set Content Security Policy before any other middleware
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; frame-src https://js.stripe.com;"
+  );
+  next();
+});
+
+// Use Helmet for security headers (disable its CSP to prevent conflicts)
+app.use(helmet({
+  contentSecurityPolicy: false,
+}));
 
 const isProduction = process.env.NODE_ENV === 'production';
 
+const allowedOrigins = isProduction 
+  ? ['https://www.tunesmith-ai.com', 'https://tunesmith-ai.com'] 
+  : ['http://localhost:8888'];
+
 app.use(cors({
-  origin: isProduction ? 'https://www.tunesmith-ai.com' : 'http://localhost:8888',
+  origin: function(origin, callback) {
+    if(!origin) return callback(null, true);
+    if(allowedOrigins.indexOf(origin) === -1){
+      var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: true
 }));
 
@@ -46,26 +69,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false, // Consider setting this to false unless you need an uninitialized session
+  saveUninitialized: false,
   cookie: { 
-    secure: isProduction, // This should be true in production with HTTPS
+    secure: isProduction ? 'auto' : false, // 'auto' for production, false for development
+    httpOnly: true,
+    sameSite: 'lax', // 'lax' is more permissive than 'strict' and works better with OAuth flows
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
 
-
-// Move this after all other middleware
+// Serve static files after setting CSP
 app.use(express.static('public'));
-
-
-// Move this to the bottom of your file
-app.use((req, res, next) => {
-  res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; frame-src https://js.stripe.com;"
-  );
-  next();
-});
 
 // Setup rate limiting to prevent abuse
 const limiter = rateLimit({
@@ -103,7 +117,7 @@ app.use((req, res, next) => {
   logger.info(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   logger.info('Query:', req.query);
   logger.info('Body:', req.body);
-  logger.info('Cookies:', req.cookies);
+  logger.info('Session:', req.session);
   next();
 });
 
@@ -244,8 +258,13 @@ app.get('/api/me', async (req, res) => {
 
 // Implement centralized error handling
 app.use((err, req, res, next) => {
-  logger.error(`Unhandled error: ${err.message}`);
-  res.status(500).json({ error: 'Something went wrong' });
+  console.error(err.stack);
+  res.status(err.status || 500).json({
+    error: {
+      message: err.message,
+      status: err.status
+    }
+  });
 });
 
 const port = process.env.PORT || 8888;
@@ -261,3 +280,40 @@ app.get('/tunesmith_product_demo.mp4', async (req, res) => {
   const videoPath = path.join(__dirname, 'public', 'tunesmith_product_demo.mp4');
   res.sendFile(videoPath);
 });
+
+const checkAuth = (req, res, next) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+};
+
+// Use this middleware for protected routes
+app.get('/create-playlist', checkAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'create-playlist.html'));
+});
+
+app.post('/api/create-playlist', checkAuth, async (req, res) => {
+  const userId = req.session.userId;
+  const db = app.locals.db;
+
+  try {
+    const result = await db.query('SELECT * FROM users WHERE user_id = $1', [userId]);
+    const user = result.rows[0];
+    if (user.playlist_count >= 3 && !user.is_subscribed) {
+      return res.status(403).json({ error: 'Playlist limit reached. Please subscribe to create more playlists.' });
+    }
+
+    // Increment playlist count
+    await db.query('UPDATE users SET playlist_count = playlist_count + 1 WHERE user_id = $1', [userId]);
+
+    // Call the existing createPlaylist function
+    await createPlaylist(req, res);
+  } catch (error) {
+    logger.error('Error creating playlist:', error);
+    res.status(500).json({ error: 'Failed to create playlist', details: error.message });
+  }
+});
+
+// Use this middleware before routes that require a valid Spotify token
+app.use('/api', refreshAccessToken);

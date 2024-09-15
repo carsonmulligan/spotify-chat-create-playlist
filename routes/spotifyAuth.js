@@ -31,55 +31,66 @@ export const spotifyCallback = async (req, res) => {
   const { code, state } = req.query;
   const storedState = req.cookies ? req.cookies['spotify_auth_state'] : null;
 
-  console.log('Received callback from Spotify');
-  console.log('Query parameters:', req.query);
-  console.log('Stored state:', storedState);
-
   if (state === null || state !== storedState) {
-    console.error('State mismatch. Received:', state, 'Stored:', storedState);
+    console.error('State mismatch in Spotify callback.');
     return res.redirect('/#error=state_mismatch');
   }
 
-  res.clearCookie('spotify_auth_state');
-
   try {
-    console.log('Exchanging code for tokens');
+    console.log('Attempting to exchange authorization code for tokens');
     const data = await spotifyApi.authorizationCodeGrant(code);
+    console.log('Token exchange successful:', data.body);
+
     const { access_token, refresh_token, expires_in } = data.body;
 
-    console.log('Received tokens from Spotify');
-    console.log('Access token:', access_token.substring(0, 10) + '...');
-    console.log('Refresh token:', refresh_token.substring(0, 10) + '...');
-    console.log('Expires in:', expires_in);
-
+    // Set the access token on the API object
     spotifyApi.setAccessToken(access_token);
-
-    // Fetch user profile
-    const me = await spotifyApi.getMe();
-    const { id: spotifyId, email, display_name } = me.body;
-
-    // Store user in database
-    const db = req.app.locals.db;
-    await db.query(
-      'INSERT INTO users (user_id, email, first_name) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET email = $2, first_name = $3',
-      [spotifyId, email, display_name]
-    );
+    spotifyApi.setRefreshToken(refresh_token);
 
     // Store tokens in session
-    req.session.userId = spotifyId;
     req.session.accessToken = access_token;
     req.session.refreshToken = refresh_token;
-    req.session.expiresIn = expires_in;
+    req.session.tokenExpirationTime = Date.now() + expires_in * 1000;
+
+    console.log('Fetching user profile');
+    const me = await spotifyApi.getMe();
+    console.log('User profile fetched:', me.body);
+
+    req.session.userId = me.body.id;
 
     console.log('Session after Spotify login:', req.session);
 
-    // Redirect to the create-playlist page
-    res.redirect(`${FRONTEND_URI}/create-playlist`);
+    // Redirect to the create playlist page
+    res.redirect('/create-playlist');
   } catch (error) {
-    console.error('Error getting Spotify tokens:', error);
-    console.error('Error details:', error.response ? error.response.data : 'No response data');
-    res.redirect(`${FRONTEND_URI}/#error=spotify_auth_error`);
+    console.error('Error during Spotify callback:', error);
+    console.error('Error details:', error.body);
+    res.redirect('/#error=spotify_auth_error');
   }
 };
 
 export { spotifyApi };
+
+export const refreshAccessToken = async (req, res, next) => {
+  if (!req.session.refreshToken) {
+    return next();
+  }
+
+  const expirationTime = req.session.tokenExpirationTime;
+  if (!expirationTime || Date.now() > expirationTime) {
+    try {
+      spotifyApi.setRefreshToken(req.session.refreshToken);
+      const data = await spotifyApi.refreshAccessToken();
+      const { access_token, expires_in } = data.body;
+
+      req.session.accessToken = access_token;
+      req.session.tokenExpirationTime = Date.now() + expires_in * 1000;
+
+      spotifyApi.setAccessToken(access_token);
+    } catch (error) {
+      console.error('Error refreshing access token', error);
+      return res.status(401).json({ error: 'Failed to refresh access token' });
+    }
+  }
+  next();
+};
