@@ -20,6 +20,9 @@
             <section class="hero">
                 <h2>AI-Powered Spotify Playlist Creator 🤖🎧</h2>
                 <p>Create the perfect playlist with just a few words! ✨</p>
+                <p>Get 3 free playlists, then $2.99 per month for unlimited access.</p>
+                <a href="/login" class="button">Try it out with Spotify</a>
+                <button id="subscribe-button" class="button">Subscribe Now</button>
             </section>
 
             <section class="demo">
@@ -39,19 +42,39 @@
                     <li>⚡ Quick and easy to use</li>
                 </ul>
             </section>
-
-            <section class="cta">
-                <h3>Ready to Create Your Perfect Playlist? 🎵</h3>
-                <a href="/login" class="button">Try it out with Spotify</a>
-            </section>
         </main>
 
         <footer>
             <p>&copy; 2024 TuneSmith. All rights reserved.</p>
         </footer>
     </div>
+    <script src="https://js.stripe.com/v3/"></script>
     <script>
-        // Add any necessary client-side scripts here
+        document.getElementById('subscribe-button').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create checkout session');
+                }
+
+                const session = await response.json();
+                const stripe = Stripe(session.publishableKey);
+                const result = await stripe.redirectToCheckout({
+                    sessionId: session.id,
+                });
+
+                if (result.error) {
+                    throw result.error;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to start subscription process. Please try again.');
+            }
+        });
     </script>
 </body>
 </html>
