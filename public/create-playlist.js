@@ -10,6 +10,7 @@ const createPlaylistButton = document.getElementById('create-playlist-button');
 const playlistPrompt = document.getElementById('playlist-prompt');
 const result = document.getElementById('result');
 const subscriptionInfo = document.getElementById('subscription-info');
+const promptExamples = document.querySelectorAll('.prompt-example');
 
 // Check if the user is authenticated
 fetch('/check-auth')
@@ -19,6 +20,13 @@ fetch('/check-auth')
             window.location.href = '/login';
         }
     });
+
+promptExamples.forEach(example => {
+    example.addEventListener('click', (e) => {
+        e.preventDefault();
+        playlistPrompt.value = e.target.textContent.split(': ')[1];
+    });
+});
 
 createPlaylistButton.addEventListener('click', async () => {
     const prompt = playlistPrompt.value;

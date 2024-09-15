@@ -3,18 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Playlist - TuneSmith</title>
+    <title>TuneSmith - AI Spotify Playlist Creator</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <div class="container">
         <header>
             <h1>TuneSmith 🎵</h1>
+            <nav>
+                <a href="/" class="button">Home</a>
+            </nav>
         </header>
 
         <main id="playlist-creator">
             <h2>Create Your Playlist 🎧</h2>
-            <textarea id="playlist-prompt" placeholder="Describe your perfect playlist..."></textarea>
+            <p>Instructions: Tell the AI what type of playlist you want</p>
+            <div id="prompt-examples">
+                <h3>Quick Start: Try These Prompts!</h3>
+                <ul>
+                    <li><a href="#" class="prompt-example">👯‍♀️: 90s girly pop deep cuts</a></li>
+                    <li><a href="#" class="prompt-example">🧘‍♂️: artists like bob dylan</a></li>
+                    <li><a href="#" class="prompt-example">🤠: country songs about oklahoma</a></li>
+                </ul>
+            </div>
+            <textarea id="playlist-prompt" rows="4" placeholder="Describe your playlist..."></textarea>
             <button id="create-playlist-button">Create Playlist</button>
             <div id="result"></div>
             <div id="subscription-info"></div>
