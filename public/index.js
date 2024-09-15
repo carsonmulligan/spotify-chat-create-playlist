@@ -1,5 +1,5 @@
 let accessToken = null;
-let stripe;
+let stripe; // Remove 'let' from here as it's already declared
 
 const loginButton = document.getElementById('login-button');
 const playlistCreator = document.getElementById('playlist-creator');
@@ -56,16 +56,18 @@ function fetchUserProfile() {
     });
 }
 
-// Initialize Stripe
-fetch('/config')
-  .then((response) => response.json())
-  .then((data) => {
-    console.log('Stripe publishable key:', data.publishableKey);
-    stripe = Stripe(data.publishableKey);
-  })
-  .catch((error) => {
-    console.error('Error loading Stripe config:', error);
-  });
+// Replace the existing Stripe initialization code with this:
+if (!stripe) {
+    fetch('/config')
+        .then((response) => response.json())
+        .then((data) => {
+            console.log('Stripe publishable key:', data.publishableKey);
+            stripe = Stripe(data.publishableKey);
+        })
+        .catch((error) => {
+            console.error('Error loading Stripe config:', error);
+        });
+}
 
 // After successful authentication
 fetch(`/api/me?access_token=${accessToken}`)
@@ -121,10 +123,20 @@ createPlaylistButton.addEventListener('click', async () => {
             }
 
             const session = await sessionResponse.json();
-            console.log('Checkout session created:', session.id);
+            console.log('Checkout session created:', session);
 
-            // Redirect to Stripe Checkout
-            window.location.href = session.url;
+            if (!stripe) {
+                throw new Error('Stripe has not been initialized');
+            }
+
+            const { error } = await stripe.redirectToCheckout({
+                sessionId: session.id,
+            });
+
+            if (error) {
+                console.error('Error redirecting to checkout:', error);
+                throw error;
+            }
             return;
         }
 

@@ -15,6 +15,7 @@ import session from 'express-session';
 import bodyParser from 'body-parser';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
+import Stripe from 'stripe';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -101,11 +102,10 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (request, respon
       const session = event.data.object;
       // Handle successful checkout session
       console.log('Checkout session completed:', session);
+      // Update user's subscription status in the database
+      handleSuccessfulSubscription(session);
       break;
-    case 'payment_intent.succeeded':
-      const paymentIntent = event.data.object;
-      console.log('PaymentIntent was successful!');
-      break;
+    // ... handle other event types
     default:
       console.log(`Unhandled event type ${event.type}`);
   }
@@ -113,6 +113,19 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (request, respon
   // Return a 200 response to acknowledge receipt of the event
   response.send();
 });
+
+async function handleSuccessfulSubscription(session) {
+  const db = app.locals.db;
+  const userEmail = session.customer_email;
+  
+  try {
+    await db.run('UPDATE users SET is_subscribed = TRUE WHERE email = ?', [userEmail]);
+    console.log(`Updated subscription status for user: ${userEmail}`);
+  } catch (error) {
+    console.error('Error updating user subscription status:', error);
+  }
+}
+
 app.get('/config', getConfig);
 
 app.post('/signup', async (req, res) => {
