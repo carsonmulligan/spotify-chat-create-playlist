@@ -1,6 +1,5 @@
 // public/index.js
 let accessToken = null;
-let playlistCount = 0;
 
 const loginButton = document.getElementById('login-button');
 const playlistCreator = document.getElementById('playlist-creator');
@@ -24,7 +23,11 @@ window.onload = () => {
     result.innerHTML = '<p>Successfully logged in to Spotify!</p>';
 
     // Fetch the user profile
-    fetch(`/api/me?access_token=${accessToken}`)
+    fetch('/api/me', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    })
       .then(response => response.json())
       .then(data => {
         console.log('User profile:', data);
@@ -39,7 +42,7 @@ window.onload = () => {
   }
 
   window.location.hash = '';
-});
+};
 
 promptExamples.forEach(example => {
   example.addEventListener('click', (e) => {
@@ -50,11 +53,16 @@ promptExamples.forEach(example => {
 
 let stripe;
 
-fetch('/config')
-  .then((response) => response.json())
-  .then((data) => {
-    stripe = Stripe(data.publishableKey);
-  });
+document.addEventListener('DOMContentLoaded', () => {
+  fetch('/config')
+    .then((response) => response.json())
+    .then((data) => {
+      stripe = Stripe(data.publishableKey);
+    })
+    .catch(error => {
+      console.error('Error loading Stripe:', error);
+    });
+});
 
 createPlaylistButton.addEventListener('click', async () => {
   const prompt = playlistPrompt.value;
@@ -90,11 +98,15 @@ createPlaylistButton.addEventListener('click', async () => {
       const session = await sessionResponse.json();
 
       // Redirect to Stripe Checkout
-      const { error } = await stripe.redirectToCheckout({
-        sessionId: session.id,
-      });
-      if (error) {
-        console.error('Error redirecting to checkout:', error);
+      if (stripe) {
+        const { error } = await stripe.redirectToCheckout({
+          sessionId: session.id,
+        });
+        if (error) {
+          console.error('Error redirecting to checkout:', error);
+        }
+      } else {
+        console.error('Stripe is not initialized');
       }
       return;
     }
@@ -104,11 +116,6 @@ createPlaylistButton.addEventListener('click', async () => {
     const data = await response.json();
     result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;
 
-    playlistCount++;
-    if (playlistCount >= 3) {
-      createPlaylistButton.disabled = true;
-      result.innerHTML += '<p>You have reached your free playlist limit. Please subscribe to create more playlists.</p>';
-    }
   } catch (error) {
     console.error('Error:', error);
     result.innerHTML = `<p>Error: ${error.message}</p>`;
