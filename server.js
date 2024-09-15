@@ -8,6 +8,28 @@ import { generatePlaylistFromGPT } from './routes/openAI.js';
 import { createPlaylist } from './routes/createPlaylist.js';
 import cookieParser from 'cookie-parser';
 import SpotifyWebApi from 'spotify-web-api-node';
+import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
+
+// Initialize the database
+(async () => {
+  const db = await open({
+    filename: './database.sqlite',
+    driver: sqlite3.Database
+  });
+  app.locals.db = db;
+  // Run your schema.sql to create tables
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      user_id VARCHAR(255) PRIMARY KEY,
+      email VARCHAR(255) UNIQUE NOT NULL,
+      first_name VARCHAR(255),
+      playlist_count INTEGER NOT NULL DEFAULT 0,
+      is_subscribed BOOLEAN NOT NULL DEFAULT FALSE
+    );
+  `);
+})();
+
 
 // User Journey:
 // 1. User visits the homepage
