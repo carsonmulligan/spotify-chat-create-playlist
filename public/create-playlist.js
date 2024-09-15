@@ -38,7 +38,6 @@ createPlaylistButton.addEventListener('click', async () => {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('spotify_access_token')}`
             },
             body: JSON.stringify({ prompt })
         });

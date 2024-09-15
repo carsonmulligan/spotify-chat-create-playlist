@@ -19,16 +19,26 @@ export const createPlaylist = async (req, res) => {
     }
 
     // Generate playlist using OpenAI
-    const songs = await generatePlaylistFromGPT(prompt);
+    const playlistData = await generatePlaylistFromGPT(prompt);
+    console.log('Generated playlist from GPT:', playlistData);
 
     // Create a new playlist on Spotify
     spotifyApi.setAccessToken(accessToken);
-    const playlistName = `AI Playlist: ${prompt}`;
-    const playlist = await spotifyApi.createPlaylist(playlistName, { 'description': `Created with AI based on: ${prompt}`, 'public': false });
+    const playlistName = playlistData.name || `AI Playlist: ${prompt}`;
+    const playlist = await spotifyApi.createPlaylist(playlistName, { 'description': playlistData.description || `Created with AI based on: ${prompt}`, 'public': false });
 
-    // Add tracks to the playlist
-    const trackUris = songs.map(song => `spotify:track:${song.id}`);
-    await spotifyApi.addTracksToPlaylist(playlist.body.id, trackUris);
+    // Search for and add tracks to the playlist
+    const trackUris = [];
+    for (const track of playlistData.tracks) {
+      const searchResults = await spotifyApi.searchTracks(`track:${track.name} artist:${track.artist}`);
+      if (searchResults.body.tracks.items.length > 0) {
+        trackUris.push(searchResults.body.tracks.items[0].uri);
+      }
+    }
+
+    if (trackUris.length > 0) {
+      await spotifyApi.addTracksToPlaylist(playlist.body.id, trackUris);
+    }
 
     // Update playlist count
     await db.run('UPDATE users SET playlist_count = playlist_count + 1 WHERE user_id = ?', [userId]);
