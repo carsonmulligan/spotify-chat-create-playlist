@@ -46,12 +46,28 @@ app.use((req, res, next) => {
 });
 
 // PostgreSQL database initialization
-const pool = new pg.Pool({
+const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-app.locals.db = pool;
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
+});
+
+app.locals.db = {
+  query: (text, params) => pool.query(text, params),
+};
+
+// Test the database connection
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('Error connecting to the database', err);
+  } else {
+    console.log('Successfully connected to the database');
+  }
+});
 
 // Create the users table if it doesn't exist
 (async () => {
