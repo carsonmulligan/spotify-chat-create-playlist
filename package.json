@@ -21,7 +21,8 @@
     "querystring": "^0.2.1",
     "spotify-web-api-node": "^5.0.2",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "stripe": "^16.11.0"
   },
   "author": "",
   "license": "ISC",

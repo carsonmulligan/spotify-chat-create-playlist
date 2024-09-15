@@ -10,6 +10,48 @@ import cookieParser from 'cookie-parser';
 import SpotifyWebApi from 'spotify-web-api-node';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
+import session from 'express-session';
+
+app.use(session({
+  secret: process.env.SESSION_SECRET, // Replace with your own secret
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
+
+// server.js
+import bodyParser from 'body-parser';
+import { v4 as uuidv4 } from 'uuid';
+
+app.use(bodyParser.json());
+
+// Signup route
+app.post('/signup', async (req, res) => {
+  const { firstName, email } = req.body;
+  const db = req.app.locals.db;
+
+  try {
+    // Check if user already exists
+    const existingUser = await db.get('SELECT * FROM users WHERE email = ?', [email]);
+    if (existingUser) {
+      return res.json({ success: false, error: 'User already exists' });
+    }
+
+    const userId = uuidv4();
+
+    // Insert user into the database
+    await db.run('INSERT INTO users (user_id, email, first_name) VALUES (?, ?, ?)', [userId, email, firstName]);
+
+    // Set user session
+    req.session.userId = userId;
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error during sign up:', error);
+    res.json({ success: false, error: error.message });
+  }
+});
+
 
 // Initialize the database
 (async () => {

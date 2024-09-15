@@ -53,6 +53,10 @@ export const spotifyCallback = async (req, res) => {
 
     const redirectURL = `${process.env.FRONTEND_URI || 'http://localhost:8888'}/#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=${expires_in}`;
     
+    // Store tokens in session
+    req.session.accessToken = access_token;
+    req.session.refreshToken = refresh_token;
+
     console.log('Redirecting to:', redirectURL);
     res.redirect(redirectURL);
   } catch (error) {
