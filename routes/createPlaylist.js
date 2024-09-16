@@ -1,5 +1,5 @@
 import { generatePlaylistFromGPT } from './openAI.js';
-import { spotifyApi } from './spotifyAuth.js';
+import SpotifyWebApi from 'spotify-web-api-node';
 
 export const createPlaylist = async (req, res) => {
   const { prompt } = req.body;
@@ -15,6 +15,10 @@ export const createPlaylist = async (req, res) => {
     const result = await db.query('SELECT * FROM users WHERE user_id = $1', [userId]);
     const user = result.rows[0];
 
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+
     if (!user.is_subscribed && user.playlist_count >= 3) {
       return res.status(403).json({ error: 'You have reached your free playlist limit. Please subscribe to create more playlists.' });
     }
@@ -23,10 +27,19 @@ export const createPlaylist = async (req, res) => {
     const playlistData = await generatePlaylistFromGPT(prompt);
     console.log('Generated playlist from GPT:', playlistData);
 
-    // Create a new playlist on Spotify
+    // Create a new instance of SpotifyWebApi and set the access token
+    const spotifyApi = new SpotifyWebApi({
+      clientId: process.env.SPOTIFY_CLIENT_ID,
+      clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+    });
     spotifyApi.setAccessToken(accessToken);
+
+    // Create a new playlist on Spotify
     const playlistName = playlistData.name || `AI Playlist: ${prompt}`;
-    const playlist = await spotifyApi.createPlaylist(playlistName, { 'description': playlistData.description || `Created with AI based on: ${prompt}`, 'public': false });
+    const playlist = await spotifyApi.createPlaylist(playlistName, { 
+      description: playlistData.description || `Created with AI based on: ${prompt}`, 
+      public: false 
+    });
 
     // Search for and add tracks to the playlist
     const trackUris = [];
@@ -47,6 +60,9 @@ export const createPlaylist = async (req, res) => {
     res.json({ success: true, playlistUrl: playlist.body.external_urls.spotify });
   } catch (error) {
     console.error('Error creating playlist:', error);
+    if (error.response) {
+      console.error('Error response data:', error.response.data);
+    }
     res.status(500).json({ error: 'Failed to create playlist', details: error.message });
   }
 };

@@ -107,8 +107,6 @@ if (process.env.NODE_ENV !== 'production') {
     }));
 }
 
-
-
 // Setup Morgan to use Winston for HTTP request logging
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
 
@@ -122,16 +120,43 @@ app.use((req, res, next) => {
 });
 
 // PostgreSQL database initialization
+// const pool = new Pool({
+//   connectionString: process.env.DATABASE_URL,
+//   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+//   connectionTimeoutMillis: 10000 // Increase timeout to 10 seconds
+// });
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false,
-    sslmode: 'require'
-  }
+    rejectUnauthorized: false
+  },
+  connectionTimeoutMillis: 10000
 });
-pool.on('error', (err) => {
+
+pool.on('connect', (client) => {
+  logger.info('New client connected to the database');
+});
+
+pool.on('error', (err, client) => {
   logger.error('Unexpected error on idle client', err);
-  process.exit(-1);
+});
+
+// Modify the existing database connection test
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    logger.error('Error connecting to the database', err);
+    logger.error('Connection details:', {
+      host: pool.options.host,
+      port: pool.options.port,
+      database: pool.options.database,
+      user: pool.options.user,
+      // Don't log the password
+    });
+  } else {
+    logger.info('Successfully connected to the database');
+    logger.info('Database time:', res.rows[0].now);
+  }
 });
 
 app.locals.db = {
