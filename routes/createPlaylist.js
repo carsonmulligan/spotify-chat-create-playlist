@@ -1,3 +1,4 @@
+// createPlaylist.js
 import { generatePlaylistFromGPT } from './openAI.js';
 import SpotifyWebApi from 'spotify-web-api-node';
 
