@@ -236,8 +236,10 @@ wss.on('connection', (ws) => {
   ws.send('WebSocket connection established');
 });
 
-const server = app.listen(process.env.PORT || 8888, () => {
-  logger.info(`Server running on port ${server.address().port}`);
+const port = process.env.PORT || 8888;
+
+const server = app.listen(port, () => {
+  logger.info(`Server running on port ${port}`);
   logger.info('Environment:', process.env.NODE_ENV);
   logger.info('Spotify Client ID:', process.env.SPOTIFY_CLIENT_ID);
   logger.info('Spotify Redirect URI:', process.env.SPOTIFY_REDIRECT_URI);
@@ -391,15 +393,6 @@ app.use((err, req, res, next) => {
       status: err.status
     }
   });
-});
-
-const port = process.env.PORT || 8888;
-
-app.listen(port, () => {
-  logger.info(`Server running on port ${port}`);
-  logger.info('Environment:', process.env.NODE_ENV);
-  logger.info('Spotify Client ID:', process.env.SPOTIFY_CLIENT_ID);
-  logger.info('Spotify Redirect URI:', process.env.SPOTIFY_REDIRECT_URI);
 });
 
 app.get('/tunesmith_product_demo.mp4', async (req, res) => {
