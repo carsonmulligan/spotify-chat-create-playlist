@@ -114,3 +114,22 @@ async function startSubscription() {
         alert('Failed to start subscription process. Please try again.');
     }
 }
+
+// WebSocket setup
+const socket = new WebSocket(`ws://${window.location.host}`);
+
+socket.addEventListener('open', (event) => {
+  console.log('WebSocket connection established');
+});
+
+socket.addEventListener('message', (event) => {
+  const message = event.data;
+  console.log('Received message:', message);
+  // Display the message on the page
+  const streamingSearches = document.getElementById('streaming-searches');
+  streamingSearches.innerHTML += `<p>${message}</p>`;
+});
+
+socket.addEventListener('close', (event) => {
+  console.log('WebSocket connection closed');
+});

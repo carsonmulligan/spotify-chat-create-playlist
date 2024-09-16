@@ -2,7 +2,7 @@
 import { generatePlaylistFromGPT } from './openAI.js';
 import SpotifyWebApi from 'spotify-web-api-node';
 
-export const createPlaylist = async (req, res) => {
+export const createPlaylist = async (req, res, wss) => {
   const { prompt } = req.body;
   const accessToken = req.session.accessToken;
   const userId = req.session.userId;
@@ -45,13 +45,32 @@ export const createPlaylist = async (req, res) => {
     // Search for and add tracks to the playlist
     const trackUris = [];
     for (const track of playlistData.tracks) {
-      console.log(`Searching for track: ${track.name} by ${track.artist}`);
+      const message = `Searching for track: ${track.name} by ${track.artist}`;
+      console.log(message);
+      wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(message);
+        }
+      });
+
       const searchResults = await spotifyApi.searchTracks(`track:${track.name} artist:${track.artist}`);
       if (searchResults.body.tracks.items.length > 0) {
         trackUris.push(searchResults.body.tracks.items[0].uri);
-        console.log(`Found track: ${track.name} by ${track.artist}`);
+        const foundMessage = `Found track: ${track.name} by ${track.artist}`;
+        console.log(foundMessage);
+        wss.clients.forEach(client => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(foundMessage);
+          }
+        });
       } else {
-        console.log(`Track not found: ${track.name} by ${track.artist}`);
+        const notFoundMessage = `Track not found: ${track.name} by ${track.artist}`;
+        console.log(notFoundMessage);
+        wss.clients.forEach(client => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(notFoundMessage);
+          }
+        });
       }
     }
 

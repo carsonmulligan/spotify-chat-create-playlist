@@ -20,6 +20,7 @@ import winston from 'winston';
 import { refreshAccessToken } from './routes/spotifyAuth.js';
 import connectPgSimple from 'connect-pg-simple';
 import stripe from 'stripe';
+import { WebSocketServer } from 'ws';
 
 const { Pool } = pg;
 
@@ -224,6 +225,30 @@ const checkAuth = (req, res, next) => {
   next();
 };
 
+// WebSocket server setup
+const wss = new WebSocketServer({ noServer: true });
+
+wss.on('connection', (ws) => {
+  ws.on('message', (message) => {
+    console.log('received: %s', message);
+  });
+
+  ws.send('WebSocket connection established');
+});
+
+const server = app.listen(process.env.PORT || 8888, () => {
+  logger.info(`Server running on port ${server.address().port}`);
+  logger.info('Environment:', process.env.NODE_ENV);
+  logger.info('Spotify Client ID:', process.env.SPOTIFY_CLIENT_ID);
+  logger.info('Spotify Redirect URI:', process.env.SPOTIFY_REDIRECT_URI);
+});
+
+server.on('upgrade', (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit('connection', ws, request);
+  });
+});
+
 // Auth routes
 app.get('/login', spotifyLogin);
 app.get('/callback', spotifyCallback);
@@ -263,7 +288,7 @@ app.post('/api/create-playlist', checkAuth, async (req, res) => {
     await db.query('UPDATE users SET playlist_count = playlist_count + 1 WHERE user_id = $1', [userId]);
 
     // Call the existing createPlaylist function
-    await createPlaylist(req, res);
+    await createPlaylist(req, res, wss);
   } catch (error) {
     logger.error('Error creating playlist:', error);
     res.status(500).json({ error: 'Failed to create playlist', details: error.message });
