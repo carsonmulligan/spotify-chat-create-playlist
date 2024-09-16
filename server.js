@@ -120,11 +120,20 @@ app.use((req, res, next) => {
 });
 
 // PostgreSQL database initialization
+// const pool = new Pool({
+//   connectionString: process.env.DATABASE_URL,
+//   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+//   connectionTimeoutMillis: 10000 // Increase timeout to 10 seconds
+// });
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  connectionTimeoutMillis: 10000 // Increase timeout to 10 seconds
+  ssl: {
+    rejectUnauthorized: false
+  },
+  connectionTimeoutMillis: 10000
 });
+
 pool.on('connect', (client) => {
   logger.info('New client connected to the database');
 });
