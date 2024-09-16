@@ -19,6 +19,7 @@ import morgan from 'morgan';
 import winston from 'winston';
 import { refreshAccessToken } from './routes/spotifyAuth.js';
 import connectPgSimple from 'connect-pg-simple';
+import stripe from 'stripe';
 
 const { Pool } = pg;
 
@@ -28,6 +29,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
+const stripeInstance = stripe(process.env.STRIPE_SECRET_KEY);
 
 // Middleware
 
@@ -252,7 +254,40 @@ app.post('/api/create-playlist', checkAuth, async (req, res) => {
 
 // Stripe routes
 app.post('/create-checkout-session', (req, res) => createCheckoutSession(req, res, app.locals.db));
-app.post('/webhook', express.raw({ type: 'application/json' }), handleWebhook);
+app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+
+  let event;
+  try {
+    event = stripeInstance.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    logger.error('Webhook signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case 'checkout.session.completed':
+      const session = event.data.object;
+      const customerId = session.customer;
+      const db = app.locals.db;
+
+      try {
+        // Update the user's subscription status in the database
+        await db.query('UPDATE users SET is_subscribed = TRUE WHERE email = $1', [session.customer_email]);
+        logger.info(`User with email ${session.customer_email} is now subscribed.`);
+      } catch (error) {
+        logger.error('Error updating subscription status:', error);
+      }
+      break;
+    // ... handle other event types
+    default:
+      logger.warn(`Unhandled event type ${event.type}`);
+  }
+
+  // Return a response to acknowledge receipt of the event
+  res.json({ received: true });
+});
 app.get('/config', getConfig);
 
 // Static routes
