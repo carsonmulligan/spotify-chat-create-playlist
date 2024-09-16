@@ -20,7 +20,7 @@ export const createPlaylist = async (req, res) => {
       return res.status(401).json({ error: 'User not found in the database. Please log in again.' });
     }
 
-    if (!user.is_subscribed && user.playlist_count >= 3) {
+    if (!user.is_subscribed && user.playlist_count >= 50) {
       return res.status(403).json({ error: 'You have reached your free playlist limit. Please subscribe to create more playlists.' });
     }
 

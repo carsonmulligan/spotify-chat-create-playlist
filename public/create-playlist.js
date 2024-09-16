@@ -37,10 +37,9 @@ promptExamples.forEach(example => {
 
 createPlaylistButton.addEventListener('click', async () => {
     const prompt = playlistPrompt.value;
-    
+    const resultDiv = result;
+
     try {
-        result.innerHTML = '<p>Creating playlist...</p>';
-        
         const response = await fetch('/api/create-playlist', {
             method: 'POST',
             headers: { 
@@ -50,26 +49,20 @@ createPlaylistButton.addEventListener('click', async () => {
         });
 
         if (response.status === 403) {
-            const data = await response.json();
-            result.innerHTML = `<p>${data.error}</p>`;
-            subscriptionInfo.innerHTML = `
-                <p>Subscribe to create unlimited playlists!</p>
-                <button id="subscribe-button">Subscribe Now</button>
-            `;
-            document.getElementById('subscribe-button').addEventListener('click', startSubscription);
+            const errorData = await response.json();
+            resultDiv.innerHTML = `<p>${errorData.error}</p>`;
             return;
         }
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to create playlist');
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        result.innerHTML = `<p>Playlist created successfully! You can view it <a href="${data.playlistUrl}" target="_blank">here</a>.</p>`;
+        resultDiv.innerHTML = `<p>Playlist created! <a href="${data.playlistUrl}" target="_blank">View on Spotify</a></p>`;
     } catch (error) {
         console.error('Error:', error);
-        result.innerHTML = `<p>Error: ${error.message}</p>`;
+        resultDiv.innerHTML = `<p>Error creating playlist: ${error.message}</p>`;
     }
 });
 
