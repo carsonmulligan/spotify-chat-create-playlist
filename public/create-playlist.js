@@ -9,7 +9,7 @@ fetch('/config')
         });
     })
     .catch((error) => {
-        console.error('Error loading Stripe configuration:', error);
+        console.error('Error loading Stripe configuration:', error); // Log the error
     });
 
 const createPlaylistButton = document.getElementById('create-playlist-button');
