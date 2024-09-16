@@ -16,7 +16,7 @@ export const createPlaylist = async (req, res) => {
     const user = result.rows[0];
 
     if (!user) {
-      return res.status(401).json({ error: 'User not found' });
+      return res.status(401).json({ error: 'User not found in the database. Please log in again.' });
     }
 
     if (!user.is_subscribed && user.playlist_count >= 3) {

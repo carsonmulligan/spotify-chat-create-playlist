@@ -58,6 +58,25 @@ export const spotifyCallback = async (req, res) => {
 
     req.session.userId = me.body.id;
 
+    // Add or update user in the database
+    const db = req.app.locals.db;
+    const userId = me.body.id;
+    const email = me.body.email;
+    const firstName = me.body.display_name ? me.body.display_name.split(' ')[0] : null;
+
+    try {
+      await db.query(
+        `INSERT INTO users (user_id, email, first_name)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (user_id) DO UPDATE SET email = $2, first_name = $3`,
+        [userId, email, firstName]
+      );
+      console.log('User inserted or updated in database');
+    } catch (dbError) {
+      console.error('Error inserting or updating user in database:', dbError);
+      // You might want to handle this error appropriately
+    }
+
     console.log('Session after Spotify login:', req.session);
 
     // Redirect to the create playlist page

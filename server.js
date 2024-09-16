@@ -69,6 +69,15 @@ app.use(express.urlencoded({ extended: true }));
 
 app.set('trust proxy', 1);
 
+// PostgreSQL database initialization
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  },
+  connectionTimeoutMillis: 10000
+});
+
 const PgSession = connectPgSimple(session);
 
 app.use(session({
@@ -126,15 +135,6 @@ app.use((req, res, next) => {
   logger.info('Body:', req.body);
   logger.info('Session:', req.session);
   next();
-});
-
-// PostgreSQL database initialization
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  },
-  connectionTimeoutMillis: 10000
 });
 
 pool.on('connect', (client) => {
