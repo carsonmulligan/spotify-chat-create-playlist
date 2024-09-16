@@ -17,3 +17,11 @@ WITH (OIDS=FALSE);
 ALTER TABLE user_sessions ADD CONSTRAINT user_sessions_pkey PRIMARY KEY (sid) NOT DEFERRABLE INITIALLY IMMEDIATE;
 
 CREATE INDEX IF NOT EXISTS IDX_user_sessions_expire ON user_sessions (expire);
+
+-- New table to store user queries
+CREATE TABLE IF NOT EXISTS user_queries (
+  query_id SERIAL PRIMARY KEY,
+  user_id VARCHAR(255) REFERENCES users(user_id),
+  query TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
