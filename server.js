@@ -208,7 +208,7 @@ app.get('/check-auth', (req, res) => {
 
 // API routes
 app.post('/api/generate-playlist', generatePlaylistFromGPT);
-app.post('/api/create-playlist', async (req, res) => {
+app.post('/api/create-playlist', checkAuth, async (req, res) => {
   const userId = req.session.userId;
   const db = app.locals.db;
 
