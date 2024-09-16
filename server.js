@@ -18,6 +18,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import winston from 'winston';
 import { refreshAccessToken } from './routes/spotifyAuth.js';
+import connectPgSimple from 'connect-pg-simple';
 
 const { Pool } = pg;
 
@@ -66,7 +67,15 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.set('trust proxy', 1);
+
+const PgSession = connectPgSimple(session);
+
 app.use(session({
+  store: new PgSession({
+    pool: pool,                // Reuse the existing database pool
+    tableName: 'user_sessions' // You'll need to create this table
+  }),
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
@@ -120,12 +129,6 @@ app.use((req, res, next) => {
 });
 
 // PostgreSQL database initialization
-// const pool = new Pool({
-//   connectionString: process.env.DATABASE_URL, / 
-//   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-//   connectionTimeoutMillis: 10000 // Increase timeout to 10 seconds
-// });
-
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
