@@ -27,7 +27,6 @@ fetch('/check-auth')
       }
   });
 
-
 promptExamples.forEach(example => {
     example.addEventListener('click', (e) => {
         e.preventDefault();
@@ -40,6 +39,9 @@ createPlaylistButton.addEventListener('click', async () => {
     const resultDiv = result;
 
     try {
+        resultDiv.innerHTML = '<p>Creating playlist<span id="loading-dots"></span></p>';
+        startLoadingDots();
+
         const response = await fetch('/api/create-playlist', {
             method: 'POST',
             headers: { 
@@ -63,8 +65,25 @@ createPlaylistButton.addEventListener('click', async () => {
     } catch (error) {
         console.error('Error:', error);
         resultDiv.innerHTML = `<p>Error creating playlist: ${error.message}</p>`;
+    } finally {
+        stopLoadingDots();
     }
 });
+
+function startLoadingDots() {
+    const loadingDots = document.getElementById('loading-dots');
+    let dots = 0;
+    loadingDots.interval = setInterval(() => {
+        dots = (dots + 1) % 4;
+        loadingDots.textContent = '.'.repeat(dots);
+    }, 500);
+}
+
+function stopLoadingDots() {
+    const loadingDots = document.getElementById('loading-dots');
+    clearInterval(loadingDots.interval);
+    loadingDots.textContent = '';
+}
 
 async function startSubscription() {
     try {

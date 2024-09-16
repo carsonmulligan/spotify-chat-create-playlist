@@ -45,9 +45,13 @@ export const createPlaylist = async (req, res) => {
     // Search for and add tracks to the playlist
     const trackUris = [];
     for (const track of playlistData.tracks) {
+      console.log(`Searching for track: ${track.name} by ${track.artist}`);
       const searchResults = await spotifyApi.searchTracks(`track:${track.name} artist:${track.artist}`);
       if (searchResults.body.tracks.items.length > 0) {
         trackUris.push(searchResults.body.tracks.items[0].uri);
+        console.log(`Found track: ${track.name} by ${track.artist}`);
+      } else {
+        console.log(`Track not found: ${track.name} by ${track.artist}`);
       }
     }
 
