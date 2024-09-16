@@ -16,14 +16,17 @@ const createPlaylistButton = document.getElementById('create-playlist-button');
 const playlistPrompt = document.getElementById('playlist-prompt');
 const result = document.getElementById('result');
 const subscriptionInfo = document.getElementById('subscription-info');
+const subscribeButton = document.getElementById('subscribe-button');
 const promptExamples = document.querySelectorAll('.prompt-example');
 
-// Check if the user is authenticated
+// Check if the user is authenticated and subscribed
 fetch('/check-auth')
   .then(response => response.json())
   .then(data => {
       if (!data.authenticated) {
           window.location.href = '/login';
+      } else if (!data.isSubscribed) {
+          subscribeButton.style.display = 'block';
       }
   });
 
@@ -69,6 +72,8 @@ createPlaylistButton.addEventListener('click', async () => {
         stopLoadingDots();
     }
 });
+
+subscribeButton.addEventListener('click', startSubscription);
 
 function startLoadingDots() {
     const loadingDots = document.getElementById('loading-dots');
