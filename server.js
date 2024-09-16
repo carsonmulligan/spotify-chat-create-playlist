@@ -199,6 +199,14 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: process.env.SPOTIFY_REDIRECT_URI,
 });
 
+// Middleware to check if the user is authenticated
+const checkAuth = (req, res, next) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+};
+
 // Auth routes
 app.get('/login', spotifyLogin);
 app.get('/callback', spotifyCallback);
@@ -239,7 +247,7 @@ app.get('/config', getConfig);
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'landing.html'));
 });
-app.get('/create-playlist', (req, res) => {
+app.get('/create-playlist', checkAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'create-playlist.html'));
 });
 app.get('/subscription-success.html', (req, res) => {
@@ -308,40 +316,3 @@ app.get('/tunesmith_product_demo.mp4', async (req, res) => {
   const videoPath = path.join(__dirname, 'public', 'tunesmith_product_demo.mp4');
   res.sendFile(videoPath);
 });
-
-const checkAuth = (req, res, next) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  next();
-};
-
-// Use this middleware for protected routes
-app.get('/create-playlist', checkAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'create-playlist.html'));
-});
-
-app.post('/api/create-playlist', checkAuth, async (req, res) => {
-  const userId = req.session.userId;
-  const db = app.locals.db;
-
-  try {
-    const result = await db.query('SELECT * FROM users WHERE user_id = $1', [userId]);
-    const user = result.rows[0];
-    if (user.playlist_count >= 3 && !user.is_subscribed) {
-      return res.status(403).json({ error: 'Playlist limit reached. Please subscribe to create more playlists.' });
-    }
-
-    // Increment playlist count
-    await db.query('UPDATE users SET playlist_count = playlist_count + 1 WHERE user_id = $1', [userId]);
-
-    // Call the existing createPlaylist function
-    await createPlaylist(req, res);
-  } catch (error) {
-    logger.error('Error creating playlist:', error);
-    res.status(500).json({ error: 'Failed to create playlist', details: error.message });
-  }
-});
-
-// Use this middleware before routes that require a valid Spotify token
-app.use('/api', refreshAccessToken);
