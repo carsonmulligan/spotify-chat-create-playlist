@@ -193,6 +193,21 @@ pool.query('SELECT NOW()', (err, res) => {
   } catch (error) {
     logger.error('Error creating users table:', error);
   }
+
+  // Create the user_queries table if it doesn't exist
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_queries (
+        query_id SERIAL PRIMARY KEY,
+        user_id VARCHAR(255) REFERENCES users(user_id),
+        query TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    logger.info('User queries table created or already exists');
+  } catch (error) {
+    logger.error('Error creating user queries table:', error);
+  }
 })();
 
 const spotifyApi = new SpotifyWebApi({
@@ -240,6 +255,9 @@ app.post('/api/create-playlist', checkAuth, async (req, res) => {
     if (user.playlist_count >= 50 && !user.is_subscribed) {
       return res.status(403).json({ error: 'Playlist limit reached. Please subscribe to create more playlists.' });
     }
+
+    // Save the user's query
+    await db.query('INSERT INTO user_queries (user_id, query) VALUES ($1, $2)', [userId, req.body.prompt]);
 
     // Increment playlist count
     await db.query('UPDATE users SET playlist_count = playlist_count + 1 WHERE user_id = $1', [userId]);
