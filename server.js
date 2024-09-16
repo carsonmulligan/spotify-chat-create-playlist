@@ -223,7 +223,7 @@ app.post('/api/create-playlist', checkAuth, async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM users WHERE user_id = $1', [userId]);
     const user = result.rows[0];
-    if (user.playlist_count >= 3 && !user.is_subscribed) {
+    if (user.playlist_count >= 50 && !user.is_subscribed) {
       return res.status(403).json({ error: 'Playlist limit reached. Please subscribe to create more playlists.' });
     }
 

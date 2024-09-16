@@ -48,6 +48,12 @@ createPlaylistButton.addEventListener('click', async () => {
             body: JSON.stringify({ prompt })
         });
 
+        if (response.status === 403) {
+            const errorData = await response.json();
+            resultDiv.innerHTML = `<p>${errorData.error}</p>`;
+            return;
+        }
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
