@@ -210,8 +210,20 @@ const checkAuth = (req, res, next) => {
 // Auth routes
 app.get('/login', spotifyLogin);
 app.get('/callback', spotifyCallback);
-app.get('/check-auth', (req, res) => {
-  res.json({ authenticated: !!req.session.userId });
+app.get('/check-auth', async (req, res) => {
+  if (!req.session.userId) {
+    return res.json({ authenticated: false });
+  }
+
+  const db = app.locals.db;
+  try {
+    const result = await db.query('SELECT is_subscribed FROM users WHERE user_id = $1', [req.session.userId]);
+    const user = result.rows[0];
+    res.json({ authenticated: true, isSubscribed: user.is_subscribed });
+  } catch (error) {
+    logger.error('Error checking subscription status:', error);
+    res.status(500).json({ authenticated: false });
+  }
 });
 
 // API routes
